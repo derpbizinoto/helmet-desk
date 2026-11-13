@@ -5,9 +5,7 @@
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Theme.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
+            <!-- the theme (Themes/FrutigerAero.xaml or Themes/Legacy.xaml) is merged at startup by ThemeManager.Apply -->
             <local:VisConverter x:Key="Vis"/>
             <local:HexBrushConverter x:Key="HexBrush"/>
         </ResourceDictionary>

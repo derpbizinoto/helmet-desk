@@ -1,4 +1,4 @@
-<Window x:Class="HelmetDesk.BugReportWindow"
+﻿<Window x:Class="HelmetDesk.BugReportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:HelmetDesk"
@@ -69,7 +69,7 @@
                             </StackPanel>
                         </CheckBox>
 
-                        <Border x:Name="CrashBox" Visibility="Collapsed" Margin="0,18,0,0" Padding="12,10" CornerRadius="8" Background="#26FF6F91">
+                        <Border x:Name="CrashBox" Visibility="Collapsed" Margin="0,18,0,0" Padding="12,10" CornerRadius="8" Background="{StaticResource DangerTint}">
                             <StackPanel>
                                 <TextBlock Text="O erro capturado será incluído no relatório." FontWeight="SemiBold" Foreground="{StaticResource Danger}"/>
                                 <TextBlock x:Name="CrashText" Style="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0" MaxHeight="60"

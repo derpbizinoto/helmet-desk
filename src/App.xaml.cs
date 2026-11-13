@@ -60,6 +60,7 @@ namespace HelmetDesk
             HookUnhandledErrors();
 
             Store.Load();
+            ThemeManager.Apply(Store.Data.Settings.Theme);
             SyncStartupRegistration();
             SetupTray();
 

@@ -130,7 +130,7 @@
                 <Trigger SourceName="card" Property="IsMouseOver" Value="True">
                     <Setter TargetName="actions" Property="Opacity" Value="1"/>
                     <Setter TargetName="edit" Property="Opacity" Value="1"/>
-                    <Setter TargetName="card" Property="local:Motion.BorderBrush" Value="#4C3270"/>
+                    <Setter TargetName="card" Property="local:Motion.BorderBrush" Value="{StaticResource HoverLine}"/>
                 </Trigger>
                 <Trigger SourceName="card" Property="IsKeyboardFocusWithin" Value="True">
                     <Setter TargetName="actions" Property="Opacity" Value="1"/>
@@ -180,7 +180,7 @@
             <DataTemplate.Triggers>
                 <Trigger SourceName="row" Property="IsMouseOver" Value="True">
                     <Setter TargetName="actions" Property="Opacity" Value="1"/>
-                    <Setter TargetName="row" Property="local:Motion.BorderBrush" Value="#4C3270"/>
+                    <Setter TargetName="row" Property="local:Motion.BorderBrush" Value="{StaticResource HoverLine}"/>
                 </Trigger>
                 <Trigger SourceName="row" Property="IsKeyboardFocusWithin" Value="True">
                     <Setter TargetName="actions" Property="Opacity" Value="1"/>
@@ -278,9 +278,12 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <!-- theme backdrop (Frutiger Aero: twilight gradient + aurora + title glass strip; classic: nothing) -->
+            <ContentControl Grid.ColumnSpan="2" Style="{StaticResource AppBackdrop}"/>
+
             <!-- ================= Sidebar ================= -->
             <!-- Ui.WideOnly = shown only when the bar is open; Ui.CompactOnly = only when collapsed; Ui.CompactTip = tooltip when collapsed -->
-            <Border x:Name="Sidebar" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+            <Border x:Name="Sidebar" Style="{StaticResource SidebarPanel}">
                 <DockPanel x:Name="SideDock" Margin="14,16,14,16">
                     <Grid x:Name="SideTop" DockPanel.Dock="Top" Margin="4,0,0,22">
                         <Grid.ColumnDefinitions>
@@ -289,7 +292,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Horizontal" local:Ui.WideOnly="True" VerticalAlignment="Center">
                             <Image Source="Assets/logo.png" Height="21" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
-                            <TextBlock Text="HELMET DESK" FontFamily="{StaticResource BrandFont}" FontSize="21" Margin="9,0,0,1" VerticalAlignment="Center"
+                            <TextBlock Text="HELMET DESK" Style="{StaticResource BrandText}" Margin="9,0,0,1" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                         <Button x:Name="SideToggle" Grid.Column="1" Style="{StaticResource IconButton}" Click="SideToggle_Click"
@@ -350,7 +353,7 @@
 
                     <Grid VerticalAlignment="Top">
                     <!-- highlight of the active item; slides between items (Motion.MoveTo) -->
-                    <Border x:Name="NavMarker" VerticalAlignment="Top" Background="{StaticResource Line}" CornerRadius="8"
+                    <Border x:Name="NavMarker" VerticalAlignment="Top" Background="{StaticResource NavSelected}" CornerRadius="8"
                             IsHitTestVisible="False" Visibility="Collapsed"/>
                     <StackPanel x:Name="NavList">
                         <RadioButton x:Name="NavToday" Style="{StaticResource NavButton}" GroupName="nav" Tag="today" Checked="Nav_Checked" HorizontalContentAlignment="Stretch" local:Ui.CompactTip="Hoje">
@@ -431,12 +434,15 @@
             </GridSplitter>
 
             <!-- ================= Content ================= -->
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="1" Style="{StaticResource ContentArea}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
+
+                <!-- theme panel behind the header and body (Frutiger Aero: light glass; classic: hidden) -->
+                <Border Grid.Row="1" Grid.RowSpan="2" Style="{StaticResource ContentPanel}"/>
 
                 <!-- window buttons -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
@@ -580,7 +586,7 @@
                                         </StackPanel>
                                     </Border>
                                     <Border x:Name="QuickDateChip" DockPanel.Dock="Left" Visibility="Collapsed" CornerRadius="5" Padding="8,3"
-                                            Margin="0,0,6,0" VerticalAlignment="Center" Background="#3D2B5E" Cursor="Hand"
+                                            Margin="0,0,6,0" VerticalAlignment="Center" Background="{StaticResource ChipBg}" Cursor="Hand"
                                             ToolTip="Clique para remover a data" MouseLeftButtonDown="QuickDateChip_MouseDown">
                                         <StackPanel Orientation="Horizontal">
                                             <local:Icon Data="{StaticResource I.Calendar}" Width="13" Height="13" Margin="0,0,5,0"
@@ -590,7 +596,7 @@
                                         </StackPanel>
                                     </Border>
                                     <Border x:Name="QuickTimeChip" DockPanel.Dock="Left" Visibility="Collapsed" CornerRadius="5" Padding="8,3"
-                                            Margin="0,0,6,0" VerticalAlignment="Center" Background="#3D2B5E" Cursor="Hand"
+                                            Margin="0,0,6,0" VerticalAlignment="Center" Background="{StaticResource ChipBg}" Cursor="Hand"
                                             ToolTip="Clique para remover o horário" MouseLeftButtonDown="QuickTimeChip_MouseDown">
                                         <StackPanel Orientation="Horizontal">
                                             <local:Icon Data="{StaticResource I.Clock}" Width="13" Height="13" Margin="0,0,5,0"
@@ -1122,7 +1128,7 @@
 
             <!-- ===== Confirmation dialog (delete, import, messages) ===== -->
             <Grid x:Name="DialogLayer" Grid.ColumnSpan="2" Visibility="Collapsed">
-                <Border x:Name="DialogScrim" Background="#B3100B18" MouseLeftButtonDown="DialogScrim_Click"/>
+                <Border x:Name="DialogScrim" Background="{StaticResource Scrim}" MouseLeftButtonDown="DialogScrim_Click"/>
                 <Border x:Name="DialogCard" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"
                         Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12"
                         Padding="22,20,22,18" RenderTransformOrigin="0.5,0.5"
@@ -1130,7 +1136,7 @@
                         AutomationProperties.Name="Confirmar exclusão">
                     <StackPanel>
                         <DockPanel>
-                            <Border x:Name="DialogIconBg" DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="18" Background="#33FF6F91" Margin="0,0,14,0" VerticalAlignment="Top">
+                            <Border x:Name="DialogIconBg" DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="18" Background="{StaticResource DangerSoft}" Margin="0,0,14,0" VerticalAlignment="Top">
                                 <local:Icon x:Name="DialogIcon" Data="{StaticResource I.Trash}" Foreground="{StaticResource Danger}" Width="17" Height="17"/>
                             </Border>
                             <StackPanel>

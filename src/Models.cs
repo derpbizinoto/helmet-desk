@@ -327,6 +327,8 @@ namespace HelmetDesk
         private bool _confirmDelete = true;
         /// <summary>Ask "tem certeza?" before deleting a note/task.</summary>
         public bool ConfirmDelete { get => _confirmDelete; set { if (Set(ref _confirmDelete, value)) Store.MarkDirty(); } }
+        /// <summary>Visual theme: "aero" (Frutiger Aero, default) or "classic" (the dark UI). Applied at startup.</summary>
+        public string Theme { get; set; } = "aero";
         public bool SidebarCollapsed { get; set; }
         public double SidebarWidth { get; set; } = 228;
 
