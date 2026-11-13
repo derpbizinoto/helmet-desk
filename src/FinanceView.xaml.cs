@@ -991,9 +991,9 @@ namespace HelmetDesk
                 else if (r.Paused) pills.Children.Add(Pill("Pausada", Ui.Res("Warning"), Ui.Geo("I.Pause")));
                 else
                 {
-                    var next = FinanceService.OccurrenceDate(r, DateTime.Today);
-                    if (next < DateTime.Today) next = FinanceService.OccurrenceDate(r, DateTime.Today.AddMonths(1));
-                    pills.Children.Add(Pill("Próximo: " + next.ToString("dd/MM"), Ui.Res("Success")));
+                    // skips months deleted on purpose and stops at the end month
+                    var next = FinanceService.NextOccurrence(r, DateTime.Today);
+                    pills.Children.Add(next.HasValue ? Pill("Próximo: " + next.Value.ToString("dd/MM"), Ui.Res("Success")) : Pill("Sem próximos lançamentos"));
                     if (r.EndMonth.HasValue) pills.Children.Add(Pill("até " + r.EndMonth.Value.ToString("MM/yyyy")));
                 }
                 info.Children.Add(pills);
@@ -1009,15 +1009,15 @@ namespace HelmetDesk
                 Grid.SetColumn(amount, 2);
                 grid.Children.Add(amount);
 
-                StackPanel actions = null;
+                var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 if (!ended)
                 {
-                    actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                     actions.Children.Add(IconBtn(r.Paused ? "I.Play" : "I.Pause", r.Paused ? "Retomar" : "Pausar", (s, e) => { r.Paused = !r.Paused; if (!r.Paused) GenerateMonth(); Commit(); }));
                     actions.Children.Add(IconBtn("I.Stop", "Encerrar", (s, e) => RequestEndRecurrence(r), danger: true));
-                    Grid.SetColumn(actions, 3);
-                    grid.Children.Add(actions);
                 }
+                actions.Children.Add(IconBtn("I.Trash", "Excluir recorrência", (s, e) => RequestDeleteRecurrence(r), danger: true));
+                Grid.SetColumn(actions, 3);
+                grid.Children.Add(actions);
                 var row = Row(grid, actions);
                 row.Padding = new Thickness(12, 10, 8, 10);
                 if (ended || r.Paused) row.Opacity = 0.65;
@@ -1026,19 +1026,57 @@ namespace HelmetDesk
             RecEmpty.Visibility = D.Recurrences.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void RequestEndRecurrence(Recurrence r)
+        /// <summary>
+        /// "Encerrar": after this month by default; with the box ticked, already this month (its pending entry is removed,
+        /// a paid one stays).
+        /// </summary>
+        internal void RequestEndRecurrence(Recurrence r)
         {
             var month = DateTime.Today;
+            var monthName = Dates.MonthTitle(month).ToLower(Dates.Pt);
+            bool activeNow = FinanceService.IsActiveIn(r, month);
             Host?.OpenDialog("Encerrar recorrência?",
-                $"“{r.Description}” não vai gerar lançamentos depois de {Dates.MonthTitle(month).ToLower(Dates.Pt)}. Pendentes de meses seguintes que já existirem são removidos; os já lançados ficam.",
+                $"“{r.Description}” não vai gerar lançamentos depois de {monthName}. Pendentes de meses seguintes que já existirem são removidos; os já pagos ficam.",
                 "Encerrar", "Cancelar", MainWindow.DialogKind.Danger, false, ok =>
                 {
                     if (!ok) return;
-                    var before = Snapshot();
-                    FinanceService.EndRecurrence(D, r, month);
-                    Commit();
-                    Host?.ShowSnack("Recorrência encerrada", "Desfazer", () => { Restore(before); Commit(); });
-                });
+                    bool includeThis = activeNow && Host?.DialogChecked == true;
+                    EndRecurrence(r, includeThis);
+                },
+                checkText: activeNow ? $"Encerrar já em {monthName} (remove o lançamento pendente deste mês)" : null);
+        }
+
+        internal void EndRecurrence(Recurrence r, bool includeThisMonth)
+        {
+            var before = Snapshot();
+            var month = DateTime.Today;
+            FinanceService.EndRecurrence(D, r, includeThisMonth ? month.AddMonths(-1) : month);
+            Commit();
+            Host?.ShowSnack("Recorrência encerrada", "Desfazer", () => { Restore(before); Commit(); });
+        }
+
+        /// <summary>"Excluir recorrência": the model and its pending entries go; paid ones stay unless the box is ticked.</summary>
+        internal void RequestDeleteRecurrence(Recurrence r)
+        {
+            int paid = D.Transactions.Count(t => t.RecurrenceId == r.Id && t.Paid);
+            int pending = D.Transactions.Count(t => t.RecurrenceId == r.Id && !t.Paid);
+            var text = $"“{r.Description}” deixa de existir e não gera mais lançamentos."
+                       + (pending > 0 ? $" {(pending == 1 ? "O lançamento pendente é removido" : $"Os {pending} lançamentos pendentes são removidos")}." : "")
+                       + (paid > 0 ? $" {(paid == 1 ? "O lançamento já pago fica" : $"Os {paid} lançamentos já pagos ficam")} no histórico como lançamento comum." : "");
+            Host?.OpenDialog("Excluir recorrência?", text, "Excluir", "Cancelar", MainWindow.DialogKind.Danger, false, ok =>
+                {
+                    if (!ok) return;
+                    DeleteRecurrence(r, paid > 0 && Host?.DialogChecked == true);
+                },
+                checkText: paid > 0 ? "Apagar também os já pagos (muda o saldo das contas)" : null);
+        }
+
+        internal void DeleteRecurrence(Recurrence r, bool includePaid)
+        {
+            var before = Snapshot();
+            FinanceService.DeleteRecurrence(D, r, includePaid);
+            Commit();
+            Host?.ShowSnack("Recorrência excluída", "Desfazer", () => { Restore(before); Commit(); });
         }
 
         // ================= categories =================

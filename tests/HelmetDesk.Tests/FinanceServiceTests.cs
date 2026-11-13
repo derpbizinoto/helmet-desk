@@ -190,6 +190,70 @@ namespace HelmetDesk.Tests
         }
 
         [Fact]
+        public void EndRecurrence_including_this_month_removes_its_pending_but_keeps_paid()
+        {
+            var (d, a, _, _, _) = Setup();
+            var r = new Recurrence { Kind = TxKind.Expense, Amount = 7.95m, AccountId = a.Id, DayOfMonth = 28, StartMonth = new DateTime(2026, 9, 1) };
+            d.Recurrences.Add(r);
+            var sep = FinanceService.GenerateRecurring(d, new DateTime(2026, 9, 1)).Single(); sep.Paid = true;
+            var oct = FinanceService.GenerateRecurring(d, new DateTime(2026, 10, 1)).Single(); oct.Paid = true;
+            var nov = FinanceService.GenerateRecurring(d, new DateTime(2026, 11, 1)).Single();   // still pending
+            // "encerrar já neste mês" in November = last month is October
+            FinanceService.EndRecurrence(d, r, new DateTime(2026, 10, 1));
+            Assert.DoesNotContain(nov, d.Transactions);
+            Assert.Contains(sep, d.Transactions);
+            Assert.Contains(oct, d.Transactions);
+            Assert.Contains(r, d.Recurrences);
+            Assert.Empty(FinanceService.GenerateRecurring(d, new DateTime(2026, 11, 1)));
+            Assert.Null(FinanceService.NextOccurrence(r, new DateTime(2026, 11, 13)));
+        }
+
+        [Fact]
+        public void EndRecurrence_before_its_first_month_removes_it_when_nothing_is_left()
+        {
+            var (d, a, _, _, _) = Setup();
+            var r = new Recurrence { Kind = TxKind.Expense, Amount = 10m, AccountId = a.Id, DayOfMonth = 28, StartMonth = new DateTime(2026, 11, 1) };
+            d.Recurrences.Add(r);
+            FinanceService.GenerateRecurring(d, new DateTime(2026, 11, 1));
+            FinanceService.EndRecurrence(d, r, new DateTime(2026, 10, 1));
+            Assert.Empty(d.Transactions);
+            Assert.DoesNotContain(r, d.Recurrences);
+        }
+
+        [Fact]
+        public void DeleteRecurrence_keeps_paid_history_unlinked_unless_asked()
+        {
+            var (d, a, _, _, _) = Setup();
+            var r = new Recurrence { Kind = TxKind.Expense, Amount = 20m, AccountId = a.Id, DayOfMonth = 5, StartMonth = new DateTime(2026, 9, 1) };
+            d.Recurrences.Add(r);
+            var paid = FinanceService.GenerateRecurring(d, new DateTime(2026, 9, 1)).Single(); paid.Paid = true;
+            FinanceService.GenerateRecurring(d, new DateTime(2026, 10, 1));
+            Assert.Equal(1, FinanceService.DeleteRecurrence(d, r, includePaid: false));
+            Assert.Empty(d.Recurrences);
+            Assert.Same(paid, d.Transactions.Single());
+            Assert.False(paid.IsRecurring);
+
+            var r2 = new Recurrence { Kind = TxKind.Expense, Amount = 20m, AccountId = a.Id, DayOfMonth = 5, StartMonth = new DateTime(2026, 9, 1) };
+            d.Transactions.Clear(); d.Recurrences.Add(r2);
+            FinanceService.GenerateRecurring(d, new DateTime(2026, 9, 1)).Single().Paid = true;
+            FinanceService.GenerateRecurring(d, new DateTime(2026, 10, 1));
+            Assert.Equal(2, FinanceService.DeleteRecurrence(d, r2, includePaid: true));
+            Assert.Empty(d.Transactions);
+        }
+
+        [Fact]
+        public void NextOccurrence_skips_deleted_months_and_stops_at_the_end()
+        {
+            var r = new Recurrence { DayOfMonth = 28, StartMonth = new DateTime(2026, 1, 1), EndMonth = new DateTime(2026, 12, 1) };
+            r.SkippedMonths.Add("2026-11");
+            Assert.Equal(new DateTime(2026, 12, 28), FinanceService.NextOccurrence(r, new DateTime(2026, 11, 13)));
+            Assert.Equal(new DateTime(2026, 10, 28), FinanceService.NextOccurrence(r, new DateTime(2026, 10, 2)));
+            Assert.Null(FinanceService.NextOccurrence(r, new DateTime(2026, 12, 29)));
+            r.Paused = true;
+            Assert.Null(FinanceService.NextOccurrence(r, new DateTime(2026, 10, 2)));
+        }
+
+        [Fact]
         public void StartRecurrence_links_the_first_transaction_so_its_month_is_not_generated_again()
         {
             var (d, a, _, _, _) = Setup();

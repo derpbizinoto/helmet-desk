@@ -225,12 +225,54 @@ namespace HelmetDesk.Core.Finance
             return r;
         }
 
-        /// <summary>"Encerrar": no months after <paramref name="lastMonth"/>; pending ones already generated after it are removed.</summary>
+        /// <summary>
+        /// "Encerrar": no months after <paramref name="lastMonth"/>; pending ones already generated after it are removed
+        /// (paid ones stay). Ending before the first month leaves nothing to keep: if no transaction of it is left either,
+        /// the recurrence itself is removed.
+        /// </summary>
         public static void EndRecurrence(FinanceData d, Recurrence r, DateTime lastMonth)
         {
             r.EndMonth = MonthStart(lastMonth);
             var cut = MonthKey(lastMonth);
             d.Transactions.RemoveAll(t => t.RecurrenceId == r.Id && !t.Paid && string.CompareOrdinal(t.RecurrenceMonth, cut) > 0);
+            if (MonthStart(lastMonth) < MonthStart(r.StartMonth) && !d.Transactions.Any(t => t.RecurrenceId == r.Id))
+                d.Recurrences.Remove(r);
+        }
+
+        /// <summary>
+        /// "Excluir recorrência": removes the model and its pending transactions. Paid ones stay as ordinary transactions
+        /// (unlinked from the series) unless <paramref name="includePaid"/>, which removes them too and so changes balances.
+        /// Returns how many transactions were removed.
+        /// </summary>
+        public static int DeleteRecurrence(FinanceData d, Recurrence r, bool includePaid)
+        {
+            int removed = d.Transactions.RemoveAll(t => t.RecurrenceId == r.Id && (includePaid || !t.Paid));
+            foreach (var t in d.Transactions.Where(t => t.RecurrenceId == r.Id))
+            {
+                t.RecurrenceId = null;
+                t.RecurrenceMonth = null;
+            }
+            d.Recurrences.Remove(r);
+            return removed;
+        }
+
+        /// <summary>
+        /// Next date this recurrence produces, from <paramref name="today"/> on: skips paused state, skipped months and
+        /// months after its end. Null when nothing is left.
+        /// </summary>
+        public static DateTime? NextOccurrence(Recurrence r, DateTime today)
+        {
+            if (r.Paused) return null;
+            var m = MonthStart(today);
+            if (m < MonthStart(r.StartMonth)) m = MonthStart(r.StartMonth);
+            for (int i = 0; i < 240; i++, m = m.AddMonths(1))
+            {
+                if (r.EndMonth.HasValue && m > MonthStart(r.EndMonth.Value)) return null;
+                if (!IsActiveIn(r, m)) continue;
+                var date = OccurrenceDate(r, m);
+                if (date >= today.Date) return date;
+            }
+            return null;
         }
 
         // ================= adjustment =================

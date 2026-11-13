@@ -587,6 +587,30 @@ namespace HelmetDesk
                 Check("finanças: excluir categoria move os lançamentos", !D.Categories.Contains(food) && usedTx.CategoryId == other.Id);
                 HideSnack();
 
+                // recurrence: "encerrar já neste mês" through the dialog (box ticked), then "excluir" keeping paid history
+                {
+                    var endAcc = D.Accounts.First();
+                    var endRec = new HelmetDesk.Core.Finance.Recurrence { Kind = HelmetDesk.Core.Finance.TxKind.Expense, Description = "Clube teste", Amount = 7.95m,
+                        AccountId = endAcc.Id, DayOfMonth = 28, StartMonth = HelmetDesk.Core.Finance.FinanceService.MonthStart(DateTime.Today.AddMonths(-1)) };
+                    D.Recurrences.Add(endRec);
+                    HelmetDesk.Core.Finance.FinanceService.GenerateRecurring(D, DateTime.Today.AddMonths(-1)).Single().Paid = true;
+                    var cur = HelmetDesk.Core.Finance.FinanceService.GenerateRecurring(D, DateTime.Today).Single();
+                    fv.ShowTab("endRec");
+                    fv.RequestEndRecurrence(endRec);
+                    DialogDontAsk.IsChecked = true;
+                    CloseDialog(true);
+                    Check("finanças: encerrar recorrência já neste mês remove o pendente do mês", !D.Transactions.Contains(cur) && D.Recurrences.Contains(endRec)
+                        && HelmetDesk.Core.Finance.FinanceService.NextOccurrence(endRec, DateTime.Today) == null);
+                    HideSnack();
+                    fv.RequestDeleteRecurrence(endRec);
+                    DialogDontAsk.IsChecked = false;
+                    CloseDialog(true);
+                    var paidLeft = D.Transactions.SingleOrDefault(t => t.Description == "Clube teste");
+                    Check("finanças: excluir recorrência mantém o já pago como lançamento comum", !D.Recurrences.Contains(endRec) && paidLeft != null && !paidLeft.IsRecurring);
+                    HideSnack();
+                    if (paidLeft != null) D.Transactions.Remove(paidLeft);
+                }
+
                 fv.ShowTab("tx");
                 await Snapshots.Idle(Dispatcher);
                 Check("finanças: lista agrupa por dia e o gráfico mostra categorias", fv.TxList.Children.Count > 1 && fv.Chart.Children.Count > 0);
