@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Services with no WPF dependency (backup, bug report). Tested by ../tests/HelmetDesk.Tests. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>HelmetDesk.Core</RootNamespace>
+    <AssemblyName>HelmetDesk.Core</AssemblyName>
+    <SatelliteResourceLanguages>pt-BR</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HelmetDesk.Tests" />
+  </ItemGroup>
+
+</Project>

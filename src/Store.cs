@@ -1,0 +1,228 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Windows.Threading;
+using Serilog; // WriteTo.File extension
+
+namespace HelmetDesk
+{
+    /// <summary>
+    /// Technical log (Serilog): %LocalAppData%\HelmetDesk\logs, one file per day, 1 MB each, the last 5 kept.
+    /// Kept out of the data folder so it never travels in backups and never holds a file open there.
+    /// </summary>
+    public static class Log
+    {
+        public static string Dir => Path.Combine(Store.LocalDir, "logs");
+        private static bool _ready;
+
+        public static void Init()
+        {
+            if (_ready) return;
+            try
+            {
+                Directory.CreateDirectory(Dir);
+                Serilog.Log.Logger = new Serilog.LoggerConfiguration()
+                    .MinimumLevel.Information()
+                    .WriteTo.File(Path.Combine(Dir, "helmetdesk-.log"),
+                        rollingInterval: Serilog.RollingInterval.Day,
+                        fileSizeLimitBytes: 1024 * 1024,
+                        rollOnFileSizeLimit: true,
+                        retainedFileCountLimit: 5,
+                        shared: true, // the bug report reads it while it is open
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                    .CreateLogger();
+                _ready = true;
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("log init failed: " + ex.Message); }
+        }
+
+        public static void Info(string message) { System.Diagnostics.Debug.WriteLine(message); if (_ready) Serilog.Log.Information(message); }
+        public static void Warn(string message, Exception ex = null) { System.Diagnostics.Debug.WriteLine(message); if (_ready) Serilog.Log.Warning(ex, message); }
+
+        public static void Error(string message, Exception ex = null)
+        {
+            System.Diagnostics.Debug.WriteLine($"{message}{(ex != null ? ": " + ex.Message : "")}");
+            if (_ready) Serilog.Log.Error(ex, message);
+        }
+
+        public static void Fatal(string message, Exception ex)
+        {
+            if (_ready) Serilog.Log.Fatal(ex, message);
+            Flush();
+        }
+
+        /// <summary>Writes everything out (on exit, or when the process is about to die).</summary>
+        public static void Flush() { try { _ready = false; Serilog.Log.CloseAndFlush(); } catch { } }
+    }
+
+    public static class Store
+    {
+        public static readonly string Dir = Environment.GetEnvironmentVariable("HELMETDESK_DATA") is { Length: > 0 } custom
+            ? custom
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HelmetDesk");
+        /// <summary>Machine-local files that are not user data: logs, crash marker, safety backups, bug reports.</summary>
+        public static readonly string LocalDir = Environment.GetEnvironmentVariable("HELMETDESK_DATA") is { Length: > 0 } c2
+            ? c2.TrimEnd('\\', '/') + "-local"
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HelmetDesk");
+        public static string FilePath => Path.Combine(Dir, "data.json");
+
+        /// <summary>Data format version written in data.json ("Version"). Bump it and add a step to <see cref="Migrate"/> when the format changes.</summary>
+        /// 2 = Finanças added ("Finance" section). Bumped so an older app refuses a newer backup instead of dropping Finanças on save.
+        public const int CurrentSchema = 2;
+
+        /// <summary>Held while data.json is written; the backup service takes it to read a consistent copy.</summary>
+        public static readonly HelmetDesk.Core.SemaphoreGate Gate = new();
+
+        /// <summary>Set while a backup is being imported (and until the restart): nothing is saved over the new data.</summary>
+        public static bool Frozen { get; set; }
+
+        /// <summary>Brings a data.json in <paramref name="dir"/> from <paramref name="fromSchema"/> up to <see cref="CurrentSchema"/>.</summary>
+        public static void Migrate(string dir, int fromSchema)
+        {
+            // 1 → 2: the "Finance" section is new and optional; a file without it loads with empty Finanças
+            // (seeded in Load), so nothing in data.json has to be rewritten. Future steps go here, e.g.:
+            // if (fromSchema < 3) { …rewrite data.json… }
+        }
+
+        public static AppData Data { get; private set; } = new();
+        public static event Action LabelsChanged;
+
+        private static bool _loading;
+        private static DispatcherTimer _saveTimer;
+
+        private static readonly JsonSerializerOptions Json = new()
+        {
+            WriteIndented = true,
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+        };
+
+        public static void Load()
+        {
+            _loading = true;
+            try
+            {
+                Directory.CreateDirectory(Dir);
+                if (File.Exists(FilePath))
+                {
+                    var text = File.ReadAllText(FilePath);
+                    int schema = 1;
+                    using (var doc = JsonDocument.Parse(text))
+                        if (doc.RootElement.TryGetProperty("Version", out var v) && v.TryGetInt32(out var n)) schema = n;
+                    if (schema < CurrentSchema)
+                    {
+                        Log.Info($"Migrando dados do esquema {schema} para {CurrentSchema}");
+                        Migrate(Dir, schema);
+                        text = File.ReadAllText(FilePath);
+                    }
+                    else if (schema > CurrentSchema)
+                        Log.Warn($"data.json usa o esquema {schema}, mais novo que o deste app ({CurrentSchema})");
+                    Data = JsonSerializer.Deserialize<AppData>(text, Json) ?? new AppData();
+                    Data.Version = Math.Max(Data.Version, CurrentSchema);
+                    try { File.Copy(FilePath, Path.Combine(Dir, "data.bak.json"), true); } catch { }
+                }
+                else
+                {
+                    Data = new AppData();
+                    Seed();
+                }
+                if (Data.Labels.Count == 0) SeedLabels();
+                Data.Finance ??= new HelmetDesk.Core.Finance.FinanceData();
+                HelmetDesk.Core.Finance.FinanceService.Seed(Data.Finance);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Não foi possível ler data.json", ex);
+                // Keep the broken file aside instead of overwriting it.
+                try { File.Copy(FilePath, Path.Combine(Dir, $"data.corrompido.{DateTime.Now:yyyyMMddHHmmss}.json"), true); } catch { }
+                System.Windows.MessageBox.Show("Não foi possível ler os dados salvos. Uma cópia do arquivo foi guardada na pasta de dados.\n\n" + ex.Message,
+                    "Helmet Desk", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                Data = new AppData();
+                SeedLabels();
+                HelmetDesk.Core.Finance.FinanceService.Seed(Data.Finance);
+            }
+            finally { _loading = false; }
+        }
+
+        private static void SeedLabels()
+        {
+            string[] names = { "Geral", "Pessoal", "Trabalho", "Estudos", "Ideias", "Urgente", "Casa", "Outros" };
+            for (int i = 0; i < names.Length; i++)
+                Data.Labels.Add(new LabelTag { Name = names[i], Color = Palette.LabelColors[i] });
+        }
+
+        private static void Seed()
+        {
+            SeedLabels();
+            var welcome = new Item
+            {
+                Kind = ItemKind.Note,
+                Title = "Bem-vindo ao Helmet Desk",
+                Body = "Notas, tarefas e calendário num só lugar.\n\nDicas:\n• Use o botão de alfinete para fixar uma nota na área de trabalho.\n• Informe estimativas como 1:30, 1h30, 45min ou 2.\n• Agrupe por semana ou por mês na barra de ferramentas.",
+                LabelId = Data.Labels[0].Id,
+            };
+            welcome.Checklist.Add(new CheckItem { Text = "Criar minha primeira tarefa" });
+            welcome.Checklist.Add(new CheckItem { Text = "Fixar uma nota na área de trabalho" });
+            welcome.Checklist.Add(new CheckItem { Text = "Ativar \"Iniciar com o Windows\" nas configurações" });
+            Data.Items.Add(welcome);
+            Data.Items.Add(new Item
+            {
+                Kind = ItemKind.Task,
+                Title = "Planejar a semana",
+                Date = DateTime.Today,
+                EstimateMinutes = 30,
+                Priority = 2,
+                LabelId = Data.Labels[2].Id,
+            });
+        }
+
+        public static LabelTag LabelById(string id) =>
+            id == null ? null : Data.Labels.FirstOrDefault(l => l.Id == id);
+
+        public static void NotifyLabelsChanged()
+        {
+            if (_loading) return;
+            foreach (var i in Data.Items) i.RaiseLabel();
+            LabelsChanged?.Invoke();
+            MarkDirty();
+        }
+
+        public static void MarkDirty()
+        {
+            if (_loading) return;
+            if (_saveTimer == null)
+            {
+                _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
+                _saveTimer.Tick += (s, e) => { _saveTimer.Stop(); Save(); };
+            }
+            _saveTimer.Stop();
+            _saveTimer.Start();
+        }
+
+        public static void Save()
+        {
+            _saveTimer?.Stop();
+            if (Frozen) return;
+            try
+            {
+                var json = JsonSerializer.Serialize(Data, Json);
+                using (Gate.Enter())
+                {
+                    Directory.CreateDirectory(Dir);
+                    var tmp = FilePath + ".tmp";
+                    File.WriteAllText(tmp, json);
+                    File.Move(tmp, FilePath, true);
+                }
+            }
+            catch (Exception ex) { Log.Warn("Falha ao salvar os dados (nova tentativa na próxima alteração)", ex); }
+        }
+
+        public static Item NewItem(ItemKind kind, DateTime? date = null)
+        {
+            var it = new Item { Kind = kind, Date = date, LabelId = Data.Labels.FirstOrDefault()?.Id };
+            Data.Items.Insert(0, it);
+            MarkDirty();
+            return it;
+        }
+    }
+}

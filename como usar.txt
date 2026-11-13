@@ -1,0 +1,130 @@
+HELMET DESK — notas, tarefas e calendário para Windows
+=======================================================
+
+COMO ABRIR
+  Execute:  app\HelmetDesk.exe
+  (pode criar um atalho dele na área de trabalho ou no Menu Iniciar)
+
+  A pasta "app" precisa ficar inteira (HelmetDesk.exe + HelmetDesk.dll + arquivos .json).
+  Requer o .NET 8 Desktop Runtime, que já está instalado neste PC. Em outro PC, se faltar,
+  o próprio Windows mostra o link para baixar.
+
+ONDE FICAM OS DADOS
+  %APPDATA%\HelmetDesk\data.json   (salvo automaticamente)
+  %LOCALAPPDATA%\HelmetDesk\       logs, cópias de segurança automáticas e relatórios de problema
+                                   (fica fora dos backups)
+
+BACKUP (Configurações > Dados)
+  • Exportar backup ... salva um .zip (HelmetDesk-backup-AAAA-MM-DD-HHmm.zip) com seus dados
+                        e um manifest.json (versão do app, data e SHA-256 de cada arquivo).
+  • Importar backup ... escolhe um .zip, confere tudo antes (integridade, versão, caminhos
+                        perigosos, tamanho) e pede confirmação. Os dados atuais são SUBSTITUÍDOS:
+                        antes disso o app guarda uma cópia em %LOCALAPPDATA%\HelmetDesk\backups
+                        (pre-import-<data>.zip, as 5 últimas) e depois reinicia sozinho.
+                        Se algo falhar no meio, a pasta original volta ao lugar.
+  • Backup de uma versão mais nova do app é recusado: atualize o Helmet Desk primeiro.
+
+REPORTAR PROBLEMA (Configurações > Suporte)
+  • Preencha título e descrição (e-mail é opcional). "Incluir logs técnicos" vem marcado;
+    "Incluir meus dados" vem desmarcado.
+  • "Revisar" mostra o conteúdo exato. "Gerar relatório" cria um .zip em
+    %LOCALAPPDATA%\HelmetDesk\relatorios e abre o Explorer com ele selecionado: anexe num e-mail.
+    (Por enquanto nada é enviado pela internet.) Um relatório por minuto.
+  • O caminho da sua pasta de usuário aparece como %USERPROFILE% no relatório.
+  • Se o app fechar por um erro, na próxima abertura aparece a opção de reportar.
+  • Logs: %LOCALAPPDATA%\HelmetDesk\logs (um arquivo por dia, até 1 MB, os 5 últimos).
+
+FUNÇÕES
+  • Hoje ............ resumo do dia: pendentes, horas planejadas, atrasadas e adição rápida.
+                      Também mostra as notas que têm a data de hoje.
+                      Ex.: digite "Revisar roteiro 1h30" + Enter → cria a tarefa com 1h30 estimada.
+  • Adição rápida (só no painel Hoje):
+      - "nota:" ou "tarefa:" vira uma etiqueta e define o tipo (sem nada, salva como tarefa).
+      - Datas escritas no texto viram etiqueta assim que você termina a palavra e saem do título:
+        hoje, amanhã, próximo dia, depois de amanhã, semana que vem / próxima semana (segunda-feira),
+        daqui 3 dias / daqui a uma semana / em 2 semanas / dentro de 1 mês, na sexta / até quinta /
+        sábado / segunda-feira, fim de semana, fim do mês, mês que vem, dia 20, 15 de dezembro,
+        15/11, 15/11/26 ou 15/11/2026. Sem o ano, vale o ano atual.
+      - Horários também viram etiqueta: 13:00, 09:30, 13h, 13h30, 13h30m, 13h30min, 14 horas,
+        às 9, pelas 8, a partir das 14h, 3 da tarde, 8 da noite, 10 da manhã, meio-dia, meia-noite.
+        "1h30", "2h" e "45min" sem "às" continuam sendo a estimativa da tarefa (horas antes das 6
+        só viram horário com "às": "às 3h").
+      - Sem data, a nota ou tarefa fica para hoje.
+      - Clique numa etiqueta (ou Backspace no começo do texto) para desfazer. Esc limpa o campo.
+      Ex.: "nota: Ideias de vídeo amanhã" + Enter → nota para amanhã.
+      O campo do widget de tarefas continua como antes.
+  • Notas ........... texto livre + checklist (caixas de seleção) dentro da nota.
+  • Tarefas ......... data, horário, prioridade, checklist e tempo estimado.
+  • Calendário ...... mês inteiro; clique num dia para ver os itens, clique duplo para criar tarefa.
+  • Por semana / Por mês ... separa notas e tarefas por período, com total de horas de cada grupo.
+                      Clique no título de um grupo para recolher/expandir (o app lembra a escolha).
+  • Etiquetas de cor  ... escolha a cor no editor; renomeie/adicione em Configurações.
+  • Tempo estimado ..... só em tarefas; aceita 1:30, 1h30, 45min, 1,5 ou 2 (horas).
+  • Excluir ........... pede confirmação (marque "Não perguntar novamente" para excluir direto).
+                        Para voltar a perguntar: Configurações > Confirmar antes de excluir.
+  • Barra lateral ..... botão ao lado do nome (ou Ctrl+B) recolhe para só ícones — passe o mouse
+                        para ver o nome. Aberta, arraste a linha da borda para mudar a largura.
+
+FINANÇAS (barra lateral, abaixo de Calendário)
+  Controle manual: nada é importado nem sincronizado com banco.
+  • Topo ........... ‹ › troca o mês. Entradas e Saídas do mês (pagos + pendentes, sem transferências
+                     e ajustes), Saldo atual (saldo inicial + lançamentos PAGOS, contas arquivadas fora)
+                     e Previsto no fim do mês (saldo atual + pendentes até o último dia, vencidos inclusive).
+  • Novo lançamento (botão ou Ctrl+N no painel): o foco começa no valor; aceita 1234,56 · 1.234,56 · R$ 50.
+                     Data = hoje, conta = a última usada, Enter salva. Data futura vira "pendente".
+                     Ao repetir uma descrição já usada, o app sugere valor, categoria e conta do último igual.
+                     Mais opções: Pago/pendente, Parcelas (o valor é o TOTAL; a última parcela leva os
+                     centavos que sobram), Repetir todo mês e Observação.
+  • Lista .......... agrupada por dia, com filtros de conta, categoria, tipo e status. Pendentes ficam
+                     esmaecidas, vencidas em vermelho. Clique no ícone de status para alternar pago/pendente;
+                     clique na linha para editar. Duplicar e excluir aparecem ao passar o mouse.
+                     Parcelas e recorrentes: ao editar ou excluir, marque a opção para aplicar às seguintes.
+                     Logo depois de excluir dá para desfazer pelo aviso no rodapé.
+  • Contas ......... saldo e previsto de cada conta; criar, editar, arquivar. "Conferir saldo": digite o
+                     saldo real e o app cria um "Ajuste de saldo" com a diferença (fora de Entradas/Saídas
+                     e do gráfico). Cartão de crédito: gastos deixam o saldo negativo.
+  • Recorrentes .... modelos mensais (criados com "Repetir todo mês"). O pendente de cada mês é criado
+                     ao abrir o mês, sem duplicar; ao abrir o app, os meses passados que faltam também.
+                     Dia 31 em mês curto usa o último dia. Pausar ou encerrar pela lista.
+  • Categorias ..... criar, editar (nome, tipo, cor, ícone) e excluir; se estiver em uso, você escolhe
+                     para qual categoria os lançamentos vão.
+  • Gráfico ........ gastos do mês por categoria (barras), ao lado da lista.
+  • No Hoje, um card mostra as contas a pagar de hoje/vencidas e o saldo atual.
+  • Os dados ficam no mesmo data.json (seção "Finance") e entram no backup .zip.
+
+ÁREA DE TRABALHO (widgets, estilo Sticky Notes)
+  • Botão de alfinete numa nota/tarefa → fixa ela na área de trabalho.
+  • "Nova nota adesiva" (barra lateral ou bandeja) → cria uma nota já fixada.
+  • Configurações > Widget de tarefas → lista de pendentes fixa na área de trabalho.
+    Atalho: a chave "Widget de tarefas" no rodapé da barra lateral liga/desliga o mesmo widget.
+  • No widget: alfinete = sempre visível por cima das janelas; X = fecha o widget (a nota continua salva).
+    Notas adesivas vazias são descartadas ao fechar.
+
+BANDEJA E INICIALIZAÇÃO
+  • Fechar (X) manda para a bandeja (pode desligar em Configurações).
+  • Clique no ícone da bandeja para abrir; botão direito para nova nota/tarefa ou Sair.
+  • Configurações > Iniciar com o Windows (opcional: iniciar minimizado na bandeja).
+  • Lembretes: tarefas com horário mostram uma notificação na hora marcada.
+
+ATALHOS
+  Ctrl+N  nova nota/tarefa     Ctrl+F  buscar     Ctrl+B  recolher/expandir barra lateral
+  Esc     fecha o editor (ou cancela a confirmação de exclusão)
+
+FONTES (Google Fonts)
+  • Nome do app: Geo. Resto da interface: Roboto. As duas ficam embutidas no app (funcionam offline)
+    e não precisam ser instaladas no Windows.
+  • Para atualizar ou trocar: edite e rode  tools\baixar-fontes.ps1  e recompile.
+    Licenças em src\Assets\Fonts\*-OFL.txt; créditos em CREDITS.md.
+
+ANIMAÇÕES
+  As transições seguem a opção do Windows "Efeitos de animação"
+  (Configurações > Acessibilidade > Efeitos visuais). Desligada, o app troca deslizes e
+  escalas por fades curtos.
+
+CÓDIGO-FONTE
+  HelmetDesk.sln
+  src\    app WPF (.NET 8)
+  core\   serviços sem WPF: backup, relatório de problema e regras de Finanças (core\Finance)
+  tests\  testes xUnit dos serviços:   dotnet test tests\HelmetDesk.Tests
+  Para recompilar:
+  dotnet publish src\HelmetDesk.csproj -c Release -r win-x64 --self-contained false -o app

@@ -1,0 +1,16 @@
+Animações Lottie do Helmet Desk
+================================
+
+Coloque aqui os arquivos .lottie ou .json (somente animações GRATUITAS do LottieFiles,
+Lottie Simple License) e registre cada uma em CREDITS.md, na raiz do projeto.
+
+Nomes que o app procura (a extensão pode ser .lottie ou .json):
+
+  tarefa-concluida   feedback ao marcar uma tarefa como concluída (toca uma vez)
+
+Depois de adicionar ou trocar um arquivo, recompile:
+  dotnet publish src\HelmetDesk.csproj -c Release -r win-x64 --self-contained false -o app
+
+Se um arquivo faltar ou estiver corrompido, o app segue normalmente sem a animação
+e registra o motivo em %APPDATA%\HelmetDesk\log.txt.
+Tamanho recomendado: até ~300 KB por arquivo.
