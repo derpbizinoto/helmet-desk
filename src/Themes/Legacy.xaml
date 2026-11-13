@@ -80,6 +80,15 @@
     <Style x:Key="ContentArea" TargetType="Grid"/>
     <!-- behind the page header and body -->
     <Style x:Key="ContentPanel" TargetType="ContentControl" BasedOn="{StaticResource AppBackdrop}"/>
+    <!-- right-hand panel (viewer / editor / calendar day) -->
+    <Style x:Key="EditorPanel" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Surface}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+        <Setter Property="BorderThickness" Value="1,1,0,0"/>
+        <Setter Property="CornerRadius" Value="12,0,0,0"/>
+    </Style>
+    <!-- extra width of the icons-only sidebar (the Aero theme adds its glass margins) -->
+    <sys:Double x:Key="Sidebar.CompactExtra">0</sys:Double>
     <!-- "HELMET DESK" in Geo -->
     <Style x:Key="BrandText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BrandFontFamily}"/>

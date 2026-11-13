@@ -355,6 +355,18 @@
         <Setter Property="Margin" Value="0,10,0,0"/>
         <Setter Property="Template" Value="{StaticResource GlassPanelTemplate}"/>
     </Style>
+    <!-- right-hand panel (viewer / editor / calendar day): sits inside the content glass, 1px in from its rim,
+         with the bottom-right corner following the glass curve -->
+    <Style x:Key="EditorPanel" TargetType="Border">
+        <Setter Property="Background" Value="#99140C24"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+        <Setter Property="BorderThickness" Value="1,1,0,0"/>
+        <Setter Property="CornerRadius" Value="12,0,11,0"/>
+        <Setter Property="Margin" Value="0,0,1,1"/>
+    </Style>
+    <!-- the icons-only sidebar gets wider by the glass margins (8 + 2), so its inside matches the classic layout -->
+    <sys:Double x:Key="Sidebar.CompactExtra">10</sys:Double>
+
     <!-- "HELMET DESK" in Geo: white-to-lilac fill with a soft purple glow -->
     <Style x:Key="BrandText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BrandFontFamily}"/>

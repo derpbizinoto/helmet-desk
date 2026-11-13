@@ -851,8 +851,7 @@
                     </ScrollViewer>
 
                     <!-- ===== Side panel ===== -->
-                    <Border x:Name="SidePanel" Grid.Column="1" Width="390" Background="{StaticResource Surface}"
-                            BorderBrush="{StaticResource Line}" BorderThickness="1,1,0,0" CornerRadius="12,0,0,0" Visibility="Collapsed">
+                    <Border x:Name="SidePanel" Grid.Column="1" Width="390" Style="{StaticResource EditorPanel}" Visibility="Collapsed">
                         <Grid>
                             <!-- Day panel (calendar) -->
                             <DockPanel x:Name="DayPanel" Margin="20,18,20,16">

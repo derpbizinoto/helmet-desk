@@ -1239,7 +1239,9 @@ namespace HelmetDesk
 
         // ================= sidebar: collapse to icons / resize =================
 
-        private const double CompactWidth = 64, MinSideWidth = 180, MaxSideWidth = 380;
+        private const double MinSideWidth = 180, MaxSideWidth = 380;
+        // 64 px of content; the theme may add room for its own panel margins
+        private static double CompactWidth => 64 + (Application.Current.TryFindResource("Sidebar.CompactExtra") is double extra ? extra : 0);
 
         private void SideToggle_Click(object sender, RoutedEventArgs e) => ToggleSidebar();
 
