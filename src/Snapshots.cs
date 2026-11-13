@@ -884,7 +884,7 @@ namespace HelmetDesk
             // press
             Motion.Press(BtnNewTask, true);
             await Settle(200);
-            Check("botão: pressionar reduz para 0.97", Math.Abs(((TransformGroup)BtnNewTask.RenderTransform).Value.M11 - 0.97) < 0.005);
+            Check($"botão: pressionar reduz para {Motion.PressScale}", Math.Abs(((TransformGroup)BtnNewTask.RenderTransform).Value.M11 - Motion.PressScale) < 0.005);
             Motion.Press(BtnNewTask, false);
             await Settle();
             Check("botão: soltar volta ao tamanho normal", !Motion.IsDisplaced(BtnNewTask));

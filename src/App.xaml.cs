@@ -139,6 +139,18 @@ namespace HelmetDesk
             {
                 ex.Handled = true;
                 Log.Error("Erro não tratado na interface", ex.Exception);
+                // automated runs (--selftest / --snapshot): never put a dialog on the user's screen; write it down and quit
+                var args = Environment.GetCommandLineArgs();
+                if (args.Contains("--selftest") || args.Contains("--snapshot"))
+                {
+                    try
+                    {
+                        var dir = System.IO.Path.GetDirectoryName(Store.FilePath) ?? Store.LocalDir;
+                        System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "automation-error.txt"), ex.Exception.ToString());
+                    }
+                    catch { }
+                    Environment.Exit(3);
+                }
                 var r = MessageBox.Show("Ocorreu um erro inesperado:\n\n" + ex.Exception.Message + "\n\nDeseja reportar este problema?",
                     "Helmet Desk", MessageBoxButton.YesNo, MessageBoxImage.Error);
                 if (r == MessageBoxResult.Yes) MainWin?.OpenBugReport(ex.Exception.ToString());

@@ -33,6 +33,7 @@ namespace HelmetDesk
         public MainWindow()
         {
             InitializeComponent();
+            SyncThemeChoice();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             _refreshTimer.Tick += (s, e) => { _refreshTimer.Stop(); Refresh(); };
             _snackTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
@@ -762,6 +763,27 @@ namespace HelmetDesk
 
         public enum DialogKind { Danger, Info, Error }
 
+        // ---------- theme (Configurações › Geral › Tema) ----------
+
+        private void SyncThemeChoice()
+        {
+            ThemeAero.IsChecked = ThemeManager.Current == ThemeManager.Aero;
+            ThemeClassic.IsChecked = ThemeManager.Current == ThemeManager.Classic;
+        }
+
+        private void Theme_Click(object sender, RoutedEventArgs e)
+        {
+            var theme = ThemeManager.Normalize((sender as FrameworkElement)?.Tag as string);
+            if (theme == ThemeManager.Current) return;
+            OpenDialog($"Trocar para o tema {ThemeManager.DisplayName(theme)}?",
+                "O Helmet Desk vai fechar e abrir de novo com o novo visual. Nada dos seus dados muda.",
+                "Trocar e reiniciar", "Cancelar", DialogKind.Info, false, ok =>
+                {
+                    if (ok) ThemeManager.Switch(theme);
+                    else SyncThemeChoice();
+                });
+        }
+
         /// <summary>
         /// The in-app dialog (scrim + card). <paramref name="cancel"/> = null shows a single button (a message).
         /// <paramref name="done"/> runs synchronously with true (confirm) or false (cancel / Esc / click outside).
@@ -784,7 +806,7 @@ namespace HelmetDesk
             DialogIcon.Data = Ui.Geo(kind switch { DialogKind.Danger => "I.Trash", DialogKind.Error => "I.Bug", _ => "I.Download" });
             bool red = kind != DialogKind.Info;
             DialogIcon.Foreground = red ? Ui.Res("Danger") : Ui.Res("Accent");
-            DialogIconBg.Background = new SolidColorBrush(red ? Color.FromArgb(0x33, 0xFF, 0x6F, 0x91) : Color.FromArgb(0x33, 0xC8, 0xA8, 0xF5));
+            DialogIconBg.Background = Ui.Res(red ? "DangerSoft" : "AccentSoft");
             AutomationProperties.SetName(DialogCard, title);
             DialogLayer.Visibility = Visibility.Visible;
             Motion.Enter(DialogScrim, duration: Motion.Base);                       // backdrop darkens

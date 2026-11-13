@@ -41,8 +41,10 @@
     <SolidColorBrush x:Key="Scrim" Color="#B3100B18"/>
     <SolidColorBrush x:Key="DangerSoft" Color="#33FF6F91"/>
     <SolidColorBrush x:Key="DangerTint" Color="#26FF6F91"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="#33C8A8F5"/>
     <SolidColorBrush x:Key="NavSelected" Color="{StaticResource C.Border}"/>
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="WindowBg" Color="{StaticResource C.Bg}"/>
 
     <!-- ===== Window layers (the Frutiger Aero theme draws its backdrop and glass panels here) ===== -->
     <!-- behind everything: nothing in the classic theme (the window background is Bg) -->
@@ -55,6 +57,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style x:Key="SidebarGlass" TargetType="ContentControl" BasedOn="{StaticResource AppBackdrop}"/>
     <Style x:Key="SidebarPanel" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource Surface}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
@@ -63,9 +66,7 @@
     <!-- the column to the right of the sidebar -->
     <Style x:Key="ContentArea" TargetType="Grid"/>
     <!-- behind the page header and body -->
-    <Style x:Key="ContentPanel" TargetType="Border">
-        <Setter Property="Visibility" Value="Collapsed"/>
-    </Style>
+    <Style x:Key="ContentPanel" TargetType="ContentControl" BasedOn="{StaticResource AppBackdrop}"/>
     <!-- "HELMET DESK" in Geo -->
     <Style x:Key="BrandText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BrandFontFamily}"/>
