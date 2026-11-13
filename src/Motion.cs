@@ -63,9 +63,30 @@ namespace HelmetDesk
             return fx;
         }
 
+        // ---------- GPU cache while a transition runs ----------
+        // A fading/sliding page or panel is rendered once into a bitmap and the GPU just moves/fades that bitmap,
+        // instead of re-rendering the whole subtree (glass, text, borders) every frame. Removed when the transition ends,
+        // so text is crisp again at rest. Only applied when the element had no cache of its own.
+        private static readonly DependencyProperty TempCacheProperty = DependencyProperty.RegisterAttached("TempCache", typeof(bool), typeof(Motion));
+
+        private static void CacheDuring(UIElement el)
+        {
+            if (el.CacheMode != null) return;
+            el.CacheMode = new BitmapCache { SnapsToDevicePixels = true };
+            el.SetValue(TempCacheProperty, true);
+        }
+
+        private static void Uncache(UIElement el)
+        {
+            if (!(bool)el.GetValue(TempCacheProperty)) return;
+            el.ClearValue(UIElement.CacheModeProperty);
+            el.ClearValue(TempCacheProperty);
+        }
+
         /// <summary>Stops any running transition on the element and leaves it at rest (opacity 1, no offset/scale).</summary>
         public static void Clear(UIElement el)
         {
+            Uncache(el);
             RestoreHit(el);
             Forget(el, UIElement.OpacityProperty);
             el.BeginAnimation(UIElement.OpacityProperty, null);
@@ -135,7 +156,8 @@ namespace HelmetDesk
             var fx = FxOf(el);
             RestoreHit(el);
             if (origin.HasValue) el.RenderTransformOrigin = origin.Value;
-            Run(el, UIElement.OpacityProperty, Anim(0, null, d, EaseOut));
+            CacheDuring(el);
+            Run(el, UIElement.OpacityProperty, Anim(0, null, d, EaseOut), () => Uncache(el));
             if (Reduced) { ResetMove(fx); return; }
             fx.T.X = fx.T.Y = 0; fx.S.ScaleX = fx.S.ScaleY = 1;
             if (dx != 0) Run(fx.T, TranslateTransform.XProperty, Anim(dx, 0, d, EaseOut)); else fx.T.BeginAnimation(TranslateTransform.XProperty, null);
@@ -166,6 +188,7 @@ namespace HelmetDesk
             var fx = FxOf(el);
             if (el.GetValue(SavedHitProperty) == null) el.SetValue(SavedHitProperty, el.IsHitTestVisible);
             el.IsHitTestVisible = false;
+            CacheDuring(el);
             Run(el, UIElement.OpacityProperty, Anim(null, 0, d, EaseIn), () =>
             {
                 done?.Invoke();

@@ -425,10 +425,10 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="line" Property="local:Motion.Background" Value="{StaticResource Primary}"/>
+                                <Setter TargetName="line" Property="local:Motion.Background" Value="{StaticResource SplitterHover}"/>
                             </Trigger>
                             <Trigger Property="IsDragging" Value="True">
-                                <Setter TargetName="line" Property="local:Motion.Background" Value="{StaticResource Accent}"/>
+                                <Setter TargetName="line" Property="local:Motion.Background" Value="{StaticResource SplitterDrag}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

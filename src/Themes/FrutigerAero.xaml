@@ -70,6 +70,9 @@
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="OnAccent" Color="#1A0E2E"/>
     <SolidColorBrush x:Key="WindowBg" Color="#0B0516"/>
+    <!-- sidebar resize: no line in this theme (the gap between the glass panels already shows the edge) -->
+    <SolidColorBrush x:Key="SplitterHover" Color="Transparent"/>
+    <SolidColorBrush x:Key="SplitterDrag" Color="Transparent"/>
     <!-- desktop widgets and the bug report window: opaque smoked glass with a shine band on top -->
     <LinearGradientBrush x:Key="WidgetWindowBg" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#FF35264F" Offset="0"/>
@@ -212,7 +215,7 @@
                         </Rectangle>
 
                         <!-- aurora: wide blurred ribbons, rendered once at half scale and cached; drifts slowly -->
-                        <Viewbox Stretch="UniformToFill" Margin="-80" local:ThemeManager.Drift="48" local:ThemeManager.DriftBy="70,22">
+                        <Viewbox Stretch="UniformToFill" Margin="-80">
                             <Viewbox.CacheMode>
                                 <BitmapCache RenderAtScale="0.5"/>
                             </Viewbox.CacheMode>
@@ -245,7 +248,7 @@
                         </Viewbox>
 
                         <!-- light streaks, bokeh orbs and stars (sharp, not blurred), cached; drift slower -->
-                        <Viewbox Stretch="UniformToFill" local:ThemeManager.Drift="60" local:ThemeManager.DriftBy="-30,12">
+                        <Viewbox Stretch="UniformToFill">
                             <Viewbox.CacheMode>
                                 <BitmapCache/>
                             </Viewbox.CacheMode>
@@ -370,6 +373,12 @@
                 <DropShadowEffect Color="#A982E6" BlurRadius="10" ShadowDepth="0" Opacity="0.9"/>
             </Setter.Value>
         </Setter>
+        <!-- the glow is drawn once and kept as a bitmap -->
+        <Setter Property="CacheMode">
+            <Setter.Value>
+                <BitmapCache SnapsToDevicePixels="True"/>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- ===== Focus ===== -->
@@ -476,11 +485,7 @@
                 </Border.Background>
             </Border>
             <ContentPresenter x:Name="cp" Margin="{TemplateBinding Padding}" RecognizesAccessKey="False"
-                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                <ContentPresenter.Effect>
-                    <DropShadowEffect Color="#2A0D5C" BlurRadius="3" ShadowDepth="1" Direction="270" Opacity="0.7"/>
-                </ContentPresenter.Effect>
-            </ContentPresenter>
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
         </Grid>
         <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
@@ -490,9 +495,6 @@
             <Trigger Property="IsPressed" Value="True">
                 <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource Gel.PressIn}"/></Trigger.EnterActions>
                 <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource Gel.PressOut}"/></Trigger.ExitActions>
-            </Trigger>
-            <Trigger Property="Tag" Value="light">
-                <Setter TargetName="cp" Property="Effect" Value="{x:Null}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter TargetName="root" Property="Opacity" Value="0.5"/>
@@ -1183,11 +1185,6 @@
         <Setter Property="FontSize" Value="{StaticResource FontSize.XL}"/>
         <Setter Property="FontWeight" Value="Light"/>
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect Color="#8950D9" BlurRadius="14" ShadowDepth="0" Opacity="0.8"/>
-            </Setter.Value>
-        </Setter>
     </Style>
     <Style x:Key="H2" TargetType="TextBlock">
         <Setter Property="FontSize" Value="18"/>

@@ -46,6 +46,9 @@
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="OnAccent" Color="{StaticResource C.Bg}"/>
     <SolidColorBrush x:Key="WindowBg" Color="{StaticResource C.Bg}"/>
+    <!-- sidebar resize line (hover / dragging) -->
+    <SolidColorBrush x:Key="SplitterHover" Color="{StaticResource C.Primary}"/>
+    <SolidColorBrush x:Key="SplitterDrag" Color="{StaticResource C.Accent}"/>
     <!-- desktop widgets (sticky note, tasks list) and the bug report window -->
     <SolidColorBrush x:Key="WidgetWindowBg" Color="{StaticResource C.Surface}"/>
     <SolidColorBrush x:Key="DialogWindowBg" Color="{StaticResource C.Bg}"/>
