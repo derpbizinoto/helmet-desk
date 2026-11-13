@@ -516,7 +516,8 @@
                 </StackPanel>
 
                 <!-- body -->
-                <Grid x:Name="BodyGrid" Grid.Row="2">
+                <!-- clipped so the side panel's slide-in stays inside the content glass -->
+                <Grid x:Name="BodyGrid" Grid.Row="2" ClipToBounds="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
