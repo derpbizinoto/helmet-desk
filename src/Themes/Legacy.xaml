@@ -44,6 +44,7 @@
     <SolidColorBrush x:Key="AccentSoft" Color="#33C8A8F5"/>
     <SolidColorBrush x:Key="NavSelected" Color="{StaticResource C.Border}"/>
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="OnAccent" Color="{StaticResource C.Bg}"/>
     <SolidColorBrush x:Key="WindowBg" Color="{StaticResource C.Bg}"/>
     <!-- desktop widgets (sticky note, tasks list) and the bug report window -->
     <SolidColorBrush x:Key="WidgetWindowBg" Color="{StaticResource C.Surface}"/>

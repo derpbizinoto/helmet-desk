@@ -8,9 +8,9 @@
     </ResourceDictionary.MergedDictionaries>
 
     <!--
-        Frutiger Aero theme. Same keys as Legacy.xaml. The Helmet Desk purple (#8950D9) stays the main color;
-        the Aero part is the material: glass, gloss, gel, aurora and soft light. Light glass panels carry dark
-        text (#24183A); white text only sits on purple/red gel. Everything is vector, drawn here.
+        Frutiger Aero, night edition. Same keys as Legacy.xaml. The Helmet Desk purple (#8950D9) stays the main color;
+        the Aero part is the material: smoked glass, glossy capsules, gel, aurora, bokeh and light. Dark panels carry
+        light text (#F3EEFB); the glass edges catch the light (bright rim on top), and active things glow purple.
         Performance: blur and shadows only on big, static layers (backdrop, the two panels), cached as bitmaps;
         list rows and cards never get effects.
     -->
@@ -27,21 +27,23 @@
     <Color x:Key="P500">#6F3CBC</Color>
     <Color x:Key="P600">#522A93</Color>
     <Color x:Key="P700">#351A63</Color>
-    <!-- support: lavender, soft magenta, cool aqua (aurora highlights only) -->
+    <Color x:Key="P800">#1F0F3D</Color>
+    <Color x:Key="P900">#0E0620</Color>
+    <!-- support: lavender, soft magenta, cool aqua (aurora and small highlights only) -->
     <Color x:Key="C.Lavender">#D9C8F5</Color>
     <Color x:Key="C.Magenta">#E58CC9</Color>
     <Color x:Key="C.Aqua">#48CAE4</Color>
 
     <!-- ===== Tokens (same names as the classic theme) ===== -->
-    <Color x:Key="C.Bg">#8CEFECF4</Color>          <!-- recessed tiles on glass -->
-    <Color x:Key="C.Surface">#D9EEEBF4</Color>     <!-- glass rows, fields, cards -->
-    <Color x:Key="C.Elevated">#FFECE7F4</Color>    <!-- hover, popups, tooltips (opaque: they float over anything) -->
-    <Color x:Key="C.Border">#406F3CBC</Color>      <!-- dividers and thin borders -->
+    <Color x:Key="C.Bg">#59080412</Color>          <!-- recessed tiles inside the glass -->
+    <Color x:Key="C.Surface">#B3201434</Color>     <!-- smoked glass rows and fields -->
+    <Color x:Key="C.Elevated">#FF261A3E</Color>    <!-- hover, popups, tooltips (opaque: they float over anything) -->
+    <Color x:Key="C.Border">#4DA982E6</Color>      <!-- dividers and thin borders -->
     <Color x:Key="C.Primary">#8950D9</Color>
-    <Color x:Key="C.PrimaryHover">#7744BC</Color>
-    <Color x:Key="C.Accent">#6A35C2</Color>        <!-- links, dates, focus: deeper purple, 5.4:1 on the glass -->
-    <Color x:Key="C.Text">#24183A</Color>
-    <Color x:Key="C.Text2">#574772</Color>
+    <Color x:Key="C.PrimaryHover">#9A62E4</Color>
+    <Color x:Key="C.Accent">#C9A8F7</Color>        <!-- links, dates, focus: light lilac, ~9:1 on the glass -->
+    <Color x:Key="C.Text">#F3EEFB</Color>
+    <Color x:Key="C.Text2">#BDAED6</Color>
 
     <SolidColorBrush x:Key="Bg" Color="{StaticResource C.Bg}"/>
     <SolidColorBrush x:Key="Surface" Color="{StaticResource C.Surface}"/>
@@ -52,48 +54,49 @@
     <SolidColorBrush x:Key="Accent" Color="{StaticResource C.Accent}"/>
     <SolidColorBrush x:Key="Text" Color="{StaticResource C.Text}"/>
     <SolidColorBrush x:Key="Text2" Color="{StaticResource C.Text2}"/>
-    <!-- status colors darkened for light glass (all >= 4.5:1 on white) -->
-    <SolidColorBrush x:Key="Success" Color="#13875A"/>
-    <SolidColorBrush x:Key="Warning" Color="#9A5F0C"/>
-    <SolidColorBrush x:Key="Danger" Color="#CC2E57"/>
-    <SolidColorBrush x:Key="Info" Color="#2867C2"/>
+    <!-- status colors: bright enough for dark glass (all >= 6:1) -->
+    <SolidColorBrush x:Key="Success" Color="#6BE0AE"/>
+    <SolidColorBrush x:Key="Warning" Color="#F4C774"/>
+    <SolidColorBrush x:Key="Danger" Color="#FF7D9B"/>
+    <SolidColorBrush x:Key="Info" Color="#86C3FF"/>
 
     <Color x:Key="C.HoverLine">#A982E6</Color>
     <SolidColorBrush x:Key="HoverLine" Color="{StaticResource C.HoverLine}"/>
-    <SolidColorBrush x:Key="ChipBg" Color="{StaticResource P100}"/>
-    <SolidColorBrush x:Key="Scrim" Color="#8C1A0E33"/>
-    <SolidColorBrush x:Key="DangerSoft" Color="#26CC2E57"/>
-    <SolidColorBrush x:Key="DangerTint" Color="#1FCC2E57"/>
-    <SolidColorBrush x:Key="AccentSoft" Color="#268950D9"/>
+    <SolidColorBrush x:Key="ChipBg" Color="#8C522A93"/>
+    <SolidColorBrush x:Key="Scrim" Color="#B3060210"/>
+    <SolidColorBrush x:Key="DangerSoft" Color="#33FF7D9B"/>
+    <SolidColorBrush x:Key="DangerTint" Color="#26FF7D9B"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="#33C9A8F7"/>
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="WindowBg" Color="#2A1052"/>
-    <!-- desktop widgets and the bug report window: opaque frosted glass (a shine band on top, greyish lavender below) -->
+    <SolidColorBrush x:Key="OnAccent" Color="#1A0E2E"/>
+    <SolidColorBrush x:Key="WindowBg" Color="#0B0516"/>
+    <!-- desktop widgets and the bug report window: opaque smoked glass with a shine band on top -->
     <LinearGradientBrush x:Key="WidgetWindowBg" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFF7F5FA" Offset="0"/>
-        <GradientStop Color="#FFEDE9F3" Offset="0.08"/>
-        <GradientStop Color="#FFE6E1ED" Offset="0.5"/>
-        <GradientStop Color="#FFDCD6E6" Offset="1"/>
+        <GradientStop Color="#FF35264F" Offset="0"/>
+        <GradientStop Color="#FF231736" Offset="0.07"/>
+        <GradientStop Color="#FF1A1029" Offset="0.5"/>
+        <GradientStop Color="#FF130B20" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="DialogWindowBg" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFF5F3F9" Offset="0"/>
-        <GradientStop Color="#FFE9E5F0" Offset="0.12"/>
-        <GradientStop Color="#FFDFD9E9" Offset="1"/>
+        <GradientStop Color="#FF2E2145" Offset="0"/>
+        <GradientStop Color="#FF1D1230" Offset="0.1"/>
+        <GradientStop Color="#FF120A1F" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="WindowRim" Color="#9479C4"/>
-    <SolidColorBrush x:Key="OverdueLine" Color="#E58FA5"/>
-    <Color x:Key="Tray.Back">#F1EEF6</Color>
-    <Color x:Key="Tray.Line">#C9BDDF</Color>
-    <Color x:Key="Tray.Text">#24183A</Color>
+    <SolidColorBrush x:Key="WindowRim" Color="#7A5BB3"/>
+    <SolidColorBrush x:Key="OverdueLine" Color="#8C3A55"/>
+    <Color x:Key="Tray.Back">#1E1430</Color>
+    <Color x:Key="Tray.Line">#4A3570</Color>
+    <Color x:Key="Tray.Text">#F3EEFB</Color>
 
-    <!-- selected item (Leopard/Vista style): light purple gloss, split highlight -->
+    <!-- selected item: purple gel with a split highlight (like the active tab of the reference), glows a little -->
     <LinearGradientBrush x:Key="NavSelected" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFF3ECFD" Offset="0"/>
-        <GradientStop Color="#FFE0CEF9" Offset="0.48"/>
-        <GradientStop Color="#FFCBB0F4" Offset="0.5"/>
-        <GradientStop Color="#FFDAC6F8" Offset="1"/>
+        <GradientStop Color="#FFA77AEB" Offset="0"/>
+        <GradientStop Color="#FF8752D8" Offset="0.48"/>
+        <GradientStop Color="#FF6C36C4" Offset="0.5"/>
+        <GradientStop Color="#FF7E46D2" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="GlassHover" Color="#B3FFFFFF"/>
-    <SolidColorBrush x:Key="GlassHoverRim" Color="#F2FFFFFF"/>
+    <SolidColorBrush x:Key="GlassHover" Color="#26FFFFFF"/>
+    <SolidColorBrush x:Key="GlassHoverRim" Color="#4DFFFFFF"/>
 
     <!-- ===== Gel (buttons, checks): light on top, saturated below; the white shine is a separate layer ===== -->
     <LinearGradientBrush x:Key="GelPurple" StartPoint="0,0" EndPoint="0,1">
@@ -106,88 +109,90 @@
         <GradientStop Color="#955FE0" Offset="0.55"/>
         <GradientStop Color="#7440CC" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="GelPurpleEdge" Color="#4A2290"/>
+    <SolidColorBrush x:Key="GelPurpleEdge" Color="#2A1052"/>
     <LinearGradientBrush x:Key="GelRed" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#EE7690" Offset="0"/>
         <GradientStop Color="#D63A5E" Offset="0.55"/>
         <GradientStop Color="#B21F40" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="GelRedEdge" Color="#7A1430"/>
+    <SolidColorBrush x:Key="GelRedEdge" Color="#4A0A1C"/>
+    <!-- secondary: glossy black-violet capsule (the reference's dark toolbar buttons, in purple) -->
     <LinearGradientBrush x:Key="GelGlass" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFFAF9FC" Offset="0"/>
-        <GradientStop Color="#FFEAE5F2" Offset="0.55"/>
-        <GradientStop Color="#FFD3C6EA" Offset="1"/>
+        <GradientStop Color="#FF4A3A66" Offset="0"/>
+        <GradientStop Color="#FF2A1E40" Offset="0.5"/>
+        <GradientStop Color="#FF160E26" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="GelGlassHover" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFFFFFFF" Offset="0"/>
-        <GradientStop Color="#FFF0ECF6" Offset="0.55"/>
-        <GradientStop Color="#FFDCD0F0" Offset="1"/>
+        <GradientStop Color="#FF5A4878" Offset="0"/>
+        <GradientStop Color="#FF35274F" Offset="0.5"/>
+        <GradientStop Color="#FF1E1432" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="GelGlassEdge" Color="#9479C4"/>
+    <SolidColorBrush x:Key="GelGlassEdge" Color="#8C7AAE"/>
     <!-- the shine on every gel shape -->
     <LinearGradientBrush x:Key="GelShine" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#C8FFFFFF" Offset="0"/>
-        <GradientStop Color="#33FFFFFF" Offset="1"/>
+        <GradientStop Color="#99FFFFFF" Offset="0"/>
+        <GradientStop Color="#14FFFFFF" Offset="1"/>
     </LinearGradientBrush>
-    <!-- window buttons: small glass capsules over the aurora -->
+    <!-- window buttons: small smoked-glass capsules -->
     <LinearGradientBrush x:Key="ChromeGlass" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#C8FFFFFF" Offset="0"/>
-        <GradientStop Color="#80F1E8FD" Offset="0.5"/>
-        <GradientStop Color="#99E1D2F8" Offset="1"/>
+        <GradientStop Color="#CC4A3A66" Offset="0"/>
+        <GradientStop Color="#CC2A1E40" Offset="0.5"/>
+        <GradientStop Color="#E6140C22" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="ChromeGlassHover" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#F2FFFFFF" Offset="0"/>
-        <GradientStop Color="#CCF5EEFE" Offset="0.5"/>
-        <GradientStop Color="#E6E9DCFB" Offset="1"/>
+        <GradientStop Color="#FF6A5590" Offset="0"/>
+        <GradientStop Color="#FF3A2B57" Offset="0.5"/>
+        <GradientStop Color="#FF1E1432" Offset="1"/>
     </LinearGradientBrush>
 
-    <!-- ===== Glass panels ===== -->
+    <!-- ===== Smoked glass panels ===== -->
     <LinearGradientBrush x:Key="GlassFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#E0E9E6EF" Offset="0"/>
-        <GradientStop Color="#D1DCD7E6" Offset="1"/>
+        <GradientStop Color="#B32A1C44" Offset="0"/>
+        <GradientStop Color="#A6160C28" Offset="1"/>
     </LinearGradientBrush>
     <!-- the content panel holds most of the reading: a bit more opaque -->
     <LinearGradientBrush x:Key="GlassFillStrong" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#EDE6E3EC" Offset="0"/>
-        <GradientStop Color="#E6DAD5E4" Offset="1"/>
+        <GradientStop Color="#CC241839" Offset="0"/>
+        <GradientStop Color="#D1120A20" Offset="1"/>
     </LinearGradientBrush>
-    <!-- outer rim: bright on top, fading down (the Aero double edge, outer half) -->
+    <!-- outer rim: catches the light on top, fades into a violet edge below -->
     <LinearGradientBrush x:Key="GlassRim" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#F2FFFFFF" Offset="0"/>
-        <GradientStop Color="#80FFFFFF" Offset="1"/>
+        <GradientStop Color="#B3E4D6F9" Offset="0"/>
+        <GradientStop Color="#59A982E6" Offset="0.35"/>
+        <GradientStop Color="#33A982E6" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="GlassRimInner" Color="#33351A63"/>
-    <!-- specular highlight across the top of a panel -->
+    <SolidColorBrush x:Key="GlassRimInner" Color="#73000000"/>
+    <!-- specular highlight across the top of a panel (subtle at night) -->
     <LinearGradientBrush x:Key="GlassSpecular" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#73FFFFFF" Offset="0"/>
+        <GradientStop Color="#2EFFFFFF" Offset="0"/>
         <GradientStop Color="#00FFFFFF" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="CardFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#F2F4F2F8" Offset="0"/>
-        <GradientStop Color="#EBE6E2EE" Offset="1"/>
+        <GradientStop Color="#8C35264F" Offset="0"/>
+        <GradientStop Color="#731C1230" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="CardRim" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFFFFFFF" Offset="0"/>
-        <GradientStop Color="#80B9A3DE" Offset="1"/>
+        <GradientStop Color="#80D9C8F5" Offset="0"/>
+        <GradientStop Color="#26A982E6" Offset="1"/>
     </LinearGradientBrush>
 
-    <!-- glass panel: fill + specular top + inner dark rim + bright outer rim with a soft purple shadow -->
+    <!-- glass panel: purple glow around, fill, specular top, dark inner rim, bright outer rim -->
     <ControlTemplate x:Key="GlassPanelTemplate" TargetType="ContentControl">
         <Grid>
-            <Border CornerRadius="10" BorderBrush="{StaticResource GlassRim}" BorderThickness="1" CacheMode="BitmapCache">
+            <Border CornerRadius="12" BorderBrush="#8C8950D9" BorderThickness="1" CacheMode="BitmapCache">
                 <Border.Effect>
-                    <DropShadowEffect Color="#24083F" BlurRadius="22" ShadowDepth="3" Direction="270" Opacity="0.55"/>
+                    <DropShadowEffect Color="#7A45D0" BlurRadius="26" ShadowDepth="0" Opacity="0.55"/>
                 </Border.Effect>
             </Border>
-            <Border CornerRadius="10" Background="{TemplateBinding Background}"/>
-            <Border CornerRadius="10,10,0,0" Height="56" VerticalAlignment="Top" Margin="1,1,1,0" Background="{StaticResource GlassSpecular}"/>
-            <Border CornerRadius="9" Margin="1" BorderBrush="{StaticResource GlassRimInner}" BorderThickness="1"/>
-            <Border CornerRadius="10" BorderBrush="{StaticResource GlassRim}" BorderThickness="1"/>
+            <Border CornerRadius="12" Background="{TemplateBinding Background}"/>
+            <Border CornerRadius="12,12,0,0" Height="64" VerticalAlignment="Top" Margin="1,1,1,0" Background="{StaticResource GlassSpecular}"/>
+            <Border CornerRadius="11" Margin="1" BorderBrush="{StaticResource GlassRimInner}" BorderThickness="1"/>
+            <Border CornerRadius="12" BorderBrush="{StaticResource GlassRim}" BorderThickness="1"/>
         </Grid>
     </ControlTemplate>
 
     <!-- ===== Window layers ===== -->
-    <!-- twilight backdrop: deep purple at the top to lavender below, aurora ribbons, bokeh orbs, title glass strip -->
+    <!-- night backdrop: near-black violet sky, a vivid aurora, light streaks, bokeh and a few stars; glossy title strip -->
     <Style x:Key="AppBackdrop" TargetType="ContentControl">
         <Setter Property="Focusable" Value="False"/>
         <Setter Property="IsHitTestVisible" Value="False"/>
@@ -197,11 +202,11 @@
                     <Grid ClipToBounds="True">
                         <Rectangle>
                             <Rectangle.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0.25,1">
-                                    <GradientStop Color="#1B0938" Offset="0"/>
-                                    <GradientStop Color="#3A1872" Offset="0.38"/>
-                                    <GradientStop Color="#6A3DB8" Offset="0.72"/>
-                                    <GradientStop Color="#B79BE8" Offset="1"/>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0.3,1">
+                                    <GradientStop Color="#06020E" Offset="0"/>
+                                    <GradientStop Color="#0F0624" Offset="0.4"/>
+                                    <GradientStop Color="#1E0C40" Offset="0.75"/>
+                                    <GradientStop Color="#2E1360" Offset="1"/>
                                 </LinearGradientBrush>
                             </Rectangle.Fill>
                         </Rectangle>
@@ -215,97 +220,105 @@
                                 <Canvas.Effect>
                                     <BlurEffect Radius="70" KernelType="Gaussian" RenderingBias="Performance"/>
                                 </Canvas.Effect>
-                                <Path Opacity="0.55" Data="M-100,640 C300,430 720,720 1120,500 S1640,380 1800,450 L1800,580 C1520,520 1320,640 1020,670 S300,590 -100,790 Z">
+                                <Path Opacity="0.7" Data="M-100,640 C300,430 720,720 1120,500 S1640,380 1800,450 L1800,580 C1520,520 1320,640 1020,670 S300,590 -100,790 Z">
                                     <Path.Fill>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="{StaticResource P200}" Offset="0"/>
-                                            <GradientStop Color="{StaticResource C.Lavender}" Offset="0.5"/>
+                                            <GradientStop Color="{StaticResource P500}" Offset="0"/>
+                                            <GradientStop Color="{StaticResource P300}" Offset="0.5"/>
                                             <GradientStop Color="{StaticResource C.Magenta}" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Path.Fill>
                                 </Path>
-                                <Path Opacity="0.42" Data="M-100,290 C420,170 820,430 1220,260 S1700,190 1800,230 L1800,330 C1420,330 1210,450 900,460 S220,320 -100,440 Z">
+                                <Path Opacity="0.5" Data="M-100,290 C420,170 820,430 1220,260 S1700,190 1800,230 L1800,330 C1420,330 1210,450 900,460 S220,320 -100,440 Z">
                                     <Path.Fill>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                             <GradientStop Color="{StaticResource C.Magenta}" Offset="0"/>
-                                            <GradientStop Color="{StaticResource P300}" Offset="0.6"/>
+                                            <GradientStop Color="{StaticResource P400}" Offset="0.55"/>
                                             <GradientStop Color="{StaticResource C.Aqua}" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Path.Fill>
                                 </Path>
-                                <Path Opacity="0.38" Fill="#48CAE4"
+                                <Path Opacity="0.45" Fill="#48CAE4"
                                       Data="M260,860 C640,740 1040,890 1560,740 L1560,800 C1040,940 640,800 260,930 Z"/>
-                                <Ellipse Canvas.Left="1080" Canvas.Top="-120" Width="620" Height="420" Opacity="0.35" Fill="#D9C8F5"/>
+                                <Ellipse Canvas.Left="1080" Canvas.Top="-120" Width="620" Height="420" Opacity="0.35" Fill="#6F3CBC"/>
                             </Canvas>
                         </Viewbox>
 
-                        <!-- light streaks and bokeh orbs (sharp, not blurred), cached; drift slower -->
+                        <!-- light streaks, bokeh orbs and stars (sharp, not blurred), cached; drift slower -->
                         <Viewbox Stretch="UniformToFill" local:ThemeManager.Drift="60" local:ThemeManager.DriftBy="-30,12">
                             <Viewbox.CacheMode>
                                 <BitmapCache/>
                             </Viewbox.CacheMode>
                             <Canvas Width="1600" Height="1000">
-                                <Path Stroke="#59FFFFFF" StrokeThickness="2" Data="M-60,760 C420,520 960,560 1700,170"/>
-                                <Path Stroke="#33FFFFFF" StrokeThickness="1" Data="M-60,800 C460,570 1000,620 1700,240"/>
-                                <Path Stroke="#264CCFE6" StrokeThickness="3" Data="M-60,860 C500,660 1060,700 1700,330"/>
+                                <Path Stroke="#66E4D6F9" StrokeThickness="2" Data="M-60,760 C420,520 960,560 1700,170"/>
+                                <Path Stroke="#33E4D6F9" StrokeThickness="1" Data="M-60,800 C460,570 1000,620 1700,240"/>
+                                <Path Stroke="#3348CAE4" StrokeThickness="3" Data="M-60,860 C500,660 1060,700 1700,330"/>
                                 <Ellipse Canvas.Left="1270" Canvas.Top="560" Width="150" Height="150">
                                     <Ellipse.Fill>
                                         <RadialGradientBrush GradientOrigin="0.35,0.3">
-                                            <GradientStop Color="#55FFFFFF" Offset="0"/>
-                                            <GradientStop Color="#14FFFFFF" Offset="0.85"/>
-                                            <GradientStop Color="#40FFFFFF" Offset="1"/>
+                                            <GradientStop Color="#40E4D6F9" Offset="0"/>
+                                            <GradientStop Color="#0DA982E6" Offset="0.85"/>
+                                            <GradientStop Color="#4DC9AEF2" Offset="1"/>
                                         </RadialGradientBrush>
                                     </Ellipse.Fill>
                                 </Ellipse>
                                 <Ellipse Canvas.Left="1180" Canvas.Top="720" Width="70" Height="70">
                                     <Ellipse.Fill>
                                         <RadialGradientBrush GradientOrigin="0.35,0.3">
-                                            <GradientStop Color="#66FFFFFF" Offset="0"/>
-                                            <GradientStop Color="#10FFFFFF" Offset="0.85"/>
-                                            <GradientStop Color="#4DFFFFFF" Offset="1"/>
+                                            <GradientStop Color="#4DFFFFFF" Offset="0"/>
+                                            <GradientStop Color="#0DA982E6" Offset="0.85"/>
+                                            <GradientStop Color="#59C9AEF2" Offset="1"/>
                                         </RadialGradientBrush>
                                     </Ellipse.Fill>
                                 </Ellipse>
                                 <Ellipse Canvas.Left="140" Canvas.Top="130" Width="110" Height="110">
                                     <Ellipse.Fill>
                                         <RadialGradientBrush GradientOrigin="0.35,0.3">
-                                            <GradientStop Color="#40FFFFFF" Offset="0"/>
-                                            <GradientStop Color="#0DFFFFFF" Offset="0.85"/>
-                                            <GradientStop Color="#33FFFFFF" Offset="1"/>
+                                            <GradientStop Color="#33E58CC9" Offset="0"/>
+                                            <GradientStop Color="#0AE58CC9" Offset="0.85"/>
+                                            <GradientStop Color="#40E58CC9" Offset="1"/>
                                         </RadialGradientBrush>
                                     </Ellipse.Fill>
                                 </Ellipse>
                                 <Ellipse Canvas.Left="1460" Canvas.Top="420" Width="44" Height="44">
                                     <Ellipse.Fill>
                                         <RadialGradientBrush GradientOrigin="0.35,0.3">
-                                            <GradientStop Color="#73FFFFFF" Offset="0"/>
+                                            <GradientStop Color="#66FFFFFF" Offset="0"/>
                                             <GradientStop Color="#14C9AEF2" Offset="0.85"/>
-                                            <GradientStop Color="#59FFFFFF" Offset="1"/>
+                                            <GradientStop Color="#66C9AEF2" Offset="1"/>
                                         </RadialGradientBrush>
                                     </Ellipse.Fill>
                                 </Ellipse>
                                 <Ellipse Canvas.Left="760" Canvas.Top="880" Width="90" Height="90">
                                     <Ellipse.Fill>
                                         <RadialGradientBrush GradientOrigin="0.35,0.3">
-                                            <GradientStop Color="#4DFFFFFF" Offset="0"/>
-                                            <GradientStop Color="#0D48CAE4" Offset="0.85"/>
-                                            <GradientStop Color="#4048CAE4" Offset="1"/>
+                                            <GradientStop Color="#4048CAE4" Offset="0"/>
+                                            <GradientStop Color="#0A48CAE4" Offset="0.85"/>
+                                            <GradientStop Color="#5948CAE4" Offset="1"/>
                                         </RadialGradientBrush>
                                     </Ellipse.Fill>
                                 </Ellipse>
-                                <Ellipse Canvas.Left="1530" Canvas.Top="80" Width="28" Height="28" Fill="#40FFFFFF"/>
-                                <Ellipse Canvas.Left="60" Canvas.Top="610" Width="22" Height="22" Fill="#33FFFFFF"/>
+                                <!-- stars -->
+                                <Ellipse Canvas.Left="420" Canvas.Top="70" Width="3" Height="3" Fill="#CCFFFFFF"/>
+                                <Ellipse Canvas.Left="700" Canvas.Top="140" Width="2" Height="2" Fill="#99FFFFFF"/>
+                                <Ellipse Canvas.Left="960" Canvas.Top="60" Width="3" Height="3" Fill="#B3E4D6F9"/>
+                                <Ellipse Canvas.Left="1180" Canvas.Top="180" Width="2" Height="2" Fill="#99FFFFFF"/>
+                                <Ellipse Canvas.Left="1380" Canvas.Top="110" Width="3" Height="3" Fill="#CCFFFFFF"/>
+                                <Ellipse Canvas.Left="260" Canvas.Top="300" Width="2" Height="2" Fill="#80FFFFFF"/>
+                                <Ellipse Canvas.Left="1540" Canvas.Top="260" Width="2" Height="2" Fill="#99FFFFFF"/>
+                                <Ellipse Canvas.Left="80" Canvas.Top="520" Width="3" Height="3" Fill="#8048CAE4"/>
+                                <Ellipse Canvas.Left="1530" Canvas.Top="80" Width="24" Height="24" Fill="#33E4D6F9"/>
                             </Canvas>
                         </Viewbox>
 
-                        <!-- title bar: a strip of glass with the Vista/7 shine -->
-                        <Border Height="40" VerticalAlignment="Top" BorderBrush="#40FFFFFF" BorderThickness="0,0,0,1">
+                        <!-- title bar: a strip of dark glass with the Vista/7 shine -->
+                        <Border Height="40" VerticalAlignment="Top" BorderBrush="#26FFFFFF" BorderThickness="0,0,0,1">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#40FFFFFF" Offset="0"/>
-                                    <GradientStop Color="#1FFFFFFF" Offset="0.5"/>
-                                    <GradientStop Color="#0AFFFFFF" Offset="0.5"/>
-                                    <GradientStop Color="#14FFFFFF" Offset="1"/>
+                                    <GradientStop Color="#26FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#0FFFFFFF" Offset="0.5"/>
+                                    <GradientStop Color="#05FFFFFF" Offset="0.5"/>
+                                    <GradientStop Color="#0AFFFFFF" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
@@ -339,21 +352,22 @@
         <Setter Property="Margin" Value="0,10,0,0"/>
         <Setter Property="Template" Value="{StaticResource GlassPanelTemplate}"/>
     </Style>
-    <!-- "HELMET DESK" in Geo: deep purple fill with a white glow (Vista title style), readable on the glass -->
+    <!-- "HELMET DESK" in Geo: white-to-lilac fill with a soft purple glow -->
     <Style x:Key="BrandText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BrandFontFamily}"/>
         <Setter Property="FontSize" Value="21"/>
         <Setter Property="Foreground">
             <Setter.Value>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#5A2BAE" Offset="0"/>
-                    <GradientStop Color="#2E1266" Offset="1"/>
+                    <GradientStop Color="#FFFFFF" Offset="0"/>
+                    <GradientStop Color="#FFFFFF" Offset="0.45"/>
+                    <GradientStop Color="#C9AEF2" Offset="1"/>
                 </LinearGradientBrush>
             </Setter.Value>
         </Setter>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect Color="White" BlurRadius="8" ShadowDepth="0" Opacity="1"/>
+                <DropShadowEffect Color="#A982E6" BlurRadius="10" ShadowDepth="0" Opacity="0.9"/>
             </Setter.Value>
         </Setter>
     </Style>
@@ -440,7 +454,7 @@
         <Grid x:Name="root" SnapsToDevicePixels="True">
             <Border x:Name="glow" CornerRadius="{TemplateBinding local:Ui.Radius}" Background="{TemplateBinding Background}" Opacity="0">
                 <Border.Effect>
-                    <DropShadowEffect Color="#F3EBFF" BlurRadius="14" ShadowDepth="0" Opacity="1"/>
+                    <DropShadowEffect Color="#B58DF0" BlurRadius="16" ShadowDepth="0" Opacity="1"/>
                 </Border.Effect>
             </Border>
             <Border CornerRadius="{TemplateBinding local:Ui.Radius}" Background="{TemplateBinding Background}"
@@ -511,7 +525,6 @@
     </Style>
 
     <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource GelButton}">
-        <Setter Property="Tag" Value="light"/>
         <Setter Property="Background" Value="{StaticResource GelGlass}"/>
         <Setter Property="BorderBrush" Value="{StaticResource GelGlassEdge}"/>
         <Style.Triggers>
@@ -524,7 +537,7 @@
     <!-- sidebar footer rows: recessed white tiles on the glass -->
     <Style x:Key="SideRowButton" TargetType="Button" BasedOn="{StaticResource BtnBase}">
         <Setter Property="Background" Value="{StaticResource Bg}"/>
-        <Setter Property="BorderBrush" Value="#66FFFFFF"/>
+        <Setter Property="BorderBrush" Value="#26FFFFFF"/>
         <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Padding" Value="14,9,10,9"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -568,7 +581,7 @@
             <Trigger Property="IsChecked" Value="True">
                 <Setter Property="Foreground" Value="{StaticResource Accent}"/>
                 <Setter Property="Background" Value="{StaticResource NavSelected}"/>
-                <Setter Property="BorderBrush" Value="#B39479C4"/>
+                <Setter Property="BorderBrush" Value="#CC2A1052"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -578,11 +591,11 @@
         <Grid x:Name="root" Margin="2,17,2,0" Height="22" VerticalAlignment="Top">
             <Border x:Name="glow" CornerRadius="5" Background="{TemplateBinding Background}" Opacity="0">
                 <Border.Effect>
-                    <DropShadowEffect Color="#F3EBFF" BlurRadius="12" ShadowDepth="0" Opacity="1"/>
+                    <DropShadowEffect Color="#B58DF0" BlurRadius="12" ShadowDepth="0" Opacity="1"/>
                 </Border.Effect>
             </Border>
-            <Border CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="#99351A63" BorderThickness="1"/>
-            <Border CornerRadius="4" Margin="1" BorderBrush="#80FFFFFF" BorderThickness="1"/>
+            <Border CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="#E605020C" BorderThickness="1"/>
+            <Border CornerRadius="4" Margin="1" BorderBrush="#40FFFFFF" BorderThickness="1"/>
             <Border x:Name="shine" CornerRadius="4,4,0,0" Margin="2,2,2,0" Height="9" VerticalAlignment="Top" Background="{StaticResource GelShine}" Opacity="0.8"/>
             <Border x:Name="press" CornerRadius="5" Background="#331A0838" Opacity="0"/>
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -659,15 +672,15 @@
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
                 <Setter Property="Background" Value="{StaticResource NavSelected}"/>
-                <Setter Property="BorderBrush" Value="#B39479C4"/>
+                <Setter Property="BorderBrush" Value="#CC2A1052"/>
                 <Setter Property="Foreground" Value="{StaticResource Text}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style x:Key="SegBox" TargetType="Border">
-        <Setter Property="Background" Value="#66F4F2F8"/>
-        <Setter Property="BorderBrush" Value="#CCFFFFFF"/>
+        <Setter Property="Background" Value="#66080412"/>
+        <Setter Property="BorderBrush" Value="#33FFFFFF"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="8"/>
         <Setter Property="Padding" Value="2"/>
@@ -676,8 +689,8 @@
     <!-- Label filter chip -->
     <Style x:Key="Chip" TargetType="RadioButton" BasedOn="{StaticResource BtnBase}">
         <Setter Property="Foreground" Value="{StaticResource Text2}"/>
-        <Setter Property="Background" Value="#66F4F2F8"/>
-        <Setter Property="BorderBrush" Value="#CCFFFFFF"/>
+        <Setter Property="Background" Value="#66080412"/>
+        <Setter Property="BorderBrush" Value="#33FFFFFF"/>
         <Setter Property="Padding" Value="10,4"/>
         <Setter Property="Margin" Value="0,0,6,6"/>
         <Setter Property="FontSize" Value="12"/>
@@ -698,14 +711,14 @@
     <!-- ===== TextBox ===== -->
     <!-- white field, slightly sunk (darker top edge = inner shadow), purple glow on focus -->
     <LinearGradientBrush x:Key="FieldFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFDCD6E6" Offset="0"/>
-        <GradientStop Color="#FFF1EFF5" Offset="0.18"/>
-        <GradientStop Color="#FFF6F5F9" Offset="1"/>
+        <GradientStop Color="#FF07040F" Offset="0"/>
+        <GradientStop Color="#FF130B21" Offset="0.18"/>
+        <GradientStop Color="#FF1A1029" Offset="1"/>
     </LinearGradientBrush>
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{StaticResource FieldFill}"/>
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
-        <Setter Property="BorderBrush" Value="#A08AC4"/>
+        <Setter Property="BorderBrush" Value="#6E5A94"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="10,7"/>
         <Setter Property="FontSize" Value="13"/>
@@ -885,7 +898,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Border x:Name="track" Width="38" Height="22" CornerRadius="11" local:Motion.Background="{StaticResource FieldFill}" BorderBrush="#A08AC4" BorderThickness="1" Padding="2">
+                    <Border x:Name="track" Width="38" Height="22" CornerRadius="11" local:Motion.Background="{StaticResource FieldFill}" BorderBrush="#6E5A94" BorderThickness="1" Padding="2">
                         <Ellipse x:Name="thumb" Width="16" Height="16" local:Motion.Fill="{StaticResource Text2}" HorizontalAlignment="Left"/>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -993,8 +1006,8 @@
                     <Border x:Name="t" CornerRadius="4" Margin="2" BorderBrush="#B38D6CC2" BorderThickness="1">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#F2FFFFFF" Offset="0"/>
-                                <GradientStop Color="#CCE4D6F9" Offset="1"/>
+                                <GradientStop Color="#B3A982E6" Offset="0"/>
+                                <GradientStop Color="#99522A93" Offset="1"/>
                             </LinearGradientBrush>
                         </Border.Background>
                     </Border>
@@ -1064,11 +1077,11 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
                     <!-- light glass with a lilac tint -->
-                    <Border BorderBrush="#B39479C4" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,4,4">
+                    <Border BorderBrush="#8C7AAE" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,4,4">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Color="#FFFFFFFF" Offset="0"/>
-                                <GradientStop Color="#FFF1E9FC" Offset="1"/>
+                                <GradientStop Color="#FF35264F" Offset="0"/>
+                                <GradientStop Color="#FF1A1029" Offset="1"/>
                             </LinearGradientBrush>
                         </Border.Background>
                         <ContentPresenter/>
@@ -1172,7 +1185,7 @@
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect Color="White" BlurRadius="6" ShadowDepth="0" Opacity="0.9"/>
+                <DropShadowEffect Color="#8950D9" BlurRadius="14" ShadowDepth="0" Opacity="0.8"/>
             </Setter.Value>
         </Setter>
     </Style>
@@ -1219,7 +1232,7 @@
 
     <!-- Small pill used for hours / dates -->
     <Style x:Key="Pill" TargetType="Border">
-        <Setter Property="Background" Value="#1F8950D9"/>
+        <Setter Property="Background" Value="#33A982E6"/>
         <Setter Property="CornerRadius" Value="6"/>
         <Setter Property="Padding" Value="6,2"/>
         <Setter Property="Margin" Value="0,0,6,0"/>
