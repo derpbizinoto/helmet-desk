@@ -33,9 +33,9 @@
     <Color x:Key="C.Aqua">#48CAE4</Color>
 
     <!-- ===== Tokens (same names as the classic theme) ===== -->
-    <Color x:Key="C.Bg">#99FFFFFF</Color>          <!-- recessed tiles on glass -->
-    <Color x:Key="C.Surface">#D1FCFAFF</Color>     <!-- glass rows, fields, cards -->
-    <Color x:Key="C.Elevated">#FFF4EEFD</Color>    <!-- hover, popups, tooltips (opaque: they float over anything) -->
+    <Color x:Key="C.Bg">#8CEFECF4</Color>          <!-- recessed tiles on glass -->
+    <Color x:Key="C.Surface">#D9EEEBF4</Color>     <!-- glass rows, fields, cards -->
+    <Color x:Key="C.Elevated">#FFECE7F4</Color>    <!-- hover, popups, tooltips (opaque: they float over anything) -->
     <Color x:Key="C.Border">#406F3CBC</Color>      <!-- dividers and thin borders -->
     <Color x:Key="C.Primary">#8950D9</Color>
     <Color x:Key="C.PrimaryHover">#7744BC</Color>
@@ -67,6 +67,23 @@
     <SolidColorBrush x:Key="AccentSoft" Color="#268950D9"/>
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="WindowBg" Color="#2A1052"/>
+    <!-- desktop widgets and the bug report window: opaque frosted glass (a shine band on top, greyish lavender below) -->
+    <LinearGradientBrush x:Key="WidgetWindowBg" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFF7F5FA" Offset="0"/>
+        <GradientStop Color="#FFEDE9F3" Offset="0.08"/>
+        <GradientStop Color="#FFE6E1ED" Offset="0.5"/>
+        <GradientStop Color="#FFDCD6E6" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="DialogWindowBg" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFF5F3F9" Offset="0"/>
+        <GradientStop Color="#FFE9E5F0" Offset="0.12"/>
+        <GradientStop Color="#FFDFD9E9" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="WindowRim" Color="#9479C4"/>
+    <SolidColorBrush x:Key="OverdueLine" Color="#E58FA5"/>
+    <Color x:Key="Tray.Back">#F1EEF6</Color>
+    <Color x:Key="Tray.Line">#C9BDDF</Color>
+    <Color x:Key="Tray.Text">#24183A</Color>
 
     <!-- selected item (Leopard/Vista style): light purple gloss, split highlight -->
     <LinearGradientBrush x:Key="NavSelected" StartPoint="0,0" EndPoint="0,1">
@@ -97,14 +114,14 @@
     </LinearGradientBrush>
     <SolidColorBrush x:Key="GelRedEdge" Color="#7A1430"/>
     <LinearGradientBrush x:Key="GelGlass" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFFFFFFF" Offset="0"/>
-        <GradientStop Color="#FFF5F0FD" Offset="0.55"/>
-        <GradientStop Color="#FFDECDF7" Offset="1"/>
+        <GradientStop Color="#FFFAF9FC" Offset="0"/>
+        <GradientStop Color="#FFEAE5F2" Offset="0.55"/>
+        <GradientStop Color="#FFD3C6EA" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="GelGlassHover" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#FFFFFFFF" Offset="0"/>
-        <GradientStop Color="#FFF8F4FE" Offset="0.55"/>
-        <GradientStop Color="#FFE7D9FA" Offset="1"/>
+        <GradientStop Color="#FFF0ECF6" Offset="0.55"/>
+        <GradientStop Color="#FFDCD0F0" Offset="1"/>
     </LinearGradientBrush>
     <SolidColorBrush x:Key="GelGlassEdge" Color="#9479C4"/>
     <!-- the shine on every gel shape -->
@@ -126,13 +143,13 @@
 
     <!-- ===== Glass panels ===== -->
     <LinearGradientBrush x:Key="GlassFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#E0FDFBFF" Offset="0"/>
-        <GradientStop Color="#CCF6F1FE" Offset="1"/>
+        <GradientStop Color="#E0E9E6EF" Offset="0"/>
+        <GradientStop Color="#D1DCD7E6" Offset="1"/>
     </LinearGradientBrush>
     <!-- the content panel holds most of the reading: a bit more opaque -->
     <LinearGradientBrush x:Key="GlassFillStrong" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#ECFFFEFF" Offset="0"/>
-        <GradientStop Color="#E0F7F3FE" Offset="1"/>
+        <GradientStop Color="#EDE6E3EC" Offset="0"/>
+        <GradientStop Color="#E6DAD5E4" Offset="1"/>
     </LinearGradientBrush>
     <!-- outer rim: bright on top, fading down (the Aero double edge, outer half) -->
     <LinearGradientBrush x:Key="GlassRim" StartPoint="0,0" EndPoint="0,1">
@@ -142,12 +159,12 @@
     <SolidColorBrush x:Key="GlassRimInner" Color="#33351A63"/>
     <!-- specular highlight across the top of a panel -->
     <LinearGradientBrush x:Key="GlassSpecular" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#99FFFFFF" Offset="0"/>
+        <GradientStop Color="#73FFFFFF" Offset="0"/>
         <GradientStop Color="#00FFFFFF" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="CardFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#F7FFFFFF" Offset="0"/>
-        <GradientStop Color="#E6F8F4FE" Offset="1"/>
+        <GradientStop Color="#F2F4F2F8" Offset="0"/>
+        <GradientStop Color="#EBE6E2EE" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="CardRim" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="#FFFFFFFF" Offset="0"/>
@@ -586,7 +603,7 @@
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
         <Setter Property="Background" Value="{StaticResource ChromeGlass}"/>
         <Setter Property="Width" Value="32"/>
-        <Setter Property="Height" Value="32"/>
+        <Setter Property="Height" Value="40"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="IsTabStop" Value="False"/>
         <Setter Property="local:Motion.Press" Value="False"/>
@@ -649,8 +666,8 @@
     </Style>
 
     <Style x:Key="SegBox" TargetType="Border">
-        <Setter Property="Background" Value="#80FFFFFF"/>
-        <Setter Property="BorderBrush" Value="#E6FFFFFF"/>
+        <Setter Property="Background" Value="#66F4F2F8"/>
+        <Setter Property="BorderBrush" Value="#CCFFFFFF"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="8"/>
         <Setter Property="Padding" Value="2"/>
@@ -659,8 +676,8 @@
     <!-- Label filter chip -->
     <Style x:Key="Chip" TargetType="RadioButton" BasedOn="{StaticResource BtnBase}">
         <Setter Property="Foreground" Value="{StaticResource Text2}"/>
-        <Setter Property="Background" Value="#80FFFFFF"/>
-        <Setter Property="BorderBrush" Value="#E6FFFFFF"/>
+        <Setter Property="Background" Value="#66F4F2F8"/>
+        <Setter Property="BorderBrush" Value="#CCFFFFFF"/>
         <Setter Property="Padding" Value="10,4"/>
         <Setter Property="Margin" Value="0,0,6,6"/>
         <Setter Property="FontSize" Value="12"/>
@@ -681,9 +698,9 @@
     <!-- ===== TextBox ===== -->
     <!-- white field, slightly sunk (darker top edge = inner shadow), purple glow on focus -->
     <LinearGradientBrush x:Key="FieldFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FFEDE6F7" Offset="0"/>
-        <GradientStop Color="#FFFDFCFF" Offset="0.18"/>
-        <GradientStop Color="#FFFFFFFF" Offset="1"/>
+        <GradientStop Color="#FFDCD6E6" Offset="0"/>
+        <GradientStop Color="#FFF1EFF5" Offset="0.18"/>
+        <GradientStop Color="#FFF6F5F9" Offset="1"/>
     </LinearGradientBrush>
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{StaticResource FieldFill}"/>

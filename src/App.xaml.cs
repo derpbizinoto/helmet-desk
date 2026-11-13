@@ -218,8 +218,8 @@ namespace HelmetDesk
             var menu = new Forms.ContextMenuStrip
             {
                 ShowImageMargin = false,
-                BackColor = System.Drawing.ColorTranslator.FromHtml("#221831"),
-                ForeColor = System.Drawing.ColorTranslator.FromHtml("#F5F1FA"),
+                BackColor = TrayColor("Tray.Back"),
+                ForeColor = TrayColor("Tray.Text"),
                 Renderer = new TrayRenderer()
             };
             menu.Items.Add("Abrir Helmet Desk", null, (s, e) => ShowMain());
@@ -235,20 +235,27 @@ namespace HelmetDesk
             _tray.ContextMenuStrip = menu;
         }
 
+        /// <summary>Tray menu colors come from the theme (Tray.* keys), since the menu is WinForms.</summary>
+        private static System.Drawing.Color TrayColor(string key)
+        {
+            var c = Current.Resources[key] is System.Windows.Media.Color m ? m : System.Windows.Media.Color.FromRgb(0x22, 0x18, 0x31);
+            return System.Drawing.Color.FromArgb(c.A, c.R, c.G, c.B);
+        }
+
         private class TrayRenderer : Forms.ToolStripProfessionalRenderer
         {
             public TrayRenderer() : base(new TrayColors()) { RoundedEdges = false; }
             protected override void OnRenderItemText(Forms.ToolStripItemTextRenderEventArgs e)
             {
-                e.TextColor = System.Drawing.ColorTranslator.FromHtml("#F5F1FA");
+                e.TextColor = TrayColor("Tray.Text");
                 base.OnRenderItemText(e);
             }
         }
 
         private class TrayColors : Forms.ProfessionalColorTable
         {
-            private static readonly System.Drawing.Color Elevated = System.Drawing.ColorTranslator.FromHtml("#221831");
-            private static readonly System.Drawing.Color Line = System.Drawing.ColorTranslator.FromHtml("#34204D");
+            private static readonly System.Drawing.Color Elevated = TrayColor("Tray.Back");
+            private static readonly System.Drawing.Color Line = TrayColor("Tray.Line");
             public override System.Drawing.Color ToolStripDropDownBackground => Elevated;
             public override System.Drawing.Color MenuBorder => Line;
             public override System.Drawing.Color MenuItemBorder => Line;

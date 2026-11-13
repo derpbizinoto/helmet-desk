@@ -458,7 +458,7 @@ namespace HelmetDesk
             QuickKindText.Text = note ? "Nota" : "Tarefa";
             QuickKindIcon.Data = Ui.Geo(note ? "I.Note" : "I.Tasks");
             QuickKindChip.Background = note ? Ui.Res("Accent") : Ui.Res("Primary");
-            var fg = note ? Ui.Res("Bg") : Brushes.White;
+            var fg = note ? Ui.Res("OnAccent") : Ui.Res("OnPrimary");
             QuickKindText.Foreground = fg;
             QuickKindIcon.Foreground = fg;
             QuickKindChip.Visibility = Visibility.Visible;
@@ -1111,7 +1111,7 @@ namespace HelmetDesk
             RefreshDayPanel();
         }
 
-        private static readonly Brush HoverLine = (Brush)new BrushConverter().ConvertFrom("#4C3270");
+        private static Brush HoverLine => Ui.Res("HoverLine");
 
         private UIElement BuildDayCell(DateTime day)
         {

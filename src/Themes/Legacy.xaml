@@ -45,6 +45,15 @@
     <SolidColorBrush x:Key="NavSelected" Color="{StaticResource C.Border}"/>
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="WindowBg" Color="{StaticResource C.Bg}"/>
+    <!-- desktop widgets (sticky note, tasks list) and the bug report window -->
+    <SolidColorBrush x:Key="WidgetWindowBg" Color="{StaticResource C.Surface}"/>
+    <SolidColorBrush x:Key="DialogWindowBg" Color="{StaticResource C.Bg}"/>
+    <SolidColorBrush x:Key="WindowRim" Color="{StaticResource C.Border}"/>
+    <!-- Finanças: overdue row border; system tray menu (WinForms, read by App.xaml.cs) -->
+    <SolidColorBrush x:Key="OverdueLine" Color="#5A2A3E"/>
+    <Color x:Key="Tray.Back">#221831</Color>
+    <Color x:Key="Tray.Line">#34204D</Color>
+    <Color x:Key="Tray.Text">#F5F1FA</Color>
 
     <!-- ===== Window layers (the Frutiger Aero theme draws its backdrop and glass panels here) ===== -->
     <!-- behind everything: nothing in the classic theme (the window background is Bg) -->

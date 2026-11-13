@@ -4,14 +4,14 @@
         xmlns:local="clr-namespace:HelmetDesk"
         Title="{Binding DisplayTitle}" Width="280" Height="300" MinWidth="200" MinHeight="140"
         WindowStyle="None" ResizeMode="CanResize" ShowInTaskbar="False"
-        Background="{StaticResource Surface}" Foreground="{StaticResource Text}"
+        Background="{StaticResource WidgetWindowBg}" Foreground="{StaticResource Text}"
         FontFamily="{StaticResource UiFont}" FontSize="13" Icon="Assets/icon.ico"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="34" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
-    <Border BorderBrush="{StaticResource Line}" BorderThickness="1">
+    <Border BorderBrush="{StaticResource WindowRim}" BorderThickness="1">
         <DockPanel>
             <!-- label color strip: fades to the new color when the label changes -->
             <Border DockPanel.Dock="Top" Height="4" local:Motion.Background="{Binding LabelBrush}"/>

@@ -4,14 +4,14 @@
         xmlns:local="clr-namespace:HelmetDesk"
         Title="Reportar problema" Width="560" Height="640" MinWidth="440" MinHeight="480"
         WindowStyle="None" ResizeMode="CanResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
-        Background="{StaticResource Bg}" Foreground="{StaticResource Text}"
+        Background="{StaticResource DialogWindowBg}" Foreground="{StaticResource Text}"
         FontFamily="{StaticResource UiFont}" FontSize="13" Icon="Assets/icon.ico"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="44" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
-    <Border BorderBrush="{StaticResource Line}" BorderThickness="1">
+    <Border BorderBrush="{StaticResource WindowRim}" BorderThickness="1">
         <DockPanel>
             <!-- title bar -->
             <DockPanel DockPanel.Dock="Top" Height="44" Margin="20,0,8,0">

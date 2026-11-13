@@ -242,7 +242,7 @@ namespace HelmetDesk
             {
                 bool on = row.IsMouseOver || row.IsKeyboardFocusWithin;
                 if (actions != null) actions.Opacity = on ? 1 : 0;
-                Motion.SetBorderBrush(row, row.IsMouseOver ? Palette.BrushFrom("#4C3270") : normal);
+                Motion.SetBorderBrush(row, row.IsMouseOver ? Ui.Res("HoverLine") : normal);
             }
             row.MouseEnter += (s, e) => Update();
             row.MouseLeave += (s, e) => Update();
@@ -420,7 +420,7 @@ namespace HelmetDesk
             Grid.SetColumn(actions, 4);
             grid.Children.Add(actions);
 
-            var row = Row(grid, actions, overdue ? Palette.BrushFrom("#5A2A3E") : null);
+            var row = Row(grid, actions, overdue ? Ui.Res("OverdueLine") : null);
             if (!t.Paid) row.Background = Ui.Res("Bg");
             row.Cursor = Cursors.Hand;
             row.Tag = t;

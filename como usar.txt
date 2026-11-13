@@ -110,6 +110,13 @@ ATALHOS
   Ctrl+N  nova nota/tarefa     Ctrl+F  buscar     Ctrl+B  recolher/expandir barra lateral
   Esc     fecha o editor (ou cancela a confirmação de exclusão)
 
+TEMA (Configurações > Geral > Tema)
+  • Frutiger Aero (padrão): vidro claro sobre um fundo roxo com aurora, botões em gel.
+    Clássico: o visual escuro original. Ao trocar, o app reinicia sozinho; nenhum dado muda.
+  • O movimento lento da aurora só acontece com "Efeitos de animação" do Windows ligado.
+  • Arquivos: src\Themes\FrutigerAero.xaml, src\Themes\Legacy.xaml (clássico), src\Themes\Shared.xaml
+    (fontes, ícones, animação). Cópia da UI antiga e como restaurar: _backup\ui-legacy\COMO_RESTAURAR.md
+
 FONTES (Google Fonts)
   • Nome do app: Geo. Resto da interface: Roboto. As duas ficam embutidas no app (funcionam offline)
     e não precisam ser instaladas no Windows.
