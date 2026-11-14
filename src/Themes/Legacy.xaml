@@ -42,16 +42,55 @@
     <SolidColorBrush x:Key="DangerSoft" Color="#33FF6F91"/>
     <SolidColorBrush x:Key="DangerTint" Color="#26FF6F91"/>
     <SolidColorBrush x:Key="AccentSoft" Color="#33C8A8F5"/>
-    <SolidColorBrush x:Key="NavSelected" Color="{StaticResource C.Border}"/>
+    <!-- selected sidebar item: violet that fades to the line color toward the right -->
+    <LinearGradientBrush x:Key="NavSelected" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#5B3592" Offset="0"/>
+        <GradientStop Color="#3E2760" Offset="0.55"/>
+        <GradientStop Color="#34204D" Offset="1"/>
+    </LinearGradientBrush>
     <SolidColorBrush x:Key="OnPrimary" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="OnAccent" Color="{StaticResource C.Bg}"/>
-    <SolidColorBrush x:Key="WindowBg" Color="{StaticResource C.Bg}"/>
+    <!-- gradients of the classic theme: slightly lighter at the top, darker at the bottom -->
+    <LinearGradientBrush x:Key="WindowBg" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#160F22" Offset="0"/>
+        <GradientStop Color="#0C0812" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PanelFill" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#1E1529" Offset="0"/>
+        <GradientStop Color="#150F1D" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="CardFill" StartPoint="0,0" EndPoint="0.35,1">
+        <GradientStop Color="#1F162B" Offset="0"/>
+        <GradientStop Color="#17101F" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PopupFill" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#2A1E3C" Offset="0"/>
+        <GradientStop Color="#1F162D" Offset="1"/>
+    </LinearGradientBrush>
+    <!-- glossy top half on filled buttons (drawn over the animated solid color) -->
+    <LinearGradientBrush x:Key="ButtonSheen" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#33FFFFFF" Offset="0"/>
+        <GradientStop Color="#0FFFFFFF" Offset="0.5"/>
+        <GradientStop Color="#00FFFFFF" Offset="0.51"/>
+        <GradientStop Color="#1A000000" Offset="1"/>
+    </LinearGradientBrush>
+    <!-- "HELMET DESK" -->
+    <LinearGradientBrush x:Key="BrandFill" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FFFFFF" Offset="0"/>
+        <GradientStop Color="#C8A8F5" Offset="1"/>
+    </LinearGradientBrush>
     <!-- sidebar resize line (hover / dragging) -->
     <SolidColorBrush x:Key="SplitterHover" Color="{StaticResource C.Primary}"/>
     <SolidColorBrush x:Key="SplitterDrag" Color="{StaticResource C.Accent}"/>
     <!-- desktop widgets (sticky note, tasks list) and the bug report window -->
-    <SolidColorBrush x:Key="WidgetWindowBg" Color="{StaticResource C.Surface}"/>
-    <SolidColorBrush x:Key="DialogWindowBg" Color="{StaticResource C.Bg}"/>
+    <LinearGradientBrush x:Key="WidgetWindowBg" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#21172D" Offset="0"/>
+        <GradientStop Color="#160F1F" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="DialogWindowBg" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#181024" Offset="0"/>
+        <GradientStop Color="#0D0914" Offset="1"/>
+    </LinearGradientBrush>
     <SolidColorBrush x:Key="WindowRim" Color="{StaticResource C.Border}"/>
     <!-- Finanças: overdue row border; system tray menu (WinForms, read by App.xaml.cs) -->
     <SolidColorBrush x:Key="OverdueLine" Color="#5A2A3E"/>
@@ -60,8 +99,8 @@
     <Color x:Key="Tray.Text">#F5F1FA</Color>
 
     <!-- ===== Window layers (the Frutiger Aero theme draws its backdrop and glass panels here) ===== -->
-    <!-- behind everything: nothing in the classic theme (the window background is Bg) -->
-    <Style x:Key="AppBackdrop" TargetType="ContentControl">
+    <!-- empty layer (nothing drawn) -->
+    <Style x:Key="EmptyLayer" TargetType="ContentControl">
         <Setter Property="Focusable" Value="False"/>
         <Setter Property="IsHitTestVisible" Value="False"/>
         <Setter Property="Template">
@@ -70,19 +109,46 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style x:Key="SidebarGlass" TargetType="ContentControl" BasedOn="{StaticResource AppBackdrop}"/>
+    <!-- behind everything: two soft static violet glows over the WindowBg gradient -->
+    <Style x:Key="AppBackdrop" TargetType="ContentControl" BasedOn="{StaticResource EmptyLayer}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <Grid>
+                        <Rectangle>
+                            <Rectangle.Fill>
+                                <RadialGradientBrush Center="0.85,0" GradientOrigin="0.85,0" RadiusX="0.6" RadiusY="0.55">
+                                    <GradientStop Color="#268950D9" Offset="0"/>
+                                    <GradientStop Color="#008950D9" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle>
+                            <Rectangle.Fill>
+                                <RadialGradientBrush Center="0.1,1" GradientOrigin="0.1,1" RadiusX="0.5" RadiusY="0.5">
+                                    <GradientStop Color="#1AC8A8F5" Offset="0"/>
+                                    <GradientStop Color="#00C8A8F5" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SidebarGlass" TargetType="ContentControl" BasedOn="{StaticResource EmptyLayer}"/>
     <Style x:Key="SidebarPanel" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource Surface}"/>
+        <Setter Property="Background" Value="{StaticResource PanelFill}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
         <Setter Property="BorderThickness" Value="0,0,1,0"/>
     </Style>
     <!-- the column to the right of the sidebar -->
     <Style x:Key="ContentArea" TargetType="Grid"/>
     <!-- behind the page header and body -->
-    <Style x:Key="ContentPanel" TargetType="ContentControl" BasedOn="{StaticResource AppBackdrop}"/>
+    <Style x:Key="ContentPanel" TargetType="ContentControl" BasedOn="{StaticResource EmptyLayer}"/>
     <!-- right-hand panel (viewer / editor / calendar day) -->
     <Style x:Key="EditorPanel" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource Surface}"/>
+        <Setter Property="Background" Value="{StaticResource PanelFill}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
         <Setter Property="BorderThickness" Value="1,1,0,0"/>
         <Setter Property="CornerRadius" Value="12,0,0,0"/>
@@ -93,6 +159,7 @@
     <Style x:Key="BrandText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BrandFontFamily}"/>
         <Setter Property="FontSize" Value="21"/>
+        <Setter Property="Foreground" Value="{StaticResource BrandFill}"/>
     </Style>
 
     <!-- ===== Focus ===== -->
@@ -153,7 +220,26 @@
         </Setter>
     </Style>
 
+    <!-- filled buttons: same as BtnBase plus a static gloss on top, so the hover fade still works -->
+    <ControlTemplate x:Key="SheenButtonTemplate" TargetType="ButtonBase">
+        <Grid>
+            <Border local:Motion.Background="{TemplateBinding Background}" local:Motion.BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding local:Ui.Radius}" SnapsToDevicePixels="True"/>
+            <Border Background="{StaticResource ButtonSheen}" CornerRadius="{TemplateBinding local:Ui.Radius}" IsHitTestVisible="False"/>
+            <Border Padding="{TemplateBinding Padding}" BorderThickness="{TemplateBinding BorderThickness}" local:Motion.Foreground="{TemplateBinding Foreground}">
+                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="False"/>
+            </Border>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource BtnBase}">
+        <Setter Property="Template" Value="{StaticResource SheenButtonTemplate}"/>
         <Setter Property="Background" Value="{StaticResource Primary}"/>
         <Setter Property="Foreground" Value="#FFFFFF"/>
         <Style.Triggers>
@@ -164,6 +250,7 @@
     </Style>
 
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BtnBase}">
+        <Setter Property="Template" Value="{StaticResource SheenButtonTemplate}"/>
         <Setter Property="Background" Value="{StaticResource Danger}"/>
         <Setter Property="Foreground" Value="{StaticResource Bg}"/>
         <Style.Triggers>
@@ -673,7 +760,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
-                    <Border Background="{StaticResource Elevated}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                    <Border Background="{StaticResource PopupFill}" BorderBrush="{StaticResource Line}" BorderThickness="1"
                             CornerRadius="6" Padding="8,5">
                         <ContentPresenter/>
                     </Border>
@@ -721,7 +808,7 @@
                         <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" VerticalOffset="4"
                                AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
                             <Border MinWidth="{Binding ActualWidth, ElementName=b}" MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                                    Background="{StaticResource Elevated}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                                    Background="{StaticResource PopupFill}" BorderBrush="{StaticResource Line}" BorderThickness="1"
                                     CornerRadius="10" Padding="4" Margin="0,0,8,8">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
@@ -807,7 +894,7 @@
     </Style>
 
     <Style x:Key="Card" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource Surface}"/>
+        <Setter Property="Background" Value="{StaticResource CardFill}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="10"/>
