@@ -115,6 +115,13 @@ namespace HelmetDesk
                 Store.Save();
                 var json = File.ReadAllText(Store.FilePath);
                 Check("anexos: salvos no data.json", json.Contains("\"Attachments\"") && json.Contains("youtube.com/watch?v=abc123"));
+                var bz = Path.Combine(Store.LocalDir, "teste-backup-anexos.zip");
+                Directory.CreateDirectory(Store.LocalDir);
+                await CreateBackupService().ExportAsync(bz);
+                using (var z = System.IO.Compression.ZipFile.OpenRead(bz))
+                    Check("anexos: entram no backup .zip", n.Attachments.Count(a => a.File != null) >= 1
+                        && n.Attachments.Where(a => a.File != null).All(a => z.GetEntry(a.File.Replace('\\', '/')) != null));
+                File.Delete(bz);
             }
             finally
             {

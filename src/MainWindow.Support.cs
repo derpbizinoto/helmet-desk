@@ -18,6 +18,7 @@ namespace HelmetDesk
             DataDir = Store.Dir,
             SafetyBackupDir = Path.Combine(Store.LocalDir, "backups"),
             DataFiles = new[] { "data.json" },
+            DataFolders = new[] { "attachments" }, // note attachments (pictures, files): restoring a backup brings them back
             AppVersion = App.AppVersion,
             CurrentSchema = Store.CurrentSchema,
             Migrate = Store.Migrate,
@@ -129,7 +130,7 @@ namespace HelmetDesk
                 var tcs = new TaskCompletionSource<bool>();
                 OpenDialog("Substituir os dados atuais?",
                     $"Backup de {when:dd/MM/yyyy 'às' HH:mm} (Helmet Desk {m.AppVersion}).\n\n" +
-                    "Todas as notas, tarefas, etiquetas e configurações atuais serão substituídas pelas do backup. " +
+                    "Todas as notas, tarefas, anexos, etiquetas e configurações atuais serão substituídas pelas do backup. " +
                     "Uma cópia de segurança dos dados atuais é guardada antes. O Helmet Desk vai reiniciar em seguida.",
                     "Substituir e reiniciar", "Cancelar", DialogKind.Danger, false, ok => tcs.TrySetResult(ok));
                 if (!await tcs.Task) return false;

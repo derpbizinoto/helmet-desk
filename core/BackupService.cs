@@ -50,11 +50,19 @@ namespace HelmetDesk.Core
         public string SafetyBackupDir { get; set; }
         /// <summary>Files (relative to DataDir) that make up the user's data.</summary>
         public IReadOnlyList<string> DataFiles { get; set; } = new[] { "data.json" };
+        /// <summary>Folders (relative to DataDir) copied whole, e.g. "attachments" (note media: can be big, streamed from disk).</summary>
+        public IReadOnlyList<string> DataFolders { get; set; } = Array.Empty<string>();
         public string AppVersion { get; set; } = "0.0.0";
         public int CurrentSchema { get; set; } = 1;
-        /// <summary>The data today is a few KB; 100 MB leaves room for years of notes and still stops a zip bomb.</summary>
+        /// <summary>For the data files (JSON): a few KB today; 100 MB leaves room for years of notes and still stops a zip bomb.</summary>
         public long MaxUncompressedBytes { get; set; } = 100L * 1024 * 1024;
         public int MaxEntries { get; set; } = 1000;
+        /// <summary>Files inside <see cref="DataFolders"/> (attachments have no size limit; free disk space is checked on import).</summary>
+        public int MaxFolderEntries { get; set; } = 200_000;
+        /// <summary>Zip-bomb guard for folder files: anything over 1 MB that shrank more than this is refused (real media barely compresses).</summary>
+        public double MaxCompressionRatio { get; set; } = 1000;
+        /// <summary>Safety copies are pruned to this total size (always keeping the newest): with media they can be big.</summary>
+        public long MaxSafetyBytes { get; set; } = 2L * 1024 * 1024 * 1024;
         public int KeepSafetyBackups { get; set; } = 5;
         /// <summary>Brings an older backup (already extracted to the given folder) up to the current schema.</summary>
         public Action<string, int> Migrate { get; set; }
@@ -99,12 +107,21 @@ namespace HelmetDesk.Core
             progress?.Report(new(5, "Lendo os dados…"));
             // a consistent snapshot: copy the files into memory while the app is not writing them
             var files = new List<(string rel, byte[] bytes)>();
+            var folderFiles = new List<(string rel, string full, long size)>();
             using (_gate.Enter())
             {
                 foreach (var rel in _o.DataFiles)
                 {
                     var full = Path.Combine(_o.DataDir, rel);
                     if (File.Exists(full)) files.Add((Normalize(rel), File.ReadAllBytes(full)));
+                }
+                // folder files (attachments) are never rewritten in place, only added/removed: listing them is enough
+                foreach (var folder in _o.DataFolders)
+                {
+                    var root = Path.Combine(_o.DataDir, folder);
+                    if (!Directory.Exists(root)) continue;
+                    foreach (var f in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                        folderFiles.Add((Normalize(Path.GetRelativePath(_o.DataDir, f)), f, new FileInfo(f).Length));
                 }
             }
             if (files.Count == 0) throw new BackupException(BackupError.Io, "Não há dados para exportar.");
@@ -118,6 +135,7 @@ namespace HelmetDesk.Core
                 ExportedAtUtc = _clock.Now.UtcDateTime,
                 Files = files.Select(f => new BackupFileEntry { Path = f.rel, Size = f.bytes.LongLength, Sha256 = Hash(f.bytes) }).ToList()
             };
+            long folderTotal = Math.Max(1, folderFiles.Sum(f => f.size)), folderDone = 0;
 
             progress?.Report(new(40, "Compactando…"));
             var dir = Path.GetDirectoryName(Path.GetFullPath(zipPath));
@@ -134,6 +152,23 @@ namespace HelmetDesk.Core
                         var e = zip.CreateEntry(rel, CompressionLevel.Optimal);
                         using var s = e.Open();
                         s.Write(bytes, 0, bytes.Length);
+                    }
+                    foreach (var (rel, full, size) in folderFiles)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        progress?.Report(new(40 + (int)(55 * folderDone / folderTotal), "Compactando anexos…"));
+                        FileStream src;
+                        try { src = new FileStream(full, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete); }
+                        catch (FileNotFoundException) { continue; } // removed meanwhile
+                        catch (DirectoryNotFoundException) { continue; }
+                        using (src)
+                        {
+                            var e = zip.CreateEntry(rel, IsCompressed(rel) ? CompressionLevel.NoCompression : CompressionLevel.Optimal);
+                            using var s = e.Open();
+                            var (hash, length) = CopyHashing(src, s, ct);
+                            manifest.Files.Add(new BackupFileEntry { Path = rel, Size = length, Sha256 = hash });
+                        }
+                        folderDone += size;
                     }
                     var m = zip.CreateEntry(BackupManifest.FileName, CompressionLevel.Optimal);
                     using (var s = m.Open()) JsonSerializer.Serialize(s, manifest, Json);
@@ -170,15 +205,24 @@ namespace HelmetDesk.Core
                 IReadOnlyCollection<ZipArchiveEntry> entries;
                 try { entries = zip.Entries; }
                 catch (InvalidDataException ex) { throw new BackupException(BackupError.Corrupt, "O arquivo .zip está corrompido.", ex); }
-                if (entries.Count > _o.MaxEntries)
-                    throw new BackupException(BackupError.TooLarge, "O backup tem arquivos demais para ser um backup do Helmet Desk.");
+                int dataCount = 0, folderCount = 0;
                 long total = 0;
                 foreach (var e in entries)
                 {
+                    CheckSafePath(e.FullName);
+                    if (InDataFolder(e.FullName))
+                    {
+                        if (++folderCount > _o.MaxFolderEntries)
+                            throw new BackupException(BackupError.TooLarge, "O backup tem arquivos demais para ser um backup do Helmet Desk.");
+                        if (e.Length > 1024 * 1024 && e.Length > e.CompressedLength * _o.MaxCompressionRatio)
+                            throw new BackupException(BackupError.TooLarge, $"Um arquivo do backup está compactado de forma suspeita e foi recusado por segurança: {e.FullName}");
+                        continue;
+                    }
+                    if (++dataCount > _o.MaxEntries)
+                        throw new BackupException(BackupError.TooLarge, "O backup tem arquivos demais para ser um backup do Helmet Desk.");
                     total += e.Length;
                     if (total > _o.MaxUncompressedBytes)
                         throw new BackupException(BackupError.TooLarge, $"O backup é grande demais (limite de {_o.MaxUncompressedBytes / (1024 * 1024)} MB descompactado).");
-                    CheckSafePath(e.FullName);
                 }
 
                 // ---- manifest ----
@@ -261,6 +305,13 @@ namespace HelmetDesk.Core
             var tmp = dataDir + ".import-tmp";
             var old = dataDir + ".old";
 
+            // the backup is extracted next to the current data before the swap: there must be room for it
+            long need = manifest.Files.Sum(f => f.Size) + 64L * 1024 * 1024;
+            long free = FreeSpace(dataDir);
+            if (free >= 0 && free < need)
+                throw new BackupException(BackupError.TooLarge,
+                    $"Espaço em disco insuficiente para importar este backup: são necessários {Gb(need)} livres e há {Gb(free)}.");
+
             // 1. safety copy of what is there now
             progress?.Report(new(72, "Guardando uma cópia dos dados atuais…"));
             string safety = null;
@@ -306,7 +357,9 @@ namespace HelmetDesk.Core
                 // 4. keep everything in the data folder that is not user data (old backups, the startup .bak, …)
                 if (Directory.Exists(dataDir))
                 {
-                    var dataNames = new HashSet<string>(manifest.Files.Select(f => Normalize(f.Path)).Concat(_o.DataFiles.Select(Normalize)), StringComparer.OrdinalIgnoreCase);
+                    // data files and data folders come from the backup only; everything else in the folder is kept
+                    var dataNames = new HashSet<string>(manifest.Files.Select(f => Normalize(f.Path).Split('/')[0]).Concat(_o.DataFiles.Select(Normalize))
+                        .Concat(_o.DataFolders.Select(Normalize)), StringComparer.OrdinalIgnoreCase);
                     foreach (var path in Directory.EnumerateFileSystemEntries(dataDir))
                     {
                         var name = Path.GetFileName(path);
@@ -361,9 +414,15 @@ namespace HelmetDesk.Core
         {
             try
             {
-                foreach (var f in new DirectoryInfo(_o.SafetyBackupDir).GetFiles("pre-import-*.zip")
-                             .OrderByDescending(f => f.LastWriteTimeUtc).ThenByDescending(f => f.Name).Skip(_o.KeepSafetyBackups))
-                    f.Delete();
+                var all = new DirectoryInfo(_o.SafetyBackupDir).GetFiles("pre-import-*.zip")
+                    .OrderByDescending(f => f.LastWriteTimeUtc).ThenByDescending(f => f.Name).ToList();
+                long sum = 0;
+                for (int i = 0; i < all.Count; i++)
+                {
+                    sum += all[i].Length;
+                    // the newest always stays; older ones go past the count or the total size (attachments make them big)
+                    if (i > 0 && (i >= _o.KeepSafetyBackups || sum > _o.MaxSafetyBytes)) all[i].Delete();
+                }
             }
             catch { /* best effort */ }
         }
@@ -371,6 +430,45 @@ namespace HelmetDesk.Core
         // ======================= helpers =======================
 
         private static string Normalize(string rel) => rel.Replace('\\', '/').TrimStart('/');
+
+        private bool InDataFolder(string rel)
+        {
+            var n = Normalize(rel);
+            return _o.DataFolders.Any(f => n.StartsWith(Normalize(f).TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static readonly HashSet<string> CompressedExt = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg", ".jpeg", ".png", ".gif", ".webp", ".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v", ".mp3", ".m4a", ".aac", ".ogg", ".opus",
+            ".flac", ".zip", ".7z", ".rar", ".gz", ".pdf", ".docx", ".xlsx", ".pptx", ".odt", ".heic", ".avif",
+        };
+
+        /// <summary>Already-compressed formats are stored as they are: deflating them again only costs time.</summary>
+        private static bool IsCompressed(string rel) => CompressedExt.Contains(Path.GetExtension(rel));
+
+        private static (string hash, long length) CopyHashing(Stream src, Stream dst, CancellationToken ct)
+        {
+            using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            var buf = new byte[1 << 17];
+            long total = 0;
+            int n;
+            while ((n = src.Read(buf, 0, buf.Length)) > 0)
+            {
+                ct.ThrowIfCancellationRequested();
+                sha.AppendData(buf, 0, n);
+                dst.Write(buf, 0, n);
+                total += n;
+            }
+            return (Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant(), total);
+        }
+
+        private static long FreeSpace(string dir)
+        {
+            try { return new DriveInfo(Path.GetPathRoot(Path.GetFullPath(dir))).AvailableFreeSpace; }
+            catch { return -1; } // unknown (network path…): don't block
+        }
+
+        private static string Gb(long bytes) => bytes >= 1L << 30 ? $"{bytes / (double)(1L << 30):0.0} GB" : $"{bytes / (double)(1 << 20):0} MB";
 
         internal static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 

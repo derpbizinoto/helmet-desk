@@ -255,5 +255,118 @@ namespace HelmetDesk.Tests
             }
             await export;
         }
+
+        // ======================= attachments folder =======================
+
+        private BackupService WithAttachments(Action<BackupOptions> tweak = null) =>
+            _s.Service(o => { o.DataFolders = new[] { "attachments" }; tweak?.Invoke(o); });
+
+        private static byte[] Noise(int size, int seed)
+        {
+            var b = new byte[size];
+            new Random(seed).NextBytes(b);
+            return b;
+        }
+
+        [Fact]
+        public async Task Attachments_go_into_the_backup_and_come_back_on_import()
+        {
+            File.WriteAllText(_s.DataFile, Original);
+            var noteDir = Path.Combine(_s.DataDir, "attachments", "nota1");
+            Directory.CreateDirectory(noteDir);
+            var photo = Noise(3 * 1024 * 1024, 1);
+            File.WriteAllBytes(Path.Combine(noteDir, "foto.png"), photo);
+            File.WriteAllText(Path.Combine(noteDir, "lista ção.txt"), "remédios");
+            Directory.CreateDirectory(Path.Combine(_s.DataDir, "links"));
+            File.WriteAllText(Path.Combine(_s.DataDir, "links", "index.json"), "{}");
+            var svc = WithAttachments();
+
+            var zip = Path.Combine(_s.OutDir, "anexos.zip");
+            var m = await svc.ExportAsync(zip);
+            Assert.Equal(new[] { "attachments/nota1/foto.png", "attachments/nota1/lista ção.txt", "data.json" }, m.Files.Select(f => f.Path).OrderBy(x => x, StringComparer.Ordinal));
+            using (var z = ZipFile.OpenRead(zip))
+            {
+                var e = z.GetEntry("attachments/nota1/foto.png");
+                Assert.True(e.CompressedLength >= e.Length, "pictures are stored, not deflated again");
+                Assert.Null(z.GetEntry("links/index.json")); // cache, not user data
+            }
+
+            // the folder changes after the export
+            Directory.Delete(Path.Combine(_s.DataDir, "attachments"), true);
+            Directory.CreateDirectory(Path.Combine(_s.DataDir, "attachments", "outra"));
+            File.WriteAllText(Path.Combine(_s.DataDir, "attachments", "outra", "nova.txt"), "x");
+
+            await svc.ImportAsync(zip);
+            Assert.Equal(photo, File.ReadAllBytes(Path.Combine(noteDir, "foto.png")));
+            Assert.Equal("remédios", File.ReadAllText(Path.Combine(noteDir, "lista ção.txt")));
+            Assert.False(Directory.Exists(Path.Combine(_s.DataDir, "attachments", "outra")), "attachments are exactly the backup's");
+            Assert.True(File.Exists(Path.Combine(_s.DataDir, "links", "index.json")), "other folders are kept");
+        }
+
+        [Fact]
+        public async Task Big_attachments_are_not_limited_by_the_data_size_cap()
+        {
+            File.WriteAllText(_s.DataFile, Original);
+            Directory.CreateDirectory(Path.Combine(_s.DataDir, "attachments", "n"));
+            File.WriteAllBytes(Path.Combine(_s.DataDir, "attachments", "n", "video.mp4"), Noise(2 * 1024 * 1024, 2));
+            var svc = WithAttachments(o => o.MaxUncompressedBytes = 10_000);
+            var zip = Path.Combine(_s.OutDir, "big.zip");
+            await svc.ExportAsync(zip);
+            var m = await svc.InspectAsync(zip);
+            Assert.Equal(2, m.Files.Count);
+        }
+
+        [Fact]
+        public async Task Suspiciously_compressed_attachment_is_refused()
+        {
+            var path = Path.Combine(_s.OutDir, "bomb.zip");
+            var zeros = new byte[4 * 1024 * 1024];
+            using (var zip = ZipFile.Open(path, ZipArchiveMode.Create))
+            {
+                var manifest = new BackupManifest { App = BackupManifest.AppName, AppVersion = "1", SchemaVersion = 1, ExportedAtUtc = DateTime.UtcNow };
+                var data = Encoding.UTF8.GetBytes(Original);
+                using (var s = zip.CreateEntry("data.json").Open()) s.Write(data);
+                using (var s = zip.CreateEntry("attachments/n/zeros.bin", CompressionLevel.Optimal).Open()) s.Write(zeros);
+                manifest.Files.Add(new BackupFileEntry { Path = "data.json", Size = data.Length, Sha256 = BackupService.Hash(data) });
+                manifest.Files.Add(new BackupFileEntry { Path = "attachments/n/zeros.bin", Size = zeros.Length, Sha256 = BackupService.Hash(zeros) });
+                using (var s = zip.CreateEntry(BackupManifest.FileName).Open()) JsonSerializer.Serialize(s, manifest);
+            }
+            var ex = await Assert.ThrowsAsync<BackupException>(() => WithAttachments(o => o.MaxCompressionRatio = 50).InspectAsync(path));
+            Assert.Equal(BackupError.TooLarge, ex.Kind);
+            Assert.Contains("zeros.bin", ex.Message);
+        }
+
+        [Fact]
+        public async Task Old_backup_without_attachments_still_imports()
+        {
+            File.WriteAllText(_s.DataFile, Original);
+            var zip = MakeZip("antigo.zip", 1, BackupManifest.AppName, ("data.json", Original, null));
+            Directory.CreateDirectory(Path.Combine(_s.DataDir, "attachments", "n"));
+            File.WriteAllText(Path.Combine(_s.DataDir, "attachments", "n", "a.txt"), "a");
+            await WithAttachments().ImportAsync(zip);
+            Assert.Equal(Original, File.ReadAllText(_s.DataFile));
+            Assert.False(Directory.Exists(Path.Combine(_s.DataDir, "attachments")), "the old data has no attachments, so none are left");
+            var safety = Directory.GetFiles(_s.SafetyDir).Single();
+            using var z = ZipFile.OpenRead(safety);
+            Assert.NotNull(z.GetEntry("attachments/n/a.txt")); // but the safety copy still has them
+        }
+
+        [Fact]
+        public async Task Safety_copies_are_pruned_by_total_size_keeping_the_newest()
+        {
+            File.WriteAllText(_s.DataFile, Original);
+            Directory.CreateDirectory(Path.Combine(_s.DataDir, "attachments", "n"));
+            File.WriteAllBytes(Path.Combine(_s.DataDir, "attachments", "n", "f.bin"), Noise(200_000, 3));
+            var svc = WithAttachments(o => o.MaxSafetyBytes = 250_000);
+            var zip = Path.Combine(_s.OutDir, "b.zip");
+            await svc.ExportAsync(zip);
+            for (int i = 0; i < 3; i++)
+            {
+                _s.Clock.Now = _s.Clock.Now.AddMinutes(1);
+                await svc.ImportAsync(zip);
+            }
+            var left = Directory.GetFiles(_s.SafetyDir, "pre-import-*.zip").Select(Path.GetFileName).ToList();
+            Assert.Equal(new[] { "pre-import-2026-11-12-153300.zip" }, left);
+        }
     }
 }
