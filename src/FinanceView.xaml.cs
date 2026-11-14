@@ -98,12 +98,15 @@ namespace HelmetDesk
             AccTab.Visibility = _tab == "acc" ? Visibility.Visible : Visibility.Collapsed;
             RecTab.Visibility = _tab == "rec" ? Visibility.Visible : Visibility.Collapsed;
             CatTab.Visibility = _tab == "cat" ? Visibility.Visible : Visibility.Collapsed;
+            StatsTab.Visibility = _tab == "stats" ? Visibility.Visible : Visibility.Collapsed;
+            SumGrid.Visibility = _tab == "stats" ? Visibility.Collapsed : Visibility.Visible; // the tab has its own period summary
             switch (_tab)
             {
                 case "tx": FillFilters(); BuildTransactions(); BuildChart(); break;
                 case "acc": BuildAccounts(); break;
                 case "rec": BuildRecurrences(); break;
                 case "cat": BuildCategories(); break;
+                case "stats": BuildStats(); break;
             }
         }
 
@@ -128,13 +131,14 @@ namespace HelmetDesk
             double w = Scroll.ActualWidth - 56;
             bool narrow = w < 860;
             SumGrid.Columns = w < 640 ? 2 : 4;
-            DockPanel.SetDock(TabsBox, w < 720 ? Dock.Bottom : Dock.Right);
-            TabsBox.Margin = w < 720 ? new Thickness(0, 12, 0, 0) : new Thickness(0);
+            DockPanel.SetDock(TabsBox, w < 820 ? Dock.Bottom : Dock.Right);
+            TabsBox.Margin = w < 820 ? new Thickness(0, 12, 0, 0) : new Thickness(0);
             Grid.SetColumnSpan(TxCol, narrow ? 3 : 1);
             Grid.SetRow(ChartCard, narrow ? 1 : 0);
             Grid.SetColumn(ChartCard, narrow ? 0 : 2);
             Grid.SetColumnSpan(ChartCard, narrow ? 3 : 1);
             ChartCard.Margin = narrow ? new Thickness(0, 16, 0, 0) : new Thickness(0);
+            StatsLayout(w);
         }
 
         // ================= month / tabs =================
@@ -161,7 +165,7 @@ namespace HelmetDesk
         /// <summary>For the self-test and snapshots.</summary>
         internal void ShowTab(string tab)
         {
-            (tab switch { "acc" => TabAcc, "rec" => TabRec, "cat" => TabCat, _ => TabTx }).IsChecked = true;
+            (tab switch { "acc" => TabAcc, "rec" => TabRec, "cat" => TabCat, "stats" => TabStats, _ => TabTx }).IsChecked = true;
             _tab = tab;
             Refresh();
         }

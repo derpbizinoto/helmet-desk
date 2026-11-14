@@ -6,6 +6,13 @@ namespace HelmetDesk.Core.Finance
 {
     public readonly record struct MonthSummary(decimal Income, decimal Expense, decimal CurrentBalance, decimal ProjectedBalance);
     public readonly record struct CategoryTotal(string CategoryId, decimal Total);
+    public readonly record struct MonthTotals(DateTime Month, decimal Income, decimal Expense);
+    public readonly record struct PeriodTotals(decimal Income, decimal Expense)
+    {
+        public decimal Net => Income - Expense;
+        /// <summary>Share of income left after expenses (null when there was no income).</summary>
+        public double? SavingsRate => Income > 0 ? (double)((Income - Expense) / Income) : null;
+    }
     public readonly record struct Suggestion(decimal Amount, TxKind Kind, string CategoryId, string AccountId);
 
     /// <summary>
@@ -100,6 +107,56 @@ namespace HelmetDesk.Core.Finance
                 .GroupBy(t => t.CategoryId)
                 .Select(g => new CategoryTotal(g.Key, g.Sum(t => t.Amount)))
                 .OrderByDescending(c => c.Total).ToList();
+
+        // ================= statistics =================
+
+        /// <summary>
+        /// Income/expense transactions (paid and pending, no transfers, no balance adjustments) of the
+        /// <paramref name="months"/> months starting at <paramref name="from"/>.
+        /// </summary>
+        public static IEnumerable<FinanceTransaction> InPeriod(FinanceData d, DateTime from, int months)
+        {
+            var a = MonthStart(from); var b = a.AddMonths(Math.Max(1, months));
+            return d.Transactions.Where(t => t.Date >= a && t.Date < b && !t.IsAdjustment && t.Kind != TxKind.Transfer);
+        }
+
+        public static PeriodTotals Totals(FinanceData d, DateTime from, int months)
+        {
+            decimal inc = 0, exp = 0;
+            foreach (var t in InPeriod(d, from, months))
+                if (t.Kind == TxKind.Income) inc += t.Amount; else exp += t.Amount;
+            return new PeriodTotals(inc, exp);
+        }
+
+        /// <summary>Totals per category of one kind in the period, largest first. No category = null id.</summary>
+        public static List<CategoryTotal> ByCategory(FinanceData d, TxKind kind, DateTime from, int months) =>
+            InPeriod(d, from, months).Where(t => t.Kind == kind)
+                .GroupBy(t => t.CategoryId)
+                .Select(g => new CategoryTotal(g.Key, g.Sum(t => t.Amount)))
+                .OrderByDescending(c => c.Total).ToList();
+
+        /// <summary>One entry per month of the period (months without transactions included, as zero).</summary>
+        public static List<MonthTotals> Monthly(FinanceData d, DateTime from, int months)
+        {
+            var start = MonthStart(from);
+            var list = new List<MonthTotals>();
+            for (int i = 0; i < Math.Max(1, months); i++)
+            {
+                var m = start.AddMonths(i);
+                var t = Totals(d, m, 1);
+                list.Add(new MonthTotals(m, t.Income, t.Expense));
+            }
+            return list;
+        }
+
+        /// <summary>Largest transactions of one kind in the period; with <paramref name="byCategory"/>, only that category (null id = no category).</summary>
+        public static List<FinanceTransaction> Largest(FinanceData d, TxKind kind, DateTime from, int months, int max = 6, bool byCategory = false, string categoryId = null) =>
+            InPeriod(d, from, months).Where(t => t.Kind == kind && (!byCategory || t.CategoryId == categoryId))
+                .OrderByDescending(t => t.Amount).ThenByDescending(t => t.Date).Take(max).ToList();
+
+        /// <summary>Relative change from <paramref name="before"/> to <paramref name="now"/> (null when there is nothing to compare).</summary>
+        public static double? Change(decimal before, decimal now) =>
+            before == 0 ? null : (double)((now - before) / Math.Abs(before));
 
         /// <summary>Pending transactions overdue or due today (sidebar counter).</summary>
         public static IEnumerable<FinanceTransaction> Due(FinanceData d, DateTime today) =>

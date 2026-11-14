@@ -455,6 +455,32 @@ namespace HelmetDesk
                 await Shot("19f-recorrentes");
                 FinanceView.ShowTab("cat");
                 await Shot("19g-categorias");
+                // five past months, so the statistics have some history
+                var mm = m;
+                for (int k = 1; k <= 5; k++)
+                {
+                    m = mm.AddMonths(-k);
+                    T(I, 6500m, 5, "Salário", C("Salário"), bank, true);
+                    if (k % 2 == 1) T(I, 800m + k * 150m, 18, "Freela", C("Freelance"), bank, true);
+                    T(E, 1800m, 10, "Aluguel", C("Moradia"), bank, true);
+                    T(E, 900m + k * 85m, 8, "Mercado do mês", C("Alimentação"), card, true);
+                    T(E, 210m + k * 40m, 15, "Combustível", C("Transporte"), card, true);
+                    T(E, k == 3 ? 1450m : 160m, 21, k == 3 ? "Show + viagem" : "Cinema", C("Lazer"), card, true);
+                    T(E, 120m, 2, "Academia", C("Saúde"), bank, true);
+                }
+                m = mm;
+                FinanceView.ShowTab("stats");
+                FinanceView.SetPeriod(6);
+                await Shot("19k-estatisticas");
+                FinanceView.Scroll.ScrollToEnd();
+                await Shot("19k2-estatisticas-barras");
+                FinanceView.Scroll.ScrollToTop();
+                FinanceView.SelectPieSlice(1);
+                await Shot("19l-estatisticas-fatia");
+                FinanceView.SetPeriod(1);
+                FinanceView.SetPieKind(HelmetDesk.Core.Finance.TxKind.Income);
+                await Shot("19m-estatisticas-ganhos-mes");
+                FinanceView.SetPieKind(E);
                 FinanceView.ShowTab("tx");
                 FinanceView.RequestDeleteTx(D.Transactions.First(t => t.Description == "Celular (3/10)"));
                 await Shot("19h-excluir-parcela");
@@ -619,6 +645,28 @@ namespace HelmetDesk
                 await Snapshots.Idle(Dispatcher);
                 Check("finanças: card no Hoje com saldo atual", TodayFinance.Visibility == Visibility.Visible
                     && TodayFinanceBalance.Text == HelmetDesk.Core.Finance.Money.Format(HelmetDesk.Core.Finance.FinanceService.TotalBalance(D)));
+
+                // statistics tab
+                fv.ShowTab("stats");
+                fv.SetPeriod(1);
+                await Snapshots.Idle(Dispatcher);
+                var st = HelmetDesk.Core.Finance.FinanceService.Totals(D, fv.Month, 1);
+                Check("finanças: aba Estatísticas abre com resumo do mês", fv.StatsTab.Visibility == Visibility.Visible && fv.SumGrid.Visibility == Visibility.Collapsed
+                    && fv.StExpense.Text == HelmetDesk.Core.Finance.Money.Format(st.Expense) && fv.StIncome.Text == HelmetDesk.Core.Finance.Money.Format(st.Income));
+                Check("finanças: pizza tem uma fatia por categoria com gasto", fv.PieSliceCount == HelmetDesk.Core.Finance.FinanceService.ByCategory(D, HelmetDesk.Core.Finance.TxKind.Expense, fv.Month, 1).Count
+                    && fv.PieLegend.Children.Count == Math.Max(1, fv.PieSliceCount));
+                if (fv.PieSliceCount > 0)
+                {
+                    fv.SelectPieSlice(0);
+                    Check("finanças: clicar na fatia filtra os maiores lançamentos", fv.TopMeta.Text != "Todas as categorias" && fv.PieCenterLabel.Text != "Total");
+                    fv.SelectPieSlice(-1);
+                }
+                fv.SetPeriod(6);
+                await Snapshots.Idle(Dispatcher);
+                Check("finanças: barras mostram 6 meses", fv.Bars.Children.OfType<TextBlock>().Count(t => t.Text.Length <= 6 && !t.Text.StartsWith("R$") && !t.Text.StartsWith("-R$")) == 6);
+                fv.SetPeriod(1);
+                fv.ShowTab("tx");
+                Check("finanças: resumo do mês volta fora das estatísticas", fv.SumGrid.Visibility == Visibility.Visible);
 
                 Store.Save();
                 var json = File.ReadAllText(Store.FilePath);

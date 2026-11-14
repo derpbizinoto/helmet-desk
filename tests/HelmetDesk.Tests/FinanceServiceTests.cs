@@ -426,5 +426,45 @@ namespace HelmetDesk.Tests
             Assert.Equal("-R$ 0,50", Money.Format(-0.5m));
             Assert.Equal("+R$ 10,00", Money.Signed(10m));
         }
+
+        [Fact]
+        public void Statistics_cover_the_period_and_skip_transfers_and_adjustments()
+        {
+            var (d, a, b, food, salary) = Setup();
+            var other = d.Categories.First(c => c.Kind == CategoryKind.Expense && c.Id != food.Id);
+            var jan = new DateTime(2026, 1, 1);
+            Tx(d, TxKind.Income, 3000m, new DateTime(2026, 1, 5), true, a.Id, cat: salary.Id);
+            Tx(d, TxKind.Expense, 200m, new DateTime(2026, 1, 10), true, a.Id, cat: food.Id);
+            Tx(d, TxKind.Expense, 50m, new DateTime(2026, 1, 20), false, a.Id, cat: food.Id);
+            Tx(d, TxKind.Expense, 400m, new DateTime(2026, 3, 2), true, a.Id, cat: other.Id);
+            Tx(d, TxKind.Expense, 30m, new DateTime(2026, 3, 3), true, a.Id);
+            Tx(d, TxKind.Transfer, 999m, new DateTime(2026, 1, 15), true, a.Id, to: b.Id);
+            FinanceService.Adjust(d, a, 10m, new DateTime(2026, 2, 1));
+            Tx(d, TxKind.Expense, 77m, new DateTime(2026, 4, 1), true, a.Id, cat: food.Id); // outside
+
+            var t = FinanceService.Totals(d, jan, 3);
+            Assert.Equal(3000m, t.Income);
+            Assert.Equal(680m, t.Expense);
+            Assert.Equal(2320m, t.Net);
+            Assert.Equal(2320.0 / 3000.0, t.SavingsRate.Value, 6);
+            Assert.Null(FinanceService.Totals(d, new DateTime(2026, 3, 1), 1).SavingsRate);
+
+            var cats = FinanceService.ByCategory(d, TxKind.Expense, jan, 3);
+            Assert.Equal(new[] { other.Id, food.Id, null }, cats.Select(c => c.CategoryId).ToArray());
+            Assert.Equal(250m, cats[1].Total);
+
+            var months = FinanceService.Monthly(d, jan, 3);
+            Assert.Equal(3, months.Count);
+            Assert.Equal(new[] { 250m, 0m, 430m }, months.Select(m => m.Expense).ToArray());
+            Assert.Equal(new DateTime(2026, 2, 1), months[1].Month);
+
+            var big = FinanceService.Largest(d, TxKind.Expense, jan, 3, byCategory: true, categoryId: food.Id);
+            Assert.Equal(new[] { 200m, 50m }, big.Select(x => x.Amount).ToArray());
+            Assert.Single(FinanceService.Largest(d, TxKind.Expense, jan, 3, byCategory: true, categoryId: null));
+            Assert.Equal(new[] { 400m, 200m }, FinanceService.Largest(d, TxKind.Expense, jan, 3, max: 2).Select(x => x.Amount).ToArray());
+
+            Assert.Equal(0.5, FinanceService.Change(100m, 150m).Value, 6);
+            Assert.Null(FinanceService.Change(0m, 150m));
+        }
     }
 }
