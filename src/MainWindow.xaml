@@ -852,7 +852,8 @@
                     </ScrollViewer>
 
                     <!-- ===== Side panel ===== -->
-                    <Border x:Name="SidePanel" Grid.Column="1" Width="390" Style="{StaticResource EditorPanel}" Visibility="Collapsed">
+                    <Border x:Name="SidePanel" Grid.Column="1" Width="390" Style="{StaticResource EditorPanel}" Visibility="Collapsed"
+                            PreviewKeyDown="SidePanel_PreviewKeyDown" AllowDrop="True" DragOver="SidePanel_DragOver" Drop="SidePanel_Drop">
                         <Grid>
                             <!-- Day panel (calendar) -->
                             <DockPanel x:Name="DayPanel" Margin="20,18,20,16">
@@ -915,7 +916,7 @@
                                     </DockPanel>
                                 </Border>
 
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer x:Name="ViewScroll" VerticalScrollBarVisibility="Auto">
                                     <StackPanel Margin="24,14,24,24">
                                         <TextBlock Text="{Binding DisplayTitle}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" LineHeight="28">
                                             <TextBlock.Style>
@@ -948,7 +949,7 @@
                                         <CheckBox Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}" Content="Concluída" Margin="0,14,0,0"
                                                   Visibility="{Binding IsTask, Converter={StaticResource Vis}}"/>
 
-                                        <TextBlock Text="{Binding Body}" TextWrapping="Wrap" FontSize="14" LineHeight="22" Margin="0,20,0,0"
+                                        <TextBlock local:LinkText.Source="{Binding Body}" TextWrapping="Wrap" FontSize="14" LineHeight="22" Margin="0,20,0,0"
                                                    Visibility="{Binding HasPreview, Converter={StaticResource Vis}}"/>
 
                                         <StackPanel Margin="0,20,0,0" Visibility="{Binding HasChecklist, Converter={StaticResource Vis}}">
@@ -969,6 +970,8 @@
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
                                         </StackPanel>
+
+                                        <StackPanel x:Name="ViewAttach" Margin="0,22,0,0"/>
 
                                         <TextBlock x:Name="ViewEmpty" Text="Nada escrito ainda. Clique em Editar para adicionar conteúdo."
                                                    Style="{StaticResource MutedItalic}" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/>
@@ -1010,7 +1013,7 @@
                                     </DockPanel>
                                 </Border>
 
-                                <ScrollViewer x:Name="EdScroll" VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer x:Name="EdScroll" VerticalScrollBarVisibility="Auto" Background="Transparent">
                                     <StackPanel Margin="24,10,24,24">
                                         <TextBox x:Name="EdTitle" Style="{StaticResource BareTextBox}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"
                                                  Tag="Título" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
@@ -1084,9 +1087,13 @@
 
                                         <Border Height="1" Background="{StaticResource Line}" Margin="0,16,0,16"/>
 
-                                        <TextBox Style="{StaticResource BareTextBox}" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}"
-                                                 AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap" FontSize="14" MinHeight="90"
-                                                 Tag="Escreva aqui…" SpellCheck.IsEnabled="False"/>
+                                        <!-- description: plain text where pasted links become chips (LinkBox) -->
+                                        <Grid>
+                                            <TextBlock Text="Escreva aqui… (links colados viram etiquetas clicáveis)" Foreground="{StaticResource Text2}" Opacity="0.6" FontSize="14"
+                                                       Margin="2,2,0,0" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
+                                                       Visibility="{Binding IsEmpty, ElementName=EdBody, Converter={StaticResource Vis}}"/>
+                                            <local:LinkBox x:Name="EdBody" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" FontSize="14" MinHeight="90"/>
+                                        </Grid>
 
                                         <ItemsControl ItemsSource="{Binding Checklist}" Margin="0,14,0,0">
                                             <ItemsControl.ItemTemplate>
@@ -1123,6 +1130,9 @@
                                             <local:Icon Data="{StaticResource I.Plus}" Foreground="{StaticResource Text2}" Width="16" Height="16"
                                                         HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0" IsHitTestVisible="False"/>
                                         </Grid>
+
+                                        <!-- attachments (notes): built in MainWindow.Attachments.cs -->
+                                        <StackPanel x:Name="EdAttach" Margin="0,24,0,0"/>
                                     </StackPanel>
                                 </ScrollViewer>
                             </DockPanel>

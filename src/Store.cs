@@ -120,6 +120,10 @@ namespace HelmetDesk
                     Data = JsonSerializer.Deserialize<AppData>(text, Json) ?? new AppData();
                     Data.Version = Math.Max(Data.Version, CurrentSchema);
                     try { File.Copy(FilePath, Path.Combine(Dir, "data.bak.json"), true); } catch { }
+                    // attachment files nobody points to any more (removed, or their note was deleted): only after a good load
+                    var snapshot = Data.Items.ToList();
+                    var loadedAt = DateTime.Now;
+                    System.Threading.Tasks.Task.Run(() => Attachments.Purge(snapshot, loadedAt));
                 }
                 else
                 {

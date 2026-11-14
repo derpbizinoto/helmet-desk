@@ -33,6 +33,7 @@ namespace HelmetDesk
         public MainWindow()
         {
             InitializeComponent();
+            HookEmptyClicks();
             SyncThemeChoice();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             _refreshTimer.Tick += (s, e) => { _refreshTimer.Stop(); Refresh(); };
@@ -909,6 +910,7 @@ namespace HelmetDesk
             EditorHeader.Text = $"Editando {it.KindName.ToLower()}";
             ConvertBtn.ToolTip = it.IsTask ? "Converter em nota" : "Converter em tarefa";
             ViewEmpty.Visibility = !it.HasPreview && !it.HasChecklist ? Visibility.Visible : Visibility.Collapsed;
+            BindAttachments(it);
             UpdateSidePanel();
             if (ViaKeyboard)
             {
@@ -930,6 +932,7 @@ namespace HelmetDesk
             UpdateSidePanel(); // before clearing the data, so the closing panel still shows its content while it fades
             Editor.DataContext = null;
             Viewer.DataContext = null;
+            BindAttachments(null);
             if (refresh) Refresh();
         }
 
@@ -1057,6 +1060,7 @@ namespace HelmetDesk
             copy.EstimateMinutes = src.EstimateMinutes;
             copy.Priority = src.Priority;
             foreach (var c in src.Checklist) copy.Checklist.Add(new CheckItem { Text = c.Text, Done = c.Done });
+            Attachments.CopyAll(src, copy);
             Refresh();
             OpenEditor(copy);
         }

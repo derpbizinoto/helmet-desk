@@ -39,6 +39,25 @@ namespace HelmetDesk
         public bool Done { get => _done; set => Set(ref _done, value); }
     }
 
+    public enum AttachmentKind { File = 0, Image = 1, Link = 2 }
+
+    /// <summary>
+    /// Something attached to a note. Files and images live in the data folder (attachments/&lt;item id&gt;/), so they
+    /// stay local and have no size limit; links only keep the address (title and icon come from <see cref="LinkPreview"/>).
+    /// </summary>
+    public class Attachment
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public AttachmentKind Kind { get; set; }
+        /// <summary>Shown name: the original file name, or the link address.</summary>
+        public string Name { get; set; } = "";
+        /// <summary>Path relative to the data folder (files and images).</summary>
+        public string File { get; set; }
+        public string Url { get; set; }
+        public long Size { get; set; }
+        public DateTime AddedAt { get; set; } = DateTime.Now;
+    }
+
     public class LabelTag : Observable
     {
         private string _name = "";
@@ -98,8 +117,30 @@ namespace HelmetDesk
         private bool _done;
         private int _priority;
         private ObservableCollection<CheckItem> _checklist;
+        private ObservableCollection<Attachment> _attachments;
 
-        public Item() { Checklist = new ObservableCollection<CheckItem>(); }
+        public Item() { Checklist = new ObservableCollection<CheckItem>(); Attachments = new ObservableCollection<Attachment>(); }
+
+        public ObservableCollection<Attachment> Attachments
+        {
+            get => _attachments;
+            set
+            {
+                if (_attachments != null) _attachments.CollectionChanged -= OnAttachmentsChanged;
+                _attachments = value ?? new ObservableCollection<Attachment>();
+                _attachments.CollectionChanged += OnAttachmentsChanged;
+                Raise(nameof(Attachments));
+                Raise(nameof(HasAttachments));
+            }
+        }
+
+        private void OnAttachmentsChanged(object s, NotifyCollectionChangedEventArgs e)
+        {
+            Raise(nameof(HasAttachments));
+            Touch();
+        }
+
+        [JsonIgnore] public bool HasAttachments => _attachments?.Count > 0;
 
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public ItemKind Kind { get => _kind; set => Set(ref _kind, value); }
@@ -270,7 +311,7 @@ namespace HelmetDesk
         {
             get
             {
-                var b = (Body ?? "").Trim();
+                var b = LinkText.Friendly((Body ?? "").Trim()); // links read as "🔗 Page name" in cards
                 return b.Length > 260 ? b.Substring(0, 260) + "…" : b;
             }
         }

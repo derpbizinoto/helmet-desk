@@ -332,6 +332,7 @@ namespace HelmetDesk
             await QuickAddTests(Check);
             await SupportTests(Check);
             await FinanceTests(Check);
+            await AttachTests(Check);
             await MotionTests(Check);
             return log.ToString();
         }
@@ -1086,6 +1087,7 @@ namespace HelmetDesk
             ClearQuick();
             Store.Data.Items.Remove(probeNote);
             Keyboard.ClearFocus();
+            await AttachShots(Shot, dir);
             await FinanceShots(Shot);
 
             // transition frames, captured mid-animation
