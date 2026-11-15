@@ -609,7 +609,7 @@
                                         </StackPanel>
                                     </Border>
                                     <TextBox x:Name="QuickAdd" Style="{StaticResource BareTextBox}" VerticalContentAlignment="Center" Padding="0,10"
-                                             Tag="Adicionar para hoje"
+                                             Tag="Adicionar rápido"
                                              PreviewKeyDown="QuickAdd_PreviewKeyDown" KeyDown="QuickAdd_KeyDown" TextChanged="QuickAdd_TextChanged"/>
                                 </DockPanel>
                             </Border>

@@ -756,7 +756,7 @@ namespace HelmetDesk
             Check("adição rápida: 'tarefa:' salva tarefa para hoje com estimativa",
                 task != null && task.IsTask && task.Title == "Revisar roteiro" && task.EstimateMinutes == 90 && task.Date == DateTime.Today);
 
-            Check("adição rápida: aviso sem texto de exemplo", (QuickAdd.Tag as string) == "Adicionar para hoje");
+            Check("adição rápida: aviso sem texto de exemplo", (QuickAdd.Tag as string) == "Adicionar rápido");
             Type("tarefa: Reunião amanhã às 15h30 ");
             Check($"adição rápida: horário vira etiqueta ({QuickTimeText.Text}, '{QuickAdd.Text}')",
                 QuickTimeChip.Visibility == Visibility.Visible && QuickTimeText.Text == "15:30" && QuickAdd.Text == "Reunião ");

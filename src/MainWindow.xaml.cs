@@ -497,7 +497,7 @@ namespace HelmetDesk
 
         private void UpdateQuickHint()
         {
-            QuickAdd.Tag = _quickKind == null && _quickDate == null && _quickTime == null ? "Adicionar para hoje"
+            QuickAdd.Tag = _quickKind == null && _quickDate == null && _quickTime == null ? "Adicionar rápido"
                 : _quickKind == ItemKind.Note ? "Título da nota" : "Título da tarefa";
         }
 
