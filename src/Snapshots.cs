@@ -47,6 +47,8 @@ namespace HelmetDesk
             var log = new System.Text.StringBuilder();
             void Check(string name, bool ok) => log.AppendLine((ok ? "OK   " : "FAIL ") + name);
             Motion.Off = true; // flows below check state, not transitions (those are tested at the end)
+            SoundService.Muted = true;
+            await SoundTests(Check);
 
             // embedded Google Fonts resolve (not a silent fallback to Segoe UI)
             bool FontLoads(string key, string family, FontWeight w, FontStyle s)
@@ -994,6 +996,7 @@ namespace HelmetDesk
                 Snapshots.Save(this, Path.Combine(dir, name + ".png"));
             }
             Motion.Off = true; // still frames; transition frames are captured separately below
+            SoundService.Muted = true;
             NavToday.IsChecked = true; await Shot("1-hoje");
             NavNotes.IsChecked = true; await Shot("2-notas");
             NavTasks.IsChecked = true; await Shot("3-tarefas");

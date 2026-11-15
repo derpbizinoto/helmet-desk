@@ -719,6 +719,25 @@
                                             <TextBlock Text="Mostra uma notificação quando chega o horário de uma tarefa." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <CheckBox x:Name="SoundSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding SoundEffects}" VerticalAlignment="Center"/>
+                                        <StackPanel Margin="0,0,16,0">
+                                            <TextBlock Text="Efeitos sonoros" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="Toca um som ao concluir uma tarefa e outro ao concluir a última pendente." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}" IsEnabled="{Binding SoundEffects}">
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Slider x:Name="SoundVolumeSlider" Style="{StaticResource VolumeSlider}" Width="170" Minimum="0" Maximum="100"
+                                                    SmallChange="5" LargeChange="10" TickFrequency="5" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True"
+                                                    Value="{Binding SoundVolume}" AutomationProperties.Name="Volume dos efeitos sonoros"/>
+                                            <TextBlock Text="{Binding SoundVolumeText}" Width="40" TextAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0,0,16,0">
+                                            <TextBlock Text="Volume dos efeitos" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="Vale para os dois sons." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </DockPanel>
                                 </StackPanel>
                             </Border>
 

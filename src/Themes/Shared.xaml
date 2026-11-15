@@ -110,4 +110,80 @@
     <Geometry x:Key="G.TaskRing">F0 M256,56 C366.5,56 456,145.5 456,256 C456,366.5 366.5,456 256,456 C145.5,456 56,366.5 56,256 C56,145.5 145.5,56 256,56 Z M256,8 C119,8 8,119 8,256 C8,393 119,504 256,504 C393,504 504,393 504,256 C504,119 393,8 256,8 Z</Geometry>
     <Geometry x:Key="G.TaskCheck">M396.2,173.3 C396.2,173.3 373.7,150.6 373.7,150.6 C369,145.9 361.4,145.9 356.7,150.5 C356.7,150.5 215.3,290.7 215.3,290.7 C215.3,290.7 155.6,230.5 155.6,230.5 C150.9,225.8 143.3,225.7 138.6,230.4 C138.6,230.4 115.9,252.9 115.9,252.9 C111.2,257.6 111.1,265.2 115.8,269.9 C115.8,269.9 206.6,361.4 206.6,361.4 C211.2,366.1 218.8,366.1 223.5,361.5 C223.5,361.5 396.1,190.3 396.1,190.3 C400.8,185.6 400.9,178 396.2,173.3 Z</Geometry>
 
+
+    <!-- ===== Volume slider (Settings › Efeitos sonoros). Theme brushes are looked up dynamically:
+         this dictionary is merged into each theme before the theme's own brushes. ===== -->
+    <Style x:Key="SliderFill" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Height="4" CornerRadius="2" Background="{DynamicResource Accent}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SliderGap" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Background="Transparent"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SliderThumb" TargetType="Thumb">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid Width="16" Height="16" Background="Transparent">
+                        <Ellipse x:Name="dot" Fill="{DynamicResource Text}" Stroke="{DynamicResource Accent}" StrokeThickness="2"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="dot" Property="Fill" Value="{DynamicResource Accent}"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="dot" Property="Fill" Value="{DynamicResource Accent}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="VolumeSlider" TargetType="Slider">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Height="24" Background="Transparent">
+                        <Border x:Name="track" Height="4" CornerRadius="2" Background="{DynamicResource Line}" VerticalAlignment="Center"/>
+                        <Track x:Name="PART_Track" VerticalAlignment="Center">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource SliderFill}"/>
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource SliderGap}"/>
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource SliderThumb}"/>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="track" Property="Background" Value="{DynamicResource HoverLine}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

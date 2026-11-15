@@ -365,6 +365,17 @@ namespace HelmetDesk
         public bool MinimizeToTray { get => _minimizeToTray; set { if (Set(ref _minimizeToTray, value)) Store.MarkDirty(); } }
         public bool Reminders { get => _reminders; set { if (Set(ref _reminders, value)) Store.MarkDirty(); } }
         public bool TasksWidget { get => _tasksWidget; set { if (Set(ref _tasksWidget, value)) Store.MarkDirty(); } }
+        private bool _soundEffects = true;
+        private double _soundVolume = 60;
+        /// <summary>Sounds when a task is completed and when the last pending one is (SoundService).</summary>
+        public bool SoundEffects { get => _soundEffects; set { if (Set(ref _soundEffects, value)) Store.MarkDirty(); } }
+        /// <summary>0–100 (%).</summary>
+        public double SoundVolume
+        {
+            get => _soundVolume;
+            set { if (Set(ref _soundVolume, Math.Round(Math.Clamp(value, 0, 100)))) { Raise(nameof(SoundVolumeText)); Store.MarkDirty(); } }
+        }
+        [JsonIgnore] public string SoundVolumeText => $"{_soundVolume:0}%";
         private bool _confirmDelete = true;
         /// <summary>Ask "tem certeza?" before deleting a note/task.</summary>
         public bool ConfirmDelete { get => _confirmDelete; set { if (Set(ref _confirmDelete, value)) Store.MarkDirty(); } }

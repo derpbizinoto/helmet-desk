@@ -305,8 +305,9 @@ namespace HelmetDesk
     }
 
     /// <summary>
-    /// Plays the "fx" LottieView inside a TaskCheck checkbox when the user checks it (mouse or keyboard).
-    /// Uses Click, which only fires for user input, so opening an already-done task never animates.
+    /// Plays the "fx" LottieView inside a TaskCheck checkbox when the user checks it (mouse or keyboard), and the
+    /// completion sound at the same moment (<see cref="SoundService"/>). Uses Click, which only fires for user input,
+    /// so opening an already-done task, "Desfazer" or code changing Done never animates nor plays a sound.
     /// </summary>
     public static class TaskCheckFx
     {
@@ -324,7 +325,9 @@ namespace HelmetDesk
         private static void OnClick(object sender, RoutedEventArgs e)
         {
             var cb = (System.Windows.Controls.CheckBox)sender;
-            if (cb.IsChecked == true && cb.Template?.FindName("fx", cb) is LottieView fx) fx.Play();
+            if (cb.IsChecked != true) return; // unchecking: no animation, no sound
+            if (cb.Template?.FindName("fx", cb) is LottieView fx) fx.Play();
+            if (cb.DataContext is Item it) SoundService.OnTaskChecked(it); // Done is already true here (binding runs before Click)
         }
     }
 

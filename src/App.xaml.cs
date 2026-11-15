@@ -60,6 +60,7 @@ namespace HelmetDesk
             HookUnhandledErrors();
 
             Store.Load();
+            SoundService.Preload(); // decodes the two sounds in the background
             ThemeManager.Apply(Store.Data.Settings.Theme);
             SyncStartupRegistration();
             SetupTray();
