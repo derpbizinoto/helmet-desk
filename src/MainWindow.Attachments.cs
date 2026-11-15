@@ -112,15 +112,20 @@ namespace HelmetDesk
             {
                 Child = grid, Margin = new Thickness(0, 6, 0, 0), Focusable = true, FocusVisualStyle = null, Background = Brushes.Transparent,
                 CornerRadius = new CornerRadius(10), Cursor = Cursors.Hand, Name = "AttachZone",
-                ToolTip = "Clique aqui e cole (Ctrl+V), ou clique duas vezes para escolher arquivos",
+                ToolTip = "Clique para escolher arquivos no computador",
             };
             zone.GotKeyboardFocus += (s, e) => { dash.SetResourceReference(Shape.StrokeProperty, "Accent"); zone.SetResourceReference(Border.BackgroundProperty, "AccentSoft"); };
             zone.LostKeyboardFocus += (s, e) => { dash.SetResourceReference(Shape.StrokeProperty, "Line"); zone.Background = Brushes.Transparent; };
-            zone.MouseLeftButtonDown += (s, e) =>
+            // a click opens the file picker; the zone keeps the keyboard, so Ctrl+V right after also lands here
+            zone.MouseLeftButtonDown += (s, e) => { zone.Focus(); e.Handled = true; };
+            zone.MouseLeftButtonUp += (s, e) =>
             {
-                if (e.ClickCount == 2 && _attachItem != null) PickFiles(_attachItem);
-                else zone.Focus();
                 e.Handled = true;
+                if (_attachItem != null && zone.IsMouseOver) PickFiles(_attachItem);
+            };
+            zone.KeyDown += (s, e) =>
+            {
+                if ((e.Key == Key.Enter || e.Key == Key.Space) && _attachItem != null) { PickFiles(_attachItem); e.Handled = true; }
             };
             return zone;
         }

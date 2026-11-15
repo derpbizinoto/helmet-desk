@@ -1089,7 +1089,7 @@
 
                                         <!-- description: plain text where pasted links become chips (LinkBox) -->
                                         <Grid>
-                                            <TextBlock Text="Escreva aqui… (links colados viram etiquetas clicáveis)" Foreground="{StaticResource Text2}" Opacity="0.6" FontSize="14"
+                                            <TextBlock Text="Escreva aqui…" Foreground="{StaticResource Text2}" Opacity="0.6" FontSize="14"
                                                        Margin="2,2,0,0" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
                                                        Visibility="{Binding IsEmpty, ElementName=EdBody, Converter={StaticResource Vis}}"/>
                                             <local:LinkBox x:Name="EdBody" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" FontSize="14" MinHeight="90"/>
