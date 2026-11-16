@@ -236,7 +236,7 @@ namespace HelmetDesk
         {
             var row = new Border
             {
-                Background = Ui.Res("Surface"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+                Background = Ui.Res("RowFill"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(12, 9, 8, 9), Margin = new Thickness(0, 0, 0, 6), Child = content
             };
             var normal = border ?? Ui.Res("Line");

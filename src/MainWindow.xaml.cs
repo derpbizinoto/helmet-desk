@@ -1126,7 +1126,7 @@ namespace HelmetDesk
 
             var cell = new Border
             {
-                Background = Ui.Res(inMonth ? "Surface" : "Bg"),
+                Background = Ui.Res(inMonth ? "RowFill" : "Bg"),
                 BorderBrush = selected ? Ui.Res("Accent") : Ui.Res("Line"),
                 BorderThickness = new Thickness(selected ? 1.5 : 1),
                 CornerRadius = new CornerRadius(8),

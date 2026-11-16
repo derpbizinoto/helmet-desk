@@ -8,27 +8,7 @@
         Finanças panel. Same pattern as the other sections: code-behind only; the lists, rows and the chart are built
         in FinanceView.xaml.cs. Every money rule lives in HelmetDesk.Core.Finance.FinanceService (no UI).
     -->
-    <UserControl.Resources>
-        <Style x:Key="PanelHead" TargetType="DockPanel">
-            <Setter Property="DockPanel.Dock" Value="Top"/>
-            <Setter Property="Margin" Value="24,16,12,0"/>
-        </Style>
-        <Style x:Key="PanelFoot" TargetType="Border">
-            <Setter Property="DockPanel.Dock" Value="Bottom"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
-            <Setter Property="BorderThickness" Value="0,1,0,0"/>
-            <Setter Property="Padding" Value="16,12"/>
-        </Style>
-        <Style x:Key="Field" TargetType="StackPanel">
-            <Setter Property="Margin" Value="0,0,0,14"/>
-        </Style>
-        <Style x:Key="SumValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="23"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Margin" Value="0,6,0,0"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-        </Style>
-    </UserControl.Resources>
+    <!-- layout styles (PanelHead, PanelFoot, Field, SumValue) live in Themes/Screens.xaml -->
 
     <Grid>
         <Grid.ColumnDefinitions>

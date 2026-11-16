@@ -24,6 +24,10 @@
     <SolidColorBrush x:Key="Surface" Color="{StaticResource C.Surface}"/>
     <SolidColorBrush x:Key="Elevated" Color="{StaticResource C.Elevated}"/>
     <SolidColorBrush x:Key="Line" Color="{StaticResource C.Border}"/>
+    <!-- rows / note cards / calendar days: the Aero theme gives them a glossy fill; here they stay flat (same as Surface) -->
+    <SolidColorBrush x:Key="RowFill" Color="{StaticResource C.Surface}"/>
+    <!-- the "Adicionar rápido" box: sunk field in Aero, flat Surface here -->
+    <SolidColorBrush x:Key="FieldFill" Color="{StaticResource C.Surface}"/>
     <SolidColorBrush x:Key="Primary" Color="{StaticResource C.Primary}"/>
     <SolidColorBrush x:Key="PrimaryHover" Color="{StaticResource C.PrimaryHover}"/>
     <SolidColorBrush x:Key="Accent" Color="{StaticResource C.Accent}"/>

@@ -74,18 +74,27 @@
     <SolidColorBrush x:Key="SplitterHover" Color="Transparent"/>
     <SolidColorBrush x:Key="SplitterDrag" Color="Transparent"/>
     <!-- desktop widgets and the bug report window: opaque smoked glass with a shine band on top -->
-    <LinearGradientBrush x:Key="WidgetWindowBg" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FF35264F" Offset="0"/>
-        <GradientStop Color="#FF231736" Offset="0.07"/>
-        <GradientStop Color="#FF1A1029" Offset="0.5"/>
+    <!-- Absolute mapping (px): a glossy band over the top 22px of the header, whatever the window height -->
+    <LinearGradientBrush x:Key="WidgetWindowBg" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,400">
+        <GradientStop Color="#FF46346A" Offset="0"/>
+        <GradientStop Color="#FF2F2249" Offset="0.055"/>
+        <GradientStop Color="#FF22173A" Offset="0.056"/>
+        <GradientStop Color="#FF1A1029" Offset="0.3"/>
         <GradientStop Color="#FF130B20" Offset="1"/>
     </LinearGradientBrush>
-    <LinearGradientBrush x:Key="DialogWindowBg" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FF2E2145" Offset="0"/>
-        <GradientStop Color="#FF1D1230" Offset="0.1"/>
+    <LinearGradientBrush x:Key="DialogWindowBg" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,500">
+        <GradientStop Color="#FF41305F" Offset="0"/>
+        <GradientStop Color="#FF2B1E44" Offset="0.044"/>
+        <GradientStop Color="#FF1F1434" Offset="0.045"/>
+        <GradientStop Color="#FF160D26" Offset="0.3"/>
         <GradientStop Color="#FF120A1F" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="WindowRim" Color="#7A5BB3"/>
+    <!-- window frame of the widgets / dialog: glass edge that catches the light on top -->
+    <LinearGradientBrush x:Key="WindowRim" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFC9AEF2" Offset="0"/>
+        <GradientStop Color="#FF7A5BB3" Offset="0.12"/>
+        <GradientStop Color="#FF4A3570" Offset="1"/>
+    </LinearGradientBrush>
     <SolidColorBrush x:Key="OverdueLine" Color="#8C3A55"/>
     <Color x:Key="Tray.Back">#1E1430</Color>
     <Color x:Key="Tray.Line">#4A3570</Color>
@@ -170,21 +179,84 @@
         <GradientStop Color="#2EFFFFFF" Offset="0"/>
         <GradientStop Color="#00FFFFFF" Offset="1"/>
     </LinearGradientBrush>
-    <LinearGradientBrush x:Key="CardFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#8C35264F" Offset="0"/>
-        <GradientStop Color="#731C1230" Offset="1"/>
+    <!-- cards and rows: glass with the Aero split shine baked into the fill (brighter top 45%, then a soft step),
+         so a plain Border gets the gloss without extra layers or effects -->
+    <!-- Absolute mapping: the shine covers the top ~32px whatever the height (tall cards don't get a mid-card step) -->
+    <LinearGradientBrush x:Key="CardFill" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,72">
+        <GradientStop Color="#B04A3A70" Offset="0"/>
+        <GradientStop Color="#A6382854" Offset="0.44"/>
+        <GradientStop Color="#992A1D45" Offset="0.45"/>
+        <GradientStop Color="#801C1230" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="CardRim" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#80D9C8F5" Offset="0"/>
+        <GradientStop Color="#A6E4D6F9" Offset="0"/>
+        <GradientStop Color="#4DA982E6" Offset="0.3"/>
         <GradientStop Color="#26A982E6" Offset="1"/>
     </LinearGradientBrush>
+    <!-- list rows, note cards, calendar days, finance rows: like the card, a bit more opaque (they carry text) -->
+    <LinearGradientBrush x:Key="RowFill" MappingMode="Absolute" StartPoint="0,0" EndPoint="0,60">
+        <GradientStop Color="#C23C2C5C" Offset="0"/>
+        <GradientStop Color="#BA2D1F4A" Offset="0.44"/>
+        <GradientStop Color="#B3231738" Offset="0.45"/>
+        <GradientStop Color="#B31B112B" Offset="1"/>
+    </LinearGradientBrush>
+    <!-- recessed boxes on the glass (segmented controls, chips, editor panel) -->
+    <SolidColorBrush x:Key="RecessFill" Color="#66080412"/>
+    <SolidColorBrush x:Key="RecessRim" Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="EditorFill" Color="#99140C24"/>
+    <!-- fields: sunk into the glass (dark top edge inside, light bottom rim outside) -->
+    <LinearGradientBrush x:Key="FieldRim" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FF3A2C58" Offset="0"/>
+        <GradientStop Color="#FF7E6AA8" Offset="1"/>
+    </LinearGradientBrush>
+    <!-- glows: hover halo of gel buttons, focus halo of fields, the brand name -->
+    <Color x:Key="C.Glow">#A982E6</Color>
+    <Color x:Key="C.GelGlow">#B58DF0</Color>
+    <Color x:Key="C.PanelGlow">#7A45D0</Color>
+    <SolidColorBrush x:Key="PanelGlowRim" Color="#8C8950D9"/>
+    <LinearGradientBrush x:Key="GelPress" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#4D1A0838" Offset="0"/>
+        <GradientStop Color="#141A0838" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="ChromeEdge" Color="#E605020C"/>
+    <SolidColorBrush x:Key="ChromeInnerRim" Color="#40FFFFFF"/>
+    <SolidColorBrush x:Key="ChromePress" Color="#331A0838"/>
+    <LinearGradientBrush x:Key="ScrollThumbFill" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#B3A982E6" Offset="0"/>
+        <GradientStop Color="#99522A93" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="ScrollThumbRim" Color="#B38D6CC2"/>
+    <LinearGradientBrush x:Key="TooltipFill" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FF35264F" Offset="0"/>
+        <GradientStop Color="#FF1A1029" Offset="1"/>
+    </LinearGradientBrush>
+    <!-- switch: gel thumb (white to lavender) on a sunk track -->
+    <RadialGradientBrush x:Key="SwitchThumbOn" GradientOrigin="0.35,0.25" Center="0.4,0.35" RadiusX="0.7" RadiusY="0.7">
+        <GradientStop Color="#FFFFFFFF" Offset="0"/>
+        <GradientStop Color="#FFF4EEFD" Offset="0.5"/>
+        <GradientStop Color="#FFC9AEF2" Offset="1"/>
+    </RadialGradientBrush>
+    <RadialGradientBrush x:Key="SwitchThumbOff" GradientOrigin="0.35,0.25" Center="0.4,0.35" RadiusX="0.7" RadiusY="0.7">
+        <GradientStop Color="#FFE4D6F9" Offset="0"/>
+        <GradientStop Color="#FFBDAED6" Offset="0.55"/>
+        <GradientStop Color="#FF7E6AA8" Offset="1"/>
+    </RadialGradientBrush>
+    <SolidColorBrush x:Key="SwitchThumbEdge" Color="#992A1052"/>
+    <!-- meta pills (date, estimate, label) -->
+    <SolidColorBrush x:Key="PillFill" Color="#40A982E6"/>
+    <SolidColorBrush x:Key="PillRim" Color="#33D9C8F5"/>
+    <!-- small helpers used by several templates -->
+    <SolidColorBrush x:Key="GelInnerRim" Color="#59FFFFFF"/>
+    <SolidColorBrush x:Key="SelectedEdge" Color="#CC2A1052"/>
+    <SolidColorBrush x:Key="TileRim" Color="#26FFFFFF"/>
+    <SolidColorBrush x:Key="PopupRim" Color="#8C7AAE"/>
 
     <!-- glass panel: purple glow around, fill, specular top, dark inner rim, bright outer rim -->
     <ControlTemplate x:Key="GlassPanelTemplate" TargetType="ContentControl">
         <Grid>
-            <Border CornerRadius="12" BorderBrush="#8C8950D9" BorderThickness="1" CacheMode="BitmapCache">
+            <Border CornerRadius="12" BorderBrush="{StaticResource PanelGlowRim}" BorderThickness="1" CacheMode="BitmapCache">
                 <Border.Effect>
-                    <DropShadowEffect Color="#7A45D0" BlurRadius="26" ShadowDepth="0" Opacity="0.55"/>
+                    <DropShadowEffect Color="{StaticResource C.PanelGlow}" BlurRadius="26" ShadowDepth="0" Opacity="0.55"/>
                 </Border.Effect>
             </Border>
             <Border CornerRadius="12" Background="{TemplateBinding Background}"/>
@@ -358,7 +430,7 @@
     <!-- right-hand panel (viewer / editor / calendar day): sits inside the content glass, 1px in from its rim,
          with the bottom-right corner following the glass curve -->
     <Style x:Key="EditorPanel" TargetType="Border">
-        <Setter Property="Background" Value="#99140C24"/>
+        <Setter Property="Background" Value="{StaticResource EditorFill}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
         <Setter Property="BorderThickness" Value="1,1,0,0"/>
         <Setter Property="CornerRadius" Value="12,0,11,0"/>
@@ -382,7 +454,7 @@
         </Setter>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect Color="#A982E6" BlurRadius="10" ShadowDepth="0" Opacity="0.9"/>
+                <DropShadowEffect Color="{StaticResource C.Glow}" BlurRadius="10" ShadowDepth="0" Opacity="0.9"/>
             </Setter.Value>
         </Setter>
         <!-- the glow is drawn once and kept as a bitmap -->
@@ -475,12 +547,12 @@
         <Grid x:Name="root" SnapsToDevicePixels="True">
             <Border x:Name="glow" CornerRadius="{TemplateBinding local:Ui.Radius}" Background="{TemplateBinding Background}" Opacity="0">
                 <Border.Effect>
-                    <DropShadowEffect Color="#B58DF0" BlurRadius="16" ShadowDepth="0" Opacity="1"/>
+                    <DropShadowEffect Color="{StaticResource C.GelGlow}" BlurRadius="16" ShadowDepth="0" Opacity="1"/>
                 </Border.Effect>
             </Border>
             <Border CornerRadius="{TemplateBinding local:Ui.Radius}" Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"/>
-            <Border CornerRadius="{TemplateBinding local:Ui.Radius}" Margin="1" BorderBrush="#59FFFFFF" BorderThickness="1"/>
+            <Border CornerRadius="{TemplateBinding local:Ui.Radius}" Margin="1" BorderBrush="{StaticResource GelInnerRim}" BorderThickness="1"/>
             <Grid Margin="2,2,2,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -488,14 +560,7 @@
                 </Grid.RowDefinitions>
                 <Border x:Name="shine" CornerRadius="{TemplateBinding local:Ui.Radius}" Background="{StaticResource GelShine}" Opacity="0.8"/>
             </Grid>
-            <Border x:Name="press" CornerRadius="{TemplateBinding local:Ui.Radius}" Opacity="0">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#4D1A0838" Offset="0"/>
-                        <GradientStop Color="#141A0838" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-            </Border>
+            <Border x:Name="press" CornerRadius="{TemplateBinding local:Ui.Radius}" Opacity="0" Background="{StaticResource GelPress}"/>
             <ContentPresenter x:Name="cp" Margin="{TemplateBinding Padding}" RecognizesAccessKey="False"
                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
         </Grid>
@@ -551,7 +616,7 @@
     <!-- sidebar footer rows: recessed white tiles on the glass -->
     <Style x:Key="SideRowButton" TargetType="Button" BasedOn="{StaticResource BtnBase}">
         <Setter Property="Background" Value="{StaticResource Bg}"/>
-        <Setter Property="BorderBrush" Value="#26FFFFFF"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TileRim}"/>
         <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Padding" Value="14,9,10,9"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -595,7 +660,7 @@
             <Trigger Property="IsChecked" Value="True">
                 <Setter Property="Foreground" Value="{StaticResource Accent}"/>
                 <Setter Property="Background" Value="{StaticResource NavSelected}"/>
-                <Setter Property="BorderBrush" Value="#CC2A1052"/>
+                <Setter Property="BorderBrush" Value="{StaticResource SelectedEdge}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -605,13 +670,13 @@
         <Grid x:Name="root" Margin="2,17,2,0" Height="22" VerticalAlignment="Top">
             <Border x:Name="glow" CornerRadius="5" Background="{TemplateBinding Background}" Opacity="0">
                 <Border.Effect>
-                    <DropShadowEffect Color="#B58DF0" BlurRadius="12" ShadowDepth="0" Opacity="1"/>
+                    <DropShadowEffect Color="{StaticResource C.GelGlow}" BlurRadius="12" ShadowDepth="0" Opacity="1"/>
                 </Border.Effect>
             </Border>
-            <Border CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="#E605020C" BorderThickness="1"/>
-            <Border CornerRadius="4" Margin="1" BorderBrush="#40FFFFFF" BorderThickness="1"/>
+            <Border CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="{StaticResource ChromeEdge}" BorderThickness="1"/>
+            <Border CornerRadius="4" Margin="1" BorderBrush="{StaticResource ChromeInnerRim}" BorderThickness="1"/>
             <Border x:Name="shine" CornerRadius="4,4,0,0" Margin="2,2,2,0" Height="9" VerticalAlignment="Top" Background="{StaticResource GelShine}" Opacity="0.8"/>
-            <Border x:Name="press" CornerRadius="5" Background="#331A0838" Opacity="0"/>
+            <Border x:Name="press" CornerRadius="5" Background="{StaticResource ChromePress}" Opacity="0"/>
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
         <ControlTemplate.Triggers>
@@ -649,7 +714,7 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource GelRed}"/>
-                <Setter Property="Foreground" Value="#FFFFFF"/>
+                <Setter Property="Foreground" Value="{StaticResource OnPrimary}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -686,15 +751,15 @@
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
                 <Setter Property="Background" Value="{StaticResource NavSelected}"/>
-                <Setter Property="BorderBrush" Value="#CC2A1052"/>
+                <Setter Property="BorderBrush" Value="{StaticResource SelectedEdge}"/>
                 <Setter Property="Foreground" Value="{StaticResource Text}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style x:Key="SegBox" TargetType="Border">
-        <Setter Property="Background" Value="#66080412"/>
-        <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+        <Setter Property="Background" Value="{StaticResource RecessFill}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource RecessRim}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="8"/>
         <Setter Property="Padding" Value="2"/>
@@ -703,8 +768,8 @@
     <!-- Label filter chip -->
     <Style x:Key="Chip" TargetType="RadioButton" BasedOn="{StaticResource BtnBase}">
         <Setter Property="Foreground" Value="{StaticResource Text2}"/>
-        <Setter Property="Background" Value="#66080412"/>
-        <Setter Property="BorderBrush" Value="#33FFFFFF"/>
+        <Setter Property="Background" Value="{StaticResource RecessFill}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource RecessRim}"/>
         <Setter Property="Padding" Value="10,4"/>
         <Setter Property="Margin" Value="0,0,6,6"/>
         <Setter Property="FontSize" Value="12"/>
@@ -732,7 +797,7 @@
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{StaticResource FieldFill}"/>
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
-        <Setter Property="BorderBrush" Value="#6E5A94"/>
+        <Setter Property="BorderBrush" Value="{StaticResource FieldRim}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="10,7"/>
         <Setter Property="FontSize" Value="13"/>
@@ -766,7 +831,7 @@
                             <Setter TargetName="b" Property="local:Motion.BorderBrush" Value="{StaticResource Primary}"/>
                             <Setter TargetName="b" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#A982E6" BlurRadius="9" ShadowDepth="0" Opacity="0.9"/>
+                                    <DropShadowEffect Color="{StaticResource C.Glow}" BlurRadius="9" ShadowDepth="0" Opacity="0.9"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -834,7 +899,7 @@
                                 local:Motion.BorderBrush="{StaticResource Text2}" local:Motion.Background="Transparent" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                 SnapsToDevicePixels="True">
                             <local:Icon x:Name="mark" Data="{StaticResource I.Check}" Width="12" Height="12" Thickness="3"
-                                        Foreground="#FFFFFF" Visibility="Collapsed"/>
+                                        Foreground="{StaticResource OnPrimary}" Visibility="Collapsed"/>
                         </Border>
                         <ContentPresenter x:Name="cp" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                     </Grid>
@@ -912,14 +977,18 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Border x:Name="track" Width="38" Height="22" CornerRadius="11" local:Motion.Background="{StaticResource FieldFill}" BorderBrush="#6E5A94" BorderThickness="1" Padding="2">
-                        <Ellipse x:Name="thumb" Width="16" Height="16" local:Motion.Fill="{StaticResource Text2}" HorizontalAlignment="Left"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="track" Width="38" Height="22" CornerRadius="11" local:Motion.Background="{StaticResource FieldFill}" BorderBrush="{StaticResource FieldRim}" BorderThickness="1" Padding="2">
+                            <Ellipse x:Name="thumb" Width="16" Height="16" local:Motion.Fill="{StaticResource SwitchThumbOff}" Stroke="{StaticResource SwitchThumbEdge}" StrokeThickness="0.75" HorizontalAlignment="Left"/>
+                        </Border>
+                        <!-- shine across the top half of the track (on top, ignores the mouse) -->
+                        <Border Width="34" Height="9" CornerRadius="5,5,2,2" VerticalAlignment="Top" Margin="0,2,0,0" Background="{StaticResource GelShine}" Opacity="0.35" IsHitTestVisible="False"/>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="track" Property="local:Motion.Background" Value="{StaticResource GelPurple}"/>
                             <Setter TargetName="thumb" Property="HorizontalAlignment" Value="Right"/>
-                            <Setter TargetName="thumb" Property="local:Motion.Fill" Value="#FFFFFF"/>
+                            <Setter TargetName="thumb" Property="local:Motion.Fill" Value="{StaticResource SwitchThumbOn}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1017,14 +1086,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Border x:Name="t" CornerRadius="4" Margin="2" BorderBrush="#B38D6CC2" BorderThickness="1">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#B3A982E6" Offset="0"/>
-                                <GradientStop Color="#99522A93" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                    </Border>
+                    <Border x:Name="t" CornerRadius="4" Margin="2" BorderBrush="{StaticResource ScrollThumbRim}" BorderThickness="1" Background="{StaticResource ScrollThumbFill}"/>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="t" Property="Background" Value="{StaticResource HoverLine}"/>
@@ -1091,13 +1153,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
                     <!-- light glass with a lilac tint -->
-                    <Border BorderBrush="#8C7AAE" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,4,4">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Color="#FF35264F" Offset="0"/>
-                                <GradientStop Color="#FF1A1029" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
+                    <Border BorderBrush="{StaticResource PopupRim}" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,4,4"
+                            Background="{StaticResource TooltipFill}">
                         <ContentPresenter/>
                     </Border>
                 </ControlTemplate>
@@ -1119,7 +1176,7 @@
 
     <Style TargetType="ComboBox">
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
-        <Setter Property="Background" Value="{StaticResource Surface}"/>
+        <Setter Property="Background" Value="{StaticResource RowFill}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="10,7,30,7"/>
@@ -1241,9 +1298,11 @@
 
     <!-- Small pill used for hours / dates -->
     <Style x:Key="Pill" TargetType="Border">
-        <Setter Property="Background" Value="#33A982E6"/>
+        <Setter Property="Background" Value="{StaticResource PillFill}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PillRim}"/>
+        <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="6"/>
-        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="Padding" Value="5,1"/>
         <Setter Property="Margin" Value="0,0,6,0"/>
         <Setter Property="TextElement.Foreground" Value="{StaticResource Text2}"/>
         <Setter Property="TextElement.FontSize" Value="11.5"/>

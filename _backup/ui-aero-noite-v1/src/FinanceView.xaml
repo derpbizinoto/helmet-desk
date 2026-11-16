@@ -1,0 +1,574 @@
+﻿<UserControl x:Class="HelmetDesk.FinanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:HelmetDesk"
+             Foreground="{StaticResource Text}" Typography.NumeralAlignment="Tabular">
+    <!-- Tabular digits (Roboto "tnum") keep money values lined up in every list -->
+    <!--
+        Finanças panel. Same pattern as the other sections: code-behind only; the lists, rows and the chart are built
+        in FinanceView.xaml.cs. Every money rule lives in HelmetDesk.Core.Finance.FinanceService (no UI).
+    -->
+    <UserControl.Resources>
+        <Style x:Key="PanelHead" TargetType="DockPanel">
+            <Setter Property="DockPanel.Dock" Value="Top"/>
+            <Setter Property="Margin" Value="24,16,12,0"/>
+        </Style>
+        <Style x:Key="PanelFoot" TargetType="Border">
+            <Setter Property="DockPanel.Dock" Value="Bottom"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+            <Setter Property="BorderThickness" Value="0,1,0,0"/>
+            <Setter Property="Padding" Value="16,12"/>
+        </Style>
+        <Style x:Key="Field" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+        <Style x:Key="SumValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="23"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer x:Name="Scroll" VerticalScrollBarVisibility="Auto" SizeChanged="Scroll_SizeChanged">
+            <StackPanel Margin="32,0,24,32">
+                <!-- month selector + tabs -->
+                <DockPanel Margin="0,0,0,14">
+                    <Border x:Name="TabsBox" DockPanel.Dock="Right" Style="{StaticResource SegBox}" VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="TabTx" Style="{StaticResource SegButton}" GroupName="fintab" Content="Transações" Tag="tx" Checked="Tab_Checked" IsChecked="True"/>
+                            <RadioButton x:Name="TabAcc" Style="{StaticResource SegButton}" GroupName="fintab" Content="Contas" Tag="acc" Checked="Tab_Checked"/>
+                            <RadioButton x:Name="TabRec" Style="{StaticResource SegButton}" GroupName="fintab" Content="Recorrentes" Tag="rec" Checked="Tab_Checked"/>
+                            <RadioButton x:Name="TabCat" Style="{StaticResource SegButton}" GroupName="fintab" Content="Categorias" Tag="cat" Checked="Tab_Checked"/>
+                            <RadioButton x:Name="TabStats" Style="{StaticResource SegButton}" GroupName="fintab" Content="Estatísticas" Tag="stats" Checked="Tab_Checked"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource SecondaryButton}" Padding="7" Click="PrevMonth_Click" ToolTip="Mês anterior">
+                            <local:Icon Data="{StaticResource I.Left}"/>
+                        </Button>
+                        <Button Style="{StaticResource SecondaryButton}" Padding="7" Margin="6,0,0,0" Click="NextMonth_Click" ToolTip="Próximo mês">
+                            <local:Icon Data="{StaticResource I.Right}"/>
+                        </Button>
+                        <Button x:Name="ThisMonthBtn" Style="{StaticResource SecondaryButton}" Content="Este mês" Margin="6,0,14,0" Click="ThisMonth_Click"/>
+                        <TextBlock x:Name="MonthTitle" Style="{StaticResource H2}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- month summary -->
+                <UniformGrid x:Name="SumGrid" Columns="4" Margin="-6,0,-6,6">
+                    <Border Style="{StaticResource Card}" Margin="6,0,6,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <local:Icon Data="{StaticResource I.ArrowDown}" Foreground="{StaticResource Success}" Width="13" Height="13" Margin="0,0,6,0"/>
+                                <TextBlock Text="Entradas" Style="{StaticResource Muted}"/>
+                            </StackPanel>
+                            <TextBlock x:Name="SumIncome" Style="{StaticResource SumValue}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" Margin="6,0,6,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <local:Icon Data="{StaticResource I.ArrowUp}" Foreground="{StaticResource Danger}" Width="13" Height="13" Margin="0,0,6,0"/>
+                                <TextBlock Text="Saídas" Style="{StaticResource Muted}"/>
+                            </StackPanel>
+                            <TextBlock x:Name="SumExpense" Style="{StaticResource SumValue}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" Margin="6,0,6,12" ToolTip="Saldo inicial das contas + lançamentos pagos (contas arquivadas ficam de fora)">
+                        <StackPanel>
+                            <TextBlock Text="Saldo atual" Style="{StaticResource Muted}"/>
+                            <TextBlock x:Name="SumBalance" Style="{StaticResource SumValue}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" Margin="6,0,6,12" ToolTip="Saldo atual + lançamentos pendentes até o último dia do mês (inclusive os vencidos)">
+                        <StackPanel>
+                            <TextBlock x:Name="SumProjectedLabel" Text="Previsto no fim do mês" Style="{StaticResource Muted}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="SumProjected" Style="{StaticResource SumValue}"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- ===== Transactions tab ===== -->
+                <Grid x:Name="TxTab">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="18"/>
+                        <ColumnDefinition Width="290"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel x:Name="TxCol">
+                        <WrapPanel Margin="0,0,0,8">
+                            <ComboBox x:Name="FilterAccount" Width="145" Margin="0,0,8,8" SelectionChanged="Filter_Changed" ToolTip="Conta"/>
+                            <ComboBox x:Name="FilterCategory" Width="165" Margin="0,0,8,8" SelectionChanged="Filter_Changed" ToolTip="Categoria"/>
+                            <ComboBox x:Name="FilterKind" Width="128" Margin="0,0,8,8" SelectionChanged="Filter_Changed" ToolTip="Tipo"/>
+                            <ComboBox x:Name="FilterStatus" Width="112" Margin="0,0,8,8" SelectionChanged="Filter_Changed" ToolTip="Status"/>
+                            <Button x:Name="ClearFiltersBtn" Style="{StaticResource GhostButton}" Content="Limpar filtros" Margin="0,0,0,8"
+                                    Click="ClearFilters_Click" Visibility="Collapsed"/>
+                        </WrapPanel>
+                        <StackPanel x:Name="TxList"/>
+                        <StackPanel x:Name="TxEmpty" Margin="0,36,0,0" HorizontalAlignment="Center" Visibility="Collapsed">
+                            <local:Icon Data="{StaticResource I.Wallet}" Width="36" Height="36" Foreground="{StaticResource Line}" Thickness="1.5"/>
+                            <TextBlock x:Name="TxEmptyText" Style="{StaticResource MutedItalic}" FontSize="13" Margin="0,12,0,0" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border x:Name="ChartCard" Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="Gastos por categoria" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="ChartMeta" Style="{StaticResource Muted}" Margin="0,3,0,14"/>
+                            <StackPanel x:Name="Chart"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- ===== Accounts tab ===== -->
+                <StackPanel x:Name="AccTab" Visibility="Collapsed">
+                    <DockPanel Margin="0,0,0,12">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Click="NewAccount_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
+                                <TextBlock Text="Nova conta"/>
+                            </StackPanel>
+                        </Button>
+                        <CheckBox x:Name="ShowArchived" VerticalAlignment="Center" Checked="ShowArchived_Changed" Unchecked="ShowArchived_Changed">
+                            <TextBlock Text="Mostrar arquivadas" Foreground="{StaticResource Text2}"/>
+                        </CheckBox>
+                    </DockPanel>
+                    <StackPanel x:Name="AccList"/>
+                </StackPanel>
+
+                <!-- ===== Recurring tab ===== -->
+                <StackPanel x:Name="RecTab" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource Muted}" FontSize="12.5" Margin="0,0,0,12" TextWrapping="Wrap"
+                               Text="Os lançamentos de cada mês são criados como pendentes quando você abre o mês. Para criar uma recorrência, marque “Repetir todo mês” em Mais opções ao lançar."/>
+                    <StackPanel x:Name="RecList"/>
+                    <StackPanel x:Name="RecEmpty" Margin="0,30,0,0" HorizontalAlignment="Center" Visibility="Collapsed">
+                        <local:Icon Data="{StaticResource I.Repeat}" Width="36" Height="36" Foreground="{StaticResource Line}" Thickness="1.5"/>
+                        <TextBlock Text="Nenhuma recorrência ainda." Style="{StaticResource MutedItalic}" FontSize="13" Margin="0,12,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- ===== Categories tab ===== -->
+                <StackPanel x:Name="CatTab" Visibility="Collapsed">
+                    <DockPanel Margin="0,0,0,12">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Click="NewCategory_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
+                                <TextBlock Text="Nova categoria"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Style="{StaticResource Muted}" FontSize="12.5" VerticalAlignment="Center" Text="Clique numa categoria para editar ou excluir."/>
+                    </DockPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="18"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Despesas" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <StackPanel x:Name="CatExpenseList"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Receitas" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <StackPanel x:Name="CatIncomeList"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <!-- ===== Statistics tab (period ending at the selected month) ===== -->
+                <StackPanel x:Name="StatsTab" Visibility="Collapsed">
+                    <DockPanel Margin="0,0,0,14">
+                        <Border Style="{StaticResource SegBox}" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="Period1" Style="{StaticResource SegButton}" GroupName="finperiod" Content="Mês" Tag="1" Checked="Period_Checked" IsChecked="True"/>
+                                <RadioButton x:Name="Period3" Style="{StaticResource SegButton}" GroupName="finperiod" Content="3 meses" Tag="3" Checked="Period_Checked"/>
+                                <RadioButton x:Name="Period6" Style="{StaticResource SegButton}" GroupName="finperiod" Content="6 meses" Tag="6" Checked="Period_Checked"/>
+                                <RadioButton x:Name="Period12" Style="{StaticResource SegButton}" GroupName="finperiod" Content="12 meses" Tag="12" Checked="Period_Checked"/>
+                                <RadioButton x:Name="PeriodYear" Style="{StaticResource SegButton}" GroupName="finperiod" Content="Ano" Tag="0" Checked="Period_Checked"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock x:Name="StatsRange" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="14,0,0,0" TextTrimming="CharacterEllipsis"/>
+                    </DockPanel>
+
+                    <UniformGrid x:Name="StatsSumGrid" Columns="4" Margin="-6,0,-6,6">
+                        <Border Style="{StaticResource Card}" Margin="6,0,6,12">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <local:Icon Data="{StaticResource I.ArrowDown}" Foreground="{StaticResource Success}" Width="13" Height="13" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Ganhos" Style="{StaticResource Muted}"/>
+                                </StackPanel>
+                                <TextBlock x:Name="StIncome" Style="{StaticResource SumValue}"/>
+                                <TextBlock x:Name="StIncomeDelta" Style="{StaticResource Muted}" FontSize="11.5" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="6,0,6,12">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <local:Icon Data="{StaticResource I.ArrowUp}" Foreground="{StaticResource Danger}" Width="13" Height="13" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Gastos" Style="{StaticResource Muted}"/>
+                                </StackPanel>
+                                <TextBlock x:Name="StExpense" Style="{StaticResource SumValue}"/>
+                                <TextBlock x:Name="StExpenseDelta" Style="{StaticResource Muted}" FontSize="11.5" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="6,0,6,12" ToolTip="Ganhos menos gastos do período (pagos e pendentes, sem transferências)">
+                            <StackPanel>
+                                <TextBlock Text="Saldo do período" Style="{StaticResource Muted}"/>
+                                <TextBlock x:Name="StNet" Style="{StaticResource SumValue}"/>
+                                <TextBlock x:Name="StNetDelta" Style="{StaticResource Muted}" FontSize="11.5" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="6,0,6,12" ToolTip="Quanto dos ganhos sobrou depois dos gastos">
+                            <StackPanel>
+                                <TextBlock Text="Economia" Style="{StaticResource Muted}"/>
+                                <TextBlock x:Name="StRate" Style="{StaticResource SumValue}"/>
+                                <TextBlock x:Name="StRateDelta" Style="{StaticResource Muted}" FontSize="11.5" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <Grid x:Name="StatsMain" Margin="0,0,0,18">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="18"/>
+                            <ColumnDefinition Width="320"/>
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="DonutCard" Style="{StaticResource Card}">
+                            <DockPanel>
+                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                                    <Border DockPanel.Dock="Right" Style="{StaticResource SegBox}" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton x:Name="PieExpense" Style="{StaticResource SegButton}" GroupName="finpie" Content="Gastos" Checked="PieKind_Checked" IsChecked="True"/>
+                                            <RadioButton x:Name="PieIncome" Style="{StaticResource SegButton}" GroupName="finpie" Content="Ganhos" Checked="PieKind_Checked"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock x:Name="PieTitle" Text="Gastos por categoria" FontSize="14" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Clique numa fatia para ver os maiores lançamentos" Style="{StaticResource Muted}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <WrapPanel x:Name="PieWrap">
+                                    <Grid Width="230" Height="230" Margin="0,0,24,8" VerticalAlignment="Top">
+                                        <local:DonutChart x:Name="Pie" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" MaxWidth="128">
+                                            <TextBlock x:Name="PieCenterLabel" Style="{StaticResource Muted}" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock x:Name="PieCenterValue" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock x:Name="PieCenterPct" Style="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <StackPanel x:Name="PieLegend" Width="250" VerticalAlignment="Top"/>
+                                </WrapPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <Border x:Name="TopCard" Grid.Column="2" Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock x:Name="TopTitle" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="TopMeta" Style="{StaticResource Muted}" Margin="0,3,0,12" TextTrimming="CharacterEllipsis"/>
+                                <StackPanel x:Name="TopList"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,14">
+                                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                                    <Ellipse Width="9" Height="9" Fill="{StaticResource Success}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Ganhos" Style="{StaticResource Muted}" Margin="0,0,14,0"/>
+                                    <Ellipse Width="9" Height="9" Fill="{StaticResource Danger}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Gastos" Style="{StaticResource Muted}" Margin="0,0,14,0"/>
+                                    <Rectangle Width="14" Height="2" Fill="{StaticResource Accent}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Saldo" Style="{StaticResource Muted}"/>
+                                </WrapPanel>
+                                <StackPanel>
+                                    <TextBlock Text="Mês a mês" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="BarsMeta" Style="{StaticResource Muted}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DockPanel>
+                            <local:MonthBarChart x:Name="Bars" Height="230"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ================= side panel: forms ================= -->
+        <Border x:Name="Panel" Grid.Column="1" Width="390" Background="{StaticResource Surface}"
+                BorderBrush="{StaticResource Line}" BorderThickness="1,1,0,0" CornerRadius="12,0,0,0" Visibility="Collapsed">
+            <Grid>
+                <!-- ===== Transaction ===== -->
+                <DockPanel x:Name="TxForm" Visibility="Collapsed">
+                    <DockPanel Style="{StaticResource PanelHead}">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Click="ClosePanel_Click" ToolTip="Fechar (Esc)">
+                            <local:Icon Data="{StaticResource I.X}"/>
+                        </Button>
+                        <TextBlock x:Name="TxFormTitle" Style="{StaticResource H2}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <Border Style="{StaticResource PanelFoot}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Style="{StaticResource SecondaryButton}" Content="Cancelar" Click="ClosePanel_Click"/>
+                                <Button x:Name="TxSaveBtn" Style="{StaticResource PrimaryButton}" Content="Salvar" Margin="8,0,0,0" Click="TxSave_Click" ToolTip="Salvar (Enter)"/>
+                            </StackPanel>
+                            <StackPanel x:Name="TxEditActions" Orientation="Horizontal">
+                                <Button Style="{StaticResource DangerGhost}" Click="TxDeleteForm_Click" ToolTip="Excluir">
+                                    <local:Icon Data="{StaticResource I.Trash}"/>
+                                </Button>
+                                <Button Style="{StaticResource IconButton}" Click="TxDuplicateForm_Click" ToolTip="Duplicar" Margin="4,0,0,0">
+                                    <local:Icon Data="{StaticResource I.Copy}"/>
+                                </Button>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="24,14,24,24">
+                            <Border Style="{StaticResource SegBox}" HorizontalAlignment="Left" Margin="0,0,0,16">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="KindExpense" Style="{StaticResource SegButton}" GroupName="txkind" Content="Despesa" Checked="Kind_Checked"/>
+                                    <RadioButton x:Name="KindIncome" Style="{StaticResource SegButton}" GroupName="txkind" Content="Receita" Checked="Kind_Checked"/>
+                                    <RadioButton x:Name="KindTransfer" Style="{StaticResource SegButton}" GroupName="txkind" Content="Transferência" Checked="Kind_Checked"/>
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Valor" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <TextBox x:Name="TxAmount" FontSize="22" FontWeight="SemiBold" Padding="44,6,10,6" Tag="0,00"
+                                             PreviewKeyDown="Form_KeyDown" TextChanged="TxAmount_Changed" AutomationProperties.Name="Valor"/>
+                                    <TextBlock Text="R$" Foreground="{StaticResource Text2}" FontSize="16" VerticalAlignment="Center" Margin="13,0,0,0" IsHitTestVisible="False"/>
+                                </Grid>
+                                <TextBlock x:Name="TxError" Foreground="{StaticResource Danger}" FontSize="12" Margin="0,6,0,0" Visibility="Collapsed" TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Descrição" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <TextBox x:Name="TxDesc" Tag="Ex.: Mercado, Aluguel, Salário…" PreviewKeyDown="Form_KeyDown"
+                                             TextChanged="TxDesc_Changed" LostKeyboardFocus="TxDesc_LostFocus" AutomationProperties.Name="Descrição"/>
+                                    <Popup x:Name="SuggestPopup" PlacementTarget="{Binding ElementName=TxDesc}" Placement="Bottom" VerticalOffset="4"
+                                           StaysOpen="False" AllowsTransparency="True" Focusable="False">
+                                        <Border Background="{StaticResource Elevated}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="10"
+                                                Padding="4" Margin="0,0,8,8" MinWidth="{Binding ActualWidth, ElementName=TxDesc}">
+                                            <StackPanel x:Name="SuggestList"/>
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel x:Name="CatField" Style="{StaticResource Field}">
+                                <TextBlock Text="Categoria" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="TxCategory" AutomationProperties.Name="Categoria"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock x:Name="AccountLabel" Text="Conta" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="TxAccount" AutomationProperties.Name="Conta"/>
+                            </StackPanel>
+
+                            <StackPanel x:Name="ToField" Style="{StaticResource Field}" Visibility="Collapsed">
+                                <TextBlock Text="Para a conta" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="TxToAccount" AutomationProperties.Name="Conta de destino"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Data" Style="{StaticResource FieldLabel}"/>
+                                <local:DateField x:Name="TxDate"/>
+                            </StackPanel>
+
+                            <TextBlock x:Name="TxSeriesInfo" Style="{StaticResource Muted}" FontSize="12.5" Margin="0,-4,0,12" TextWrapping="Wrap" Visibility="Collapsed"/>
+
+                            <Button x:Name="MoreBtn" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="-8,0,0,6" Click="More_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <local:Icon x:Name="MoreChevron" Data="{StaticResource I.ChevronDown}" Width="14" Height="14" Margin="0,0,6,0"
+                                                RenderTransformOrigin="0.5,0.5"/>
+                                    <TextBlock Text="Mais opções"/>
+                                </StackPanel>
+                            </Button>
+
+                            <StackPanel x:Name="MorePanel" Visibility="Collapsed">
+                                <DockPanel Margin="0,4,0,14">
+                                    <CheckBox x:Name="TxPaid" DockPanel.Dock="Right" Style="{StaticResource Switch}" VerticalAlignment="Center"
+                                              Click="TxPaid_Click" AutomationProperties.Name="Pago"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Pago" FontWeight="Medium"/>
+                                        <TextBlock Text="Desligado = pendente (entra só no saldo previsto)." Style="{StaticResource Muted}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <StackPanel x:Name="InstallmentField" Style="{StaticResource Field}">
+                                    <TextBlock Text="Parcelas" Style="{StaticResource FieldLabel}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox x:Name="TxInstallments" Width="70" Tag="1" TextChanged="TxInstallments_Changed" PreviewKeyDown="Form_KeyDown"
+                                                 AutomationProperties.Name="Número de parcelas"/>
+                                        <TextBlock x:Name="InstallmentHint" Style="{StaticResource Muted}" FontSize="12.5" VerticalAlignment="Center" Margin="10,0,0,0"
+                                                   Text="O valor acima é o total da compra."/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <DockPanel x:Name="RepeatField" Margin="0,0,0,14">
+                                    <CheckBox x:Name="TxRepeat" DockPanel.Dock="Right" Style="{StaticResource Switch}" VerticalAlignment="Center"
+                                              Click="TxRepeat_Click" AutomationProperties.Name="Repetir todo mês"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Repetir todo mês" FontWeight="Medium"/>
+                                        <TextBlock x:Name="RepeatHint" Text="Cria um lançamento pendente em cada mês, no mesmo dia." Style="{StaticResource Muted}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <StackPanel Style="{StaticResource Field}">
+                                    <TextBlock Text="Observação" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="TxNote" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" VerticalContentAlignment="Top"
+                                             Tag="Opcional" AutomationProperties.Name="Observação"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+
+                <!-- ===== Account ===== -->
+                <DockPanel x:Name="AccForm" Visibility="Collapsed">
+                    <DockPanel Style="{StaticResource PanelHead}">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Click="ClosePanel_Click" ToolTip="Fechar (Esc)">
+                            <local:Icon Data="{StaticResource I.X}"/>
+                        </Button>
+                        <TextBlock x:Name="AccFormTitle" Style="{StaticResource H2}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <Border Style="{StaticResource PanelFoot}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Style="{StaticResource SecondaryButton}" Content="Cancelar" Click="ClosePanel_Click"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Salvar" Margin="8,0,0,0" Click="AccSave_Click"/>
+                            </StackPanel>
+                            <Button x:Name="AccDeleteBtn" Style="{StaticResource DangerGhost}" HorizontalAlignment="Left" Click="AccDelete_Click"
+                                    ToolTip="Excluir (só contas sem lançamentos)">
+                                <local:Icon Data="{StaticResource I.Trash}"/>
+                            </Button>
+                        </DockPanel>
+                    </Border>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="24,14,24,24">
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Nome" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="AccName" Tag="Ex.: Nubank, Carteira" PreviewKeyDown="AccForm_KeyDown"/>
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Tipo" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="AccType"/>
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Saldo inicial" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="AccInitial" Tag="0,00" PreviewKeyDown="AccForm_KeyDown"/>
+                                <TextBlock x:Name="AccError" Foreground="{StaticResource Danger}" FontSize="12" Margin="0,6,0,0" Visibility="Collapsed"/>
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Cor" Style="{StaticResource FieldLabel}"/>
+                                <WrapPanel x:Name="AccColors"/>
+                            </StackPanel>
+                            <DockPanel x:Name="AccArchiveRow" Margin="0,4,0,0">
+                                <CheckBox x:Name="AccArchived" DockPanel.Dock="Right" Style="{StaticResource Switch}" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Arquivada" FontWeight="Medium"/>
+                                    <TextBlock Text="Some das listas e dos totais; os lançamentos continuam guardados." Style="{StaticResource Muted}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+
+                <!-- ===== Check balance ===== -->
+                <DockPanel x:Name="CheckForm" Visibility="Collapsed">
+                    <DockPanel Style="{StaticResource PanelHead}">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Click="ClosePanel_Click" ToolTip="Fechar (Esc)">
+                            <local:Icon Data="{StaticResource I.X}"/>
+                        </Button>
+                        <TextBlock Text="Conferir saldo" Style="{StaticResource H2}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <Border Style="{StaticResource PanelFoot}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource SecondaryButton}" Content="Cancelar" Click="ClosePanel_Click"/>
+                            <Button x:Name="CheckSaveBtn" Style="{StaticResource PrimaryButton}" Content="Criar ajuste" Margin="8,0,0,0" Click="CheckSave_Click"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Margin="24,14,24,24">
+                        <TextBlock x:Name="CheckAccount" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="CheckCurrent" Style="{StaticResource Muted}" FontSize="13" Margin="0,4,0,18"/>
+                        <TextBlock Text="Saldo real (do banco ou da carteira)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox x:Name="CheckReal" FontSize="18" Tag="0,00" TextChanged="CheckReal_Changed" PreviewKeyDown="CheckForm_KeyDown"/>
+                        <TextBlock x:Name="CheckDiff" Style="{StaticResource Muted}" FontSize="13" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- ===== Category ===== -->
+                <DockPanel x:Name="CatForm" Visibility="Collapsed">
+                    <DockPanel Style="{StaticResource PanelHead}">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Click="ClosePanel_Click" ToolTip="Fechar (Esc)">
+                            <local:Icon Data="{StaticResource I.X}"/>
+                        </Button>
+                        <TextBlock x:Name="CatFormTitle" Style="{StaticResource H2}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <Border Style="{StaticResource PanelFoot}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource SecondaryButton}" Content="Cancelar" Click="ClosePanel_Click"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Salvar" Margin="8,0,0,0" Click="CatSave_Click"/>
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="24,14,24,24">
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Nome" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="CatName" PreviewKeyDown="CatForm_KeyDown"/>
+                                <TextBlock x:Name="CatError" Foreground="{StaticResource Danger}" FontSize="12" Margin="0,6,0,0" Visibility="Collapsed"/>
+                            </StackPanel>
+                            <Border Style="{StaticResource SegBox}" HorizontalAlignment="Left" Margin="0,0,0,16">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="CatKindExpense" Style="{StaticResource SegButton}" GroupName="catkind" Content="Despesa"/>
+                                    <RadioButton x:Name="CatKindIncome" Style="{StaticResource SegButton}" GroupName="catkind" Content="Receita"/>
+                                </StackPanel>
+                            </Border>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Cor" Style="{StaticResource FieldLabel}"/>
+                                <WrapPanel x:Name="CatColors"/>
+                            </StackPanel>
+                            <StackPanel Style="{StaticResource Field}">
+                                <TextBlock Text="Ícone" Style="{StaticResource FieldLabel}"/>
+                                <WrapPanel x:Name="CatIcons"/>
+                            </StackPanel>
+
+                            <Border x:Name="CatDeleteBox" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="0,16,0,0" Margin="0,8,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Excluir categoria" FontWeight="Medium"/>
+                                    <TextBlock x:Name="CatUsage" Style="{StaticResource Muted}" Margin="0,2,0,10" TextWrapping="Wrap"/>
+                                    <StackPanel x:Name="CatMoveField" Margin="0,0,0,10">
+                                        <TextBlock Text="Mover os lançamentos para" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="CatMoveTo"/>
+                                    </StackPanel>
+                                    <Button Style="{StaticResource DangerButton}" HorizontalAlignment="Left" Click="CatDelete_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <local:Icon Data="{StaticResource I.Trash}" Width="14" Height="14" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Excluir"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
