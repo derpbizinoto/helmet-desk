@@ -6,7 +6,7 @@ COMO ABRIR
   (pode criar um atalho dele na área de trabalho ou no Menu Iniciar)
 
   A pasta "app" precisa ficar inteira (HelmetDesk.exe + HelmetDesk.dll + arquivos .json).
-  Requer o .NET 8 Desktop Runtime, que já está instalado neste PC. Em outro PC, se faltar,
+  Requer o .NET 10 Desktop Runtime, que já está instalado neste PC. Em outro PC, se faltar,
   o próprio Windows mostra o link para baixar.
 
 ONDE FICAM OS DADOS
@@ -130,7 +130,7 @@ ANIMAÇÕES
 
 CÓDIGO-FONTE
   HelmetDesk.sln
-  src\    app WPF (.NET 8)
+  src\    app WPF (.NET 10)
   core\   serviços sem WPF: backup, relatório de problema e regras de Finanças (core\Finance)
   tests\  testes xUnit dos serviços:   dotnet test tests\HelmetDesk.Tests
   Para recompilar:
