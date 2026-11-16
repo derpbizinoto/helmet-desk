@@ -428,8 +428,15 @@ namespace HelmetDesk
             if (!t.Paid) row.Background = Ui.Res("Bg");
             row.Cursor = Cursors.Hand;
             row.Tag = t;
-            row.MouseLeftButtonUp += (s, e) => { if (!e.Handled) OpenTxForm(t); };
+            row.MouseLeftButtonUp += (s, e) => { if (!e.Handled) ToggleTx(t); };
             return row;
+        }
+
+        /// <summary>Row click: opens the transaction's panel, or closes it if that same transaction is already open.</summary>
+        private void ToggleTx(FinanceTransaction t)
+        {
+            if (PanelOpen && TxForm.Visibility == Visibility.Visible && _editing == t) ClosePanel();
+            else OpenTxForm(t);
         }
 
         private static void AutomationPropertiesName(DependencyObject o, string name) =>
