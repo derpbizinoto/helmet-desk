@@ -111,6 +111,7 @@ if ($Upload) {
             --publish `
             --releaseName "$PackTitle $Version" `
             --tag "v$Version" `
+            --targetCommitish (git -C $Root rev-parse HEAD).Trim() `
             -x
         if ($LASTEXITCODE -ne 0) { Fail 'vpk upload falhou.' }
     }
