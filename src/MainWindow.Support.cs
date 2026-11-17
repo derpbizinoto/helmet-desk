@@ -217,7 +217,7 @@ namespace HelmetDesk
                     ? TF(res.Skipped == 1 ? "{0} liberados (1 arquivo em uso ficou)" : "{0} liberados ({1} arquivos em uso ficaram)", CacheService.FormatSize(res.FreedBytes), res.Skipped)
                     : TF("Cache limpo: {0} liberados", CacheService.FormatSize(res.FreedBytes)), null, null);
             }
-            catch (Exception ex) { Log.Warn("cache: falha ao limpar", ex); ShowSnack("Não foi possível limpar o cache", null, null); }
+            catch (Exception ex) { Log.Warn("cache: falha ao limpar", ex); ShowSnack(T("Não foi possível limpar o cache"), null, null); }
             finally { ClearCacheBtn.IsEnabled = true; }
         }
 

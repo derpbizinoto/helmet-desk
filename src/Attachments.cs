@@ -132,7 +132,7 @@ namespace HelmetDesk
             var p = FullPath(a);
             if (p == null || !File.Exists(p)) { MessageBox.Show(T("O arquivo deste anexo não foi encontrado."), "Helmet Desk"); return; }
             try { Process.Start(new ProcessStartInfo(p) { UseShellExecute = true }); }
-            catch (Exception ex) { Log.Warn("anexo: não abriu", ex); MessageBox.Show("Nenhum aplicativo abriu este arquivo.", "Helmet Desk"); }
+            catch (Exception ex) { Log.Warn("anexo: não abriu", ex); MessageBox.Show(T("Nenhum aplicativo abriu este arquivo."), "Helmet Desk"); }
         }
 
         public static void Reveal(Attachment a)

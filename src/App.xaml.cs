@@ -65,8 +65,8 @@ namespace HelmetDesk
             if (pathError != null) Log.Warn(pathError);
             HookUnhandledErrors();
 
-            // the self-test checks Portuguese texts and seed names: run it in pt-BR unless HELMETDESK_LANG says otherwise
-            if (e.Args.Contains("--selftest") && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HELMETDESK_LANG")))
+            // the self-test and the screenshots look for Portuguese texts and seed names: pt-BR unless HELMETDESK_LANG says otherwise
+            if ((e.Args.Contains("--selftest") || e.Args.Contains("--snapshot")) && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HELMETDESK_LANG")))
                 Environment.SetEnvironmentVariable("HELMETDESK_LANG", L.Portuguese);
 
             Store.Load();

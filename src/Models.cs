@@ -255,7 +255,7 @@ namespace HelmetDesk
 
         [JsonIgnore] public bool IsTask => Kind == ItemKind.Task;
         [JsonIgnore] public bool IsNote => Kind == ItemKind.Note;
-        [JsonIgnore] public string KindName => IsTask ? "Tarefa" : "Nota";
+        [JsonIgnore] public string KindName => IsTask ? T("Tarefa") : T("Nota");
         [JsonIgnore] public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? (IsTask ? T("Tarefa sem título") : T("Nota sem título")) : Title;
 
         [JsonIgnore] public SolidColorBrush LabelBrush => Store.LabelById(LabelId)?.Brush ?? Palette.BrushFrom("#8950D9");
