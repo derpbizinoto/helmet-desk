@@ -841,7 +841,8 @@
                                     <TextBlock x:Name="UpdateStatusText" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,10,0,0" Visibility="Collapsed"/>
                                 </StackPanel>
                             </Border>
-                            <TextBlock Text="Helmet Desk 1.0 · identidade Violet Terminal" Style="{StaticResource Muted}" Margin="2,4,0,0"/>
+                            <!-- version filled in by MainWindow.Updates.cs (the real installed version) -->
+                            <TextBlock x:Name="AboutFooter" Text="Helmet Desk · identidade Violet Terminal" Style="{StaticResource Muted}" Margin="2,4,0,0"/>
                         </StackPanel>
                     </ScrollViewer>
 
