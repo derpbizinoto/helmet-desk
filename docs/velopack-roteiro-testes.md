@@ -56,6 +56,13 @@ As linhas do log que interessam começam com `atualização:` (Configurações �
    - [ ] caminho "ignorar" (sair pela bandeja): aparece UAC ao fechar? A versão nova está lá na próxima abertura?
    - [ ] depois de tudo, os dados em `%AppData%\HelmetDesk` continuam intactos?
 
+### Resultados (16/11/2026, Windows 11, MSI "todos os usuários", 1.0.1 → 1.0.2)
+
+- Instalação pelo MSI pede UAC. Recusado: o assistente termina com "instalação interrompida", sem alterar nada.
+- O app (rodando como usuário comum) detectou e baixou a 1.0.2 sem pedir nada.
+- **Reiniciar e atualizar pede UAC.** Recusado: o app reabre na 1.0.1, sem erro e sem perder dados.
+- A confirmar: se o UAC aparece de novo ao sair pela bandeja e ao abrir o app (com a atualização baixada e não aplicada).
+
 ## 3. Desinstalar mantém os dados
 
 1. Configurações do Windows → Aplicativos → Helmet Desk → Desinstalar.
