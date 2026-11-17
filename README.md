@@ -1,5 +1,7 @@
 # Helmet Desk
 
+[English](README.en.md) · **Português**
+
 Notas, tarefas, calendário e finanças pessoais num só lugar, para Windows. Tudo fica salvo no seu computador.
 
 ![Tela Hoje do Helmet Desk](docs/screenshots/hoje.png)
