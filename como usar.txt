@@ -1,13 +1,17 @@
 HELMET DESK — notas, tarefas e calendário para Windows
 =======================================================
 
-COMO ABRIR
-  Execute:  app\HelmetDesk.exe
-  (pode criar um atalho dele na área de trabalho ou no Menu Iniciar)
+COMO INSTALAR
+  Baixe HelmetDesk-win-Setup.exe em https://github.com/derpbizinoto/helmet-desk/releases/latest
+  e abra. Ele cria atalhos na área de trabalho e no Menu Iniciar. Não precisa instalar o .NET.
+  (HelmetDesk-win.msi permite instalar para todos os usuários do PC.)
+  O instalador não é assinado: se o Windows avisar, clique em "Mais informações" > "Executar assim mesmo".
 
-  A pasta "app" precisa ficar inteira (HelmetDesk.exe + HelmetDesk.dll + arquivos .json).
-  Requer o .NET 10 Desktop Runtime, que já está instalado neste PC. Em outro PC, se faltar,
-  o próprio Windows mostra o link para baixar.
+ATUALIZAÇÕES
+  O app procura versões novas ao abrir, baixa sozinho e avisa "Nova versão pronta":
+  "Reiniciar e atualizar" instala na hora; se ignorar, instala quando você fechar o app.
+  Configurações > Atualizações mostra a versão atual e tem "Verificar atualizações".
+  Desinstalar (Configurações do Windows > Aplicativos) não apaga seus dados.
 
 ONDE FICAM OS DADOS
   %APPDATA%\HelmetDesk\data.json   (salvo automaticamente)
