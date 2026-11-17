@@ -11,6 +11,10 @@ Onde ficam as coisas:
 | Dados (tarefas, notas, finanças, anexos) | `%AppData%\HelmetDesk\` |
 | Logs, cópias de segurança, relatórios | `%LocalAppData%\HelmetDesk.Local\` |
 
+> **Importante:** rode o Setup.exe / MSI sempre pelo Explorador de Arquivos (ou um terminal aberto pelo Menu Iniciar),
+> nunca de dentro do app Claude. Programas iniciados por ele rodam isolados (MSIX): a instalação vai para
+> `%LocalAppData%\Packages\Claude_…\LocalCache` e os atalhos e ícones da bandeja/Menu Iniciar ficam em branco.
+
 As linhas do log que interessam começam com `atualização:` (Configurações → Suporte → Abrir pasta de logs).
 
 ## 0. Preparação (uma vez)
