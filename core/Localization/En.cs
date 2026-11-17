@@ -322,6 +322,8 @@ namespace HelmetDesk.Core
             ["Atualizações"] = "Updates",
             ["Verificar atualizações"] = "Check for updates",
             ["Reiniciar e atualizar"] = "Restart and update",
+            ["Helmet Desk · identidade Violet Terminal"] = "Helmet Desk · Violet Terminal identity",
+            ["Helmet Desk {0} · identidade Violet Terminal"] = "Helmet Desk {0} · Violet Terminal identity",
             ["Versão atual: {0}"] = "Current version: {0}",
             ["Suporte"] = "Support",
             ["Reportar problema"] = "Report a problem",

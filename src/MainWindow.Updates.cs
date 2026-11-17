@@ -27,7 +27,7 @@ namespace HelmetDesk
         {
             var up = UpdateService.Instance;
             UpdateVersionText.Text = TF("Versão atual: {0}", up.CurrentVersion);
-            AboutFooter.Text = $"Helmet Desk {up.CurrentVersion} · identidade Violet Terminal";
+            AboutFooter.Text = TF("Helmet Desk {0} · identidade Violet Terminal", up.CurrentVersion);
             var status = up.State == UpdateState.Idle ? "" : up.StatusText;
             UpdateStatusText.Text = status;
             UpdateStatusText.Visibility = status.Length == 0 ? Visibility.Collapsed : Visibility.Visible;

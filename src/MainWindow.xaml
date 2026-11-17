@@ -873,7 +873,7 @@
                                 </StackPanel>
                             </Border>
                             <!-- version filled in by MainWindow.Updates.cs (the real installed version) -->
-                            <TextBlock x:Name="AboutFooter" Text="Helmet Desk · identidade Violet Terminal" Style="{StaticResource Muted}" Margin="2,4,0,0"/>
+                            <TextBlock x:Name="AboutFooter" Text="{local:Tr 'Helmet Desk · identidade Violet Terminal'}" Style="{StaticResource Muted}" Margin="2,4,0,0"/>
                         </StackPanel>
                     </ScrollViewer>
 
