@@ -68,7 +68,7 @@ namespace HelmetDesk
                 case ReportOutcome.SavedOffline:
                     Log.Info($"Relatório de problema gerado: {r.ZipPath ?? "(enviado)"}");
                     Status.Foreground = Ui.Res("Success");
-                    if (r.ZipPath != null) MainWindow.RevealFile(r.ZipPath);
+                    if (r.ZipPath != null) Explorer.Reveal(r.ZipPath);
                     NextBtn.Content = T("Concluído");
                     NextBtn.Click -= Next_Click;
                     NextBtn.Click += (s, ev) => Close();

@@ -421,6 +421,16 @@ namespace HelmetDesk
 
     public static class Hours
     {
+        private static readonly Regex TrailingEstimate = new(@"\s+(\d{1,3}:\d{2}|\d{1,3}h\d{0,2}|\d{1,4}\s?min)$", RegexOptions.IgnoreCase);
+
+        /// <summary>Quick add: "Ler relatório 1h30" → "Ler relatório" and 90 minutes. Without an estimate at the end, the text comes back as is and minutes is 0.</summary>
+        public static string SplitEstimate(string text, out int minutes)
+        {
+            minutes = 0;
+            var m = TrailingEstimate.Match(text);
+            return m.Success && TryParse(m.Groups[1].Value, out minutes) ? text.Substring(0, m.Index).Trim() : text;
+        }
+
         public static string Format(int minutes)
         {
             if (minutes <= 0) return "";

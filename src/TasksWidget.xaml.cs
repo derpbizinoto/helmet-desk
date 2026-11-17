@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -105,9 +104,7 @@ namespace HelmetDesk
             if (e.Key != Key.Enter) return;
             var text = Quick.Text.Trim();
             if (text.Length == 0) return;
-            int minutes = 0;
-            var m = Regex.Match(text, @"\s+(\d{1,3}:\d{2}|\d{1,3}h\d{0,2}|\d{1,4}\s?min)$", RegexOptions.IgnoreCase);
-            if (m.Success && Hours.TryParse(m.Groups[1].Value, out minutes)) text = text.Substring(0, m.Index).Trim();
+            text = Hours.SplitEstimate(text, out int minutes);
             var it = Store.NewItem(ItemKind.Task, DateTime.Today);
             it.Title = text;
             it.EstimateMinutes = minutes;

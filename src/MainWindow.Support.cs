@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -76,7 +75,7 @@ namespace HelmetDesk
                 Store.Save(); // write pending changes first
                 await svc.ExportAsync(path, BackupProgress());
                 SetBackupBusy(false, TF("Backup exportado: {0}", Path.GetFileName(path)), 100);
-                ShowSnack(T("Backup exportado"), T("Mostrar"), () => RevealFile(path));
+                ShowSnack(T("Backup exportado"), T("Mostrar"), () => Explorer.Reveal(path));
                 Log.Info($"Backup exportado para {path}");
                 return true;
             }
@@ -222,17 +221,6 @@ namespace HelmetDesk
             finally { ClearCacheBtn.IsEnabled = true; }
         }
 
-        private void OpenLogs_Click(object sender, RoutedEventArgs e)
-        {
-            Directory.CreateDirectory(AppPaths.LogDir);
-            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{AppPaths.LogDir}\"") { UseShellExecute = true });
-        }
-
-        /// <summary>Opens Explorer with the file selected.</summary>
-        public static void RevealFile(string path)
-        {
-            try { Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true }); }
-            catch (Exception ex) { Log.Warn("Não foi possível abrir o Explorer", ex); }
-        }
+        private void OpenLogs_Click(object sender, RoutedEventArgs e) => Explorer.OpenFolder(AppPaths.LogDir);
     }
 }

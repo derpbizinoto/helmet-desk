@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -574,11 +573,7 @@ namespace HelmetDesk
             if (text.Length == 0) return null;
             var kind = _quickKind ?? ItemKind.Task;
             int minutes = 0;
-            if (kind == ItemKind.Task)
-            {
-                var m = Regex.Match(text, @"\s+(\d{1,3}:\d{2}|\d{1,3}h\d{0,2}|\d{1,4}\s?min)$", RegexOptions.IgnoreCase);
-                if (m.Success && Hours.TryParse(m.Groups[1].Value, out minutes)) text = text.Substring(0, m.Index).Trim();
-            }
+            if (kind == ItemKind.Task) text = Hours.SplitEstimate(text, out minutes);
             var date = _quickDate ?? DateTime.Today;
             var it = Store.NewItem(kind, date);
             it.Title = text;
@@ -1396,11 +1391,7 @@ namespace HelmetDesk
             });
         }
 
-        private void OpenDataFolder_Click(object sender, RoutedEventArgs e)
-        {
-            Directory.CreateDirectory(AppPaths.DataDir);
-            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{AppPaths.DataDir}\"") { UseShellExecute = true });
-        }
+        private void OpenDataFolder_Click(object sender, RoutedEventArgs e) => Explorer.OpenFolder(AppPaths.DataDir);
 
         // ================= snackbar =================
 

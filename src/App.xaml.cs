@@ -65,6 +65,10 @@ namespace HelmetDesk
             if (pathError != null) Log.Warn(pathError);
             HookUnhandledErrors();
 
+            // the self-test checks Portuguese texts and seed names: run it in pt-BR unless HELMETDESK_LANG says otherwise
+            if (e.Args.Contains("--selftest") && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HELMETDESK_LANG")))
+                Environment.SetEnvironmentVariable("HELMETDESK_LANG", L.Portuguese);
+
             Store.Load();
             SoundService.Preload(); // decodes the two sounds in the background
             ThemeManager.Apply(Store.Data.Settings.Theme);
@@ -80,10 +84,8 @@ namespace HelmetDesk
             foreach (var it in Store.Data.Items.Where(i => i.WidgetOpen).ToList()) OpenWidget(it, false);
             if (Store.Data.Settings.TasksWidget) ShowTasksWidget(true);
 
-            int st = Array.FindIndex(e.Args, a => a == "--selftest");
-            if (st >= 0 && st + 1 < e.Args.Length)
+            if (ArgValue(e.Args, "--selftest") is string outFile)
             {
-                var outFile = e.Args[st + 1];
                 MainWin.Show();
                 MainWin.Dispatcher.BeginInvoke(new Action(async () =>
                 {
@@ -95,10 +97,9 @@ namespace HelmetDesk
                 }), DispatcherPriority.ApplicationIdle);
             }
 
-            int snap = Array.FindIndex(e.Args, a => a == "--snapshot");
-            if (snap >= 0 && snap + 1 < e.Args.Length)
+            if (ArgValue(e.Args, "--snapshot") is string snapDir)
             {
-                var dir = e.Args[snap + 1];
+                var dir = snapDir;
                 MainWin.Show();
                 MainWin.Dispatcher.BeginInvoke(new Action(async () =>
                 {
@@ -109,11 +110,9 @@ namespace HelmetDesk
                 }), DispatcherPriority.ApplicationIdle);
             }
 
-            int rs = Array.FindIndex(e.Args, a => a == "--readme-shots");
-            if (rs >= 0 && rs + 1 < e.Args.Length)
+            if (ArgValue(e.Args, "--readme-shots") is string shotsDir)
             {
-                var dir = e.Args[rs + 1];
-                snap = rs;
+                var dir = shotsDir;
                 MainWin.Show();
                 MainWin.Dispatcher.BeginInvoke(new Action(async () =>
                 {
@@ -128,10 +127,8 @@ namespace HelmetDesk
             _clock.Start();
 
             // test of Restart(): 1st run restarts, the restarted instance records it and exits
-            int rt = Array.FindIndex(e.Args, a => a == "--selftest-restart");
-            if (rt >= 0 && rt + 1 < e.Args.Length)
+            if (ArgValue(e.Args, "--selftest-restart") is string f)
             {
-                var f = e.Args[rt + 1];
                 bool second = System.IO.File.Exists(f);
                 System.IO.File.AppendAllText(f, (second ? "reiniciado" : "primeira") + (e.Args.Contains("--restarted") ? "+restarted" : "") + "\n");
                 MainWin.Dispatcher.BeginInvoke(new Action(() =>
@@ -141,12 +138,28 @@ namespace HelmetDesk
                 }), DispatcherPriority.ApplicationIdle);
             }
 
-            // the app died last time: offer to report it (not during automated runs)
-            if (st < 0 && snap < 0 && TakeCrashMarker() is string crash)
+            if (IsAutomation) return; // no crash report offer, no update check
+
+            // the app died last time: offer to report it
+            if (TakeCrashMarker() is string crash)
                 MainWin.Dispatcher.BeginInvoke(new Action(() => MainWin.OfferCrashReport(crash)), DispatcherPriority.ApplicationIdle);
 
             // updates: checked in the background a little after the window is up; nothing at all when not installed
-            if (st < 0 && snap < 0 && rt < 0) UpdateService.Instance.StartBackgroundCheck();
+            UpdateService.Instance.StartBackgroundCheck();
+        }
+
+        // ---------- automated runs (self-test, screenshots) ----------
+
+        private static readonly string[] AutomationArgs = { "--selftest", "--snapshot", "--readme-shots", "--selftest-restart" };
+
+        /// <summary>Started by a tool, not a person: no dialogs on screen, no crash report offer, no update check.</summary>
+        public static bool IsAutomation { get; } = Environment.GetCommandLineArgs().Any(a => AutomationArgs.Contains(a));
+
+        /// <summary>The value after <paramref name="name"/> on the command line ("--selftest out.txt" → "out.txt"), or null.</summary>
+        private static string ArgValue(string[] args, string name)
+        {
+            int i = Array.IndexOf(args, name);
+            return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
         }
 
         // ---------- errors, crash report, restart ----------
@@ -161,15 +174,10 @@ namespace HelmetDesk
             {
                 ex.Handled = true;
                 Log.Error("Erro não tratado na interface", ex.Exception);
-                // automated runs (--selftest / --snapshot): never put a dialog on the user's screen; write it down and quit
-                var args = Environment.GetCommandLineArgs();
-                if (args.Contains("--selftest") || args.Contains("--snapshot") || args.Contains("--readme-shots"))
+                // automated runs: never put a dialog on the user's screen; write it down and quit
+                if (IsAutomation)
                 {
-                    try
-                    {
-                        var dir = System.IO.Path.GetDirectoryName(AppPaths.DataFile) ?? AppPaths.LocalDir;
-                        System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "automation-error.txt"), ex.Exception.ToString());
-                    }
+                    try { System.IO.File.WriteAllText(System.IO.Path.Combine(AppPaths.DataDir, "automation-error.txt"), ex.Exception.ToString()); }
                     catch { }
                     Environment.Exit(3);
                 }

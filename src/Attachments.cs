@@ -139,7 +139,7 @@ namespace HelmetDesk
         {
             var p = FullPath(a);
             if (p == null || !File.Exists(p)) return;
-            try { Process.Start("explorer.exe", $"/select,\"{p}\""); } catch (Exception ex) { Log.Warn("anexo: explorer", ex); }
+            Explorer.Reveal(p);
         }
 
         /// <summary>
