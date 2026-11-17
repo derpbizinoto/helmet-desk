@@ -138,4 +138,4 @@ CÓDIGO-FONTE
   core\   serviços sem WPF: backup, relatório de problema e regras de Finanças (core\Finance)
   tests\  testes xUnit dos serviços:   dotnet test tests\HelmetDesk.Tests
   Para gerar o instalador e publicar uma versão:  .\build-release.ps1 1.0.1 -Upload
-  (detalhes em README.md)
+  (detalhes em README.pt-BR.md)
