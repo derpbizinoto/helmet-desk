@@ -85,6 +85,9 @@ Confirmado em 16/11/2026 (1.0.3 → 1.0.4).
    - [ ] se "Iniciar com o Windows" estava ligado, a entrada sumiu de *Aplicativos de inicialização*.
 3. Instale de novo: os dados aparecem como estavam.
 
+Resultado (16/11/2026, desinstalação da instalação MSI "todos os usuários"): `%AppData%\HelmetDesk` e
+`%LocalAppData%\HelmetDesk.Local` continuaram no lugar. Testes 4 (instalação limpa) e 1.7 (sem internet) ficaram para depois.
+
 ## 4. Instalação limpa em outra máquina (sem dados pessoais)
 
 Em outro PC, numa conta nova do Windows ou no **Windows Sandbox**:
