@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using Velopack;
@@ -27,7 +28,7 @@ namespace HelmetDesk
         public static UpdateService Instance { get; } = new();
 
         private UpdateManager _mgr;
-        private UpdateInfo _ready;
+        private VelopackAsset _ready;
         private bool _busy, _applying;
 
         /// <summary>Raised on the UI thread whenever <see cref="State"/> or <see cref="StatusText"/> changes.</summary>
@@ -37,7 +38,7 @@ namespace HelmetDesk
 
         public UpdateState State { get; private set; } = UpdateState.Idle;
         public int Progress { get; private set; }
-        public string ReadyVersion => _ready?.TargetFullRelease?.Version?.ToString();
+        public string ReadyVersion => _ready?.Version?.ToString();
 
         private UpdateService()
         {
@@ -65,7 +66,9 @@ namespace HelmetDesk
             UpdateState.Checking => "Procurando atualizações…",
             UpdateState.UpToDate => "Você está usando a versão mais recente.",
             UpdateState.Downloading => $"Baixando a versão {ReadyVersionOrPending}… {Progress}%",
-            UpdateState.Ready => $"A versão {ReadyVersion} está pronta. Ela será instalada ao reiniciar ou quando você fechar o Helmet Desk.",
+            UpdateState.Ready => InstallMode.NeedsAdmin
+                ? $"A versão {ReadyVersion} está pronta. Clique em Reiniciar e atualizar para instalar (o Windows vai pedir permissão de administrador)."
+                : $"A versão {ReadyVersion} está pronta. Ela será instalada ao reiniciar ou quando você fechar o Helmet Desk.",
             UpdateState.Failed => "Não foi possível verificar agora. Tente de novo mais tarde.",
             _ => "",
         };
@@ -99,6 +102,17 @@ namespace HelmetDesk
             _busy = true;
             try
             {
+                // downloaded in an earlier session and not applied yet (all-users install: never applied at startup)
+                var pending = _mgr.UpdatePendingRestart;
+                if (pending != null && (_mgr.CurrentVersion == null || pending.Version > _mgr.CurrentVersion))
+                {
+                    _ready = pending;
+                    Log.Info($"atualização: versão {ReadyVersion} já baixada, aguardando instalação");
+                    Set(UpdateState.Ready);
+                    UpdateReady?.Invoke(ReadyVersion);
+                    return;
+                }
+
                 Set(UpdateState.Checking);
                 Log.Info($"atualização: verificando ({(manual ? "manual" : "automática")}, versão atual {CurrentVersion})");
                 var info = await Task.Run(() => _mgr.CheckForUpdatesAsync());
@@ -119,7 +133,7 @@ namespace HelmetDesk
                     dispatcher?.BeginInvoke(new Action(() => { Progress = p; Changed?.Invoke(); }));
                 }));
 
-                _ready = info;
+                _ready = info.TargetFullRelease;
                 Log.Info($"atualização: versão {ReadyVersion} baixada e pronta");
                 Set(UpdateState.Ready);
                 UpdateReady?.Invoke(ReadyVersion);
@@ -136,7 +150,7 @@ namespace HelmetDesk
         public void ApplyNow()
         {
             if (_ready == null || _applying || !IsInstalled) return;
-            var target = _ready.TargetFullRelease;
+            var target = _ready;
             Log.Info($"atualização: reiniciando para instalar {ReadyVersion}");
             App.Current.ExitApp(() =>
             {
@@ -146,15 +160,23 @@ namespace HelmetDesk
             });
         }
 
-        /// <summary>On a normal exit: if an update is downloaded, apply it after the process ends (silently, no restart).</summary>
+        /// <summary>
+        /// On a normal exit: if an update is downloaded, apply it after the process ends (silently, no restart).
+        /// Not when the install needs admin rights: that would put a UAC prompt on screen as the app closes.
+        /// </summary>
         public void ApplyOnExit()
         {
             if (_ready == null || _applying || !IsInstalled) return;
+            if (InstallMode.NeedsAdmin)
+            {
+                Log.Info($"atualização: {ReadyVersion} fica para quando o usuário clicar em Reiniciar e atualizar (instalação exige administrador)");
+                return;
+            }
             _applying = true;
             try
             {
                 Log.Info($"atualização: {ReadyVersion} será instalada após fechar");
-                _mgr.WaitExitThenApplyUpdates(_ready.TargetFullRelease, silent: true, restart: false);
+                _mgr.WaitExitThenApplyUpdates(_ready, silent: true, restart: false);
             }
             catch (Exception ex) { Log.Error("atualização: não foi possível agendar a instalação ao fechar", ex); }
         }
@@ -170,6 +192,35 @@ namespace HelmetDesk
             var d = Application.Current?.Dispatcher;
             if (d == null) return Task.CompletedTask;
             return d.InvokeAsync(work).Task.Unwrap();
+        }
+    }
+
+    /// <summary>Kept apart from UpdateService so Program.Main can read it before Velopack runs, without creating the UpdateManager.</summary>
+    public static class InstallMode
+    {
+        /// <summary>
+        /// True when the install folder is not writable by the user (MSI "todos os usuários", in Program Files):
+        /// applying an update needs UAC. Then the update is only applied when the user clicks "Reiniciar e atualizar",
+        /// never on exit or at startup, so UAC never shows up by surprise. Computed once, also used by Program.Main.
+        /// </summary>
+        public static bool NeedsAdmin => _needsAdmin.Value;
+        private static readonly Lazy<bool> _needsAdmin = new(ProbeNeedsAdmin);
+
+        private static bool ProbeNeedsAdmin()
+        {
+            try
+            {
+                // installed layout: <root>\current\HelmetDesk.exe; Velopack writes packages\ and Update.exe in <root>
+                var current = AppContext.BaseDirectory.TrimEnd('\\', '/');
+                if (!string.Equals(Path.GetFileName(current), "current", StringComparison.OrdinalIgnoreCase)) return false;
+                var root = Path.GetDirectoryName(current);
+                var probe = Path.Combine(root, ".helmetdesk-write-test-" + Guid.NewGuid().ToString("N"));
+                using (new FileStream(probe, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose)) { }
+                return false;
+            }
+            catch (UnauthorizedAccessException) { return true; }
+            catch (IOException) { return true; }
+            catch { return false; }
         }
     }
 }

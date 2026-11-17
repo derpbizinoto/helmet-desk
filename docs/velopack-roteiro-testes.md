@@ -64,6 +64,15 @@ As linhas do log que interessam começam com `atualização:` (Configurações �
 - Com a atualização baixada e recusada, **sair pela bandeja pede UAC de novo** (aceito → atualizou para 1.0.2).
 - Não testado: UAC ao abrir o app com atualização pendente (o Velopack aplica na inicialização por padrão).
 
+**Decisão (a partir da 1.0.3):** quando a pasta de instalação não é gravável pelo usuário (todos os usuários),
+o app continua baixando sozinho, mas só instala quando a pessoa clica em **Reiniciar e atualizar**:
+nada ao fechar, nada ao abrir (`InstallMode.NeedsAdmin` em `UpdateService.cs`). Instalação só para o usuário não muda.
+
+Para conferir (instalado pelo MSI em modo todos os usuários, na 1.0.3):
+- [ ] publicar 1.0.4; o card diz "…Clique em Reiniciar e atualizar para instalar (o Windows vai pedir permissão de administrador)";
+- [ ] sair pela bandeja: **nenhum** UAC; abrir de novo: **nenhum** UAC, e o aviso da 1.0.4 aparece outra vez;
+- [ ] Reiniciar e atualizar → UAC → aceitar → abre na 1.0.4.
+
 ## 3. Desinstalar mantém os dados
 
 1. Configurações do Windows → Aplicativos → Helmet Desk → Desinstalar.

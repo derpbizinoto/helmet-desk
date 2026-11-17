@@ -16,6 +16,9 @@ namespace HelmetDesk
             VelopackApp.Build()
                 // fast hooks: must finish in a few seconds and never show UI
                 .OnBeforeUninstallFastCallback(_ => App.RemoveStartupRegistration())
+                // all-users install (Program Files): applying needs UAC, so a downloaded update is only applied when the
+                // user clicks "Reiniciar e atualizar" — never by surprise at startup
+                .SetAutoApplyOnStartup(!InstallMode.NeedsAdmin)
                 .Run();
 
             var app = new App();
