@@ -46,6 +46,7 @@ namespace HelmetDesk
             LabelsEditor.ItemsSource = Store.Data.Labels;
             EdLabels.ItemsSource = Store.Data.Labels;
             DataPath.Text = AppPaths.DataFile;
+            HookUpdates();
             BuildDayNames();
             BuildLabelChips();
 
@@ -1352,8 +1353,9 @@ namespace HelmetDesk
 
         // ================= snackbar =================
 
-        public void ShowSnack(string text, string action, Action onAction)
+        public void ShowSnack(string text, string action, Action onAction, int seconds = 6)
         {
+            _snackTimer.Interval = TimeSpan.FromSeconds(seconds);
             SnackText.Text = text;
             _snackAction = onAction;
             // the action reads as a link: Roboto Bold, underlined

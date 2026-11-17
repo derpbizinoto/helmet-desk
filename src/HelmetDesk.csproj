@@ -18,6 +18,9 @@
          every platform (osx/arm64/x86) plus ~95 MB debug symbols each into app\runtimes (~330 MB). -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
+    <!-- Program.Main is the entry point (Velopack has to run first), so App.xaml is a Page and WPF generates no Main -->
+    <StartupObject>HelmetDesk.Program</StartupObject>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,6 +49,7 @@
     <PackageReference Include="SkiaSharp.Skottie" Version="4.156.1" />
     <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
   <ItemGroup>

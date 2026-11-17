@@ -130,6 +130,9 @@ namespace HelmetDesk
             // the app died last time: offer to report it (not during automated runs)
             if (st < 0 && snap < 0 && TakeCrashMarker() is string crash)
                 MainWin.Dispatcher.BeginInvoke(new Action(() => MainWin.OfferCrashReport(crash)), DispatcherPriority.ApplicationIdle);
+
+            // updates: checked in the background a little after the window is up; nothing at all when not installed
+            if (st < 0 && snap < 0 && rt < 0) UpdateService.Instance.StartBackgroundCheck();
         }
 
         // ---------- errors, crash report, restart ----------
@@ -304,9 +307,11 @@ namespace HelmetDesk
             _tray?.ShowBalloonTip(5000, title, text, Forms.ToolTipIcon.None);
         }
 
-        public void ExitApp() => ExitApp(null);
+        /// <summary>Quits. A downloaded update the user did not apply yet is installed once the process has exited.</summary>
+        public void ExitApp() => ExitApp(UpdateService.Instance.ApplyOnExit);
 
-        private void ExitApp(Action beforeShutdown)
+        /// <summary>Saves and quits, running <paramref name="beforeShutdown"/> right before the process ends.</summary>
+        internal void ExitApp(Action beforeShutdown)
         {
             if (_exiting) return;
             _exiting = true;
@@ -340,6 +345,17 @@ namespace HelmetDesk
                     key.SetValue(RunValue, $"\"{ExePath}\" --startup");
                 else if (key.GetValue(RunValue) != null)
                     key.DeleteValue(RunValue, false);
+            }
+            catch { }
+        }
+
+        /// <summary>Uninstall hook (Program.Main): leave no "start with Windows" entry pointing at a deleted exe.</summary>
+        public static void RemoveStartupRegistration()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(RunKey, true);
+                if (key?.GetValue(RunValue) != null) key.DeleteValue(RunValue, false);
             }
             catch { }
         }
