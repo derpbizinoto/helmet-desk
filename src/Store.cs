@@ -8,12 +8,12 @@ using Serilog; // WriteTo.File extension
 namespace HelmetDesk
 {
     /// <summary>
-    /// Technical log (Serilog): %LocalAppData%\HelmetDesk\logs, one file per day, 1 MB each, the last 5 kept.
+    /// Technical log (Serilog): %LocalAppData%\HelmetDesk.Local\logs (AppPaths.LogDir), one file per day, 1 MB each, the last 5 kept.
     /// Kept out of the data folder so it never travels in backups and never holds a file open there.
     /// </summary>
     public static class Log
     {
-        public static string Dir => Path.Combine(Store.LocalDir, "logs");
+        private static string Dir => AppPaths.LogDir;
         private static bool _ready;
 
         public static void Init()
@@ -58,14 +58,9 @@ namespace HelmetDesk
 
     public static class Store
     {
-        public static readonly string Dir = Environment.GetEnvironmentVariable("HELMETDESK_DATA") is { Length: > 0 } custom
-            ? custom
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HelmetDesk");
-        /// <summary>Machine-local files that are not user data: logs, crash marker, safety backups, bug reports.</summary>
-        public static readonly string LocalDir = Environment.GetEnvironmentVariable("HELMETDESK_DATA") is { Length: > 0 } c2
-            ? c2.TrimEnd('\\', '/') + "-local"
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HelmetDesk");
-        public static string FilePath => Path.Combine(Dir, "data.json");
+        /// <summary>The data folder and data.json (see <see cref="AppPaths"/>, which holds every path).</summary>
+        private static string Dir => AppPaths.DataDir;
+        private static string FilePath => AppPaths.DataFile;
 
         /// <summary>Data format version written in data.json ("Version"). Bump it and add a step to <see cref="Migrate"/> when the format changes.</summary>
         /// 2 = Finanças added ("Finance" section). Bumped so an older app refuses a newer backup instead of dropping Finanças on save.

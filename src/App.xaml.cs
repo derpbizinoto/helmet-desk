@@ -55,8 +55,14 @@ namespace HelmetDesk
             listener.Start();
 
             base.OnStartup(e);
+            // folders first (and the one-time move of the old %LocalAppData%\HelmetDesk), so the log starts in the right place
+            string migrated = null, pathError = null;
+            try { migrated = AppPaths.MigrateLocal(); } catch (Exception ex) { pathError = "migração da pasta local falhou: " + ex.Message; }
+            try { AppPaths.EnsureCreated(); } catch (Exception ex) { pathError = "não foi possível criar as pastas do app: " + ex.Message; }
             Log.Init();
             Log.Info($"Helmet Desk {AppVersion} iniciado ({Environment.OSVersion.VersionString}, {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription})");
+            if (migrated != null) Log.Info(migrated);
+            if (pathError != null) Log.Warn(pathError);
             HookUnhandledErrors();
 
             Store.Load();
@@ -131,7 +137,7 @@ namespace HelmetDesk
         public static string AppVersion =>
             (Assembly.GetEntryAssembly() ?? typeof(App).Assembly).GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0] ?? "0.0.0";
 
-        private static string CrashMarker => System.IO.Path.Combine(Store.LocalDir, "last-crash.txt");
+        private static string CrashMarker => AppPaths.CrashMarker;
 
         private void HookUnhandledErrors()
         {
@@ -146,7 +152,7 @@ namespace HelmetDesk
                 {
                     try
                     {
-                        var dir = System.IO.Path.GetDirectoryName(Store.FilePath) ?? Store.LocalDir;
+                        var dir = System.IO.Path.GetDirectoryName(AppPaths.DataFile) ?? AppPaths.LocalDir;
                         System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "automation-error.txt"), ex.Exception.ToString());
                     }
                     catch { }
@@ -162,7 +168,7 @@ namespace HelmetDesk
                 var exc = ex.ExceptionObject as Exception;
                 try
                 {
-                    System.IO.Directory.CreateDirectory(Store.LocalDir);
+                    System.IO.Directory.CreateDirectory(AppPaths.LocalDir);
                     System.IO.File.WriteAllText(CrashMarker, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}\n{exc}");
                 }
                 catch { }

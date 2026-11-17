@@ -44,7 +44,7 @@ namespace HelmetDesk
         /// <summary>Raised on the UI thread when a page's title/icon arrives.</summary>
         public static event Action<string> Updated;
 
-        private static string Dir => Path.Combine(Store.Dir, "links");
+        private static string Dir => AppPaths.LinksCacheDir;
         private static string IndexPath => Path.Combine(Dir, "index.json");
         private static Dictionary<string, Entry> _index;
         private static readonly Dictionary<string, Task> _running = new();

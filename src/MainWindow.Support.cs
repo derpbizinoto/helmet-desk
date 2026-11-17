@@ -15,8 +15,8 @@ namespace HelmetDesk
 
         internal static BackupService CreateBackupService() => new(new BackupOptions
         {
-            DataDir = Store.Dir,
-            SafetyBackupDir = Path.Combine(Store.LocalDir, "backups"),
+            DataDir = AppPaths.DataDir,
+            SafetyBackupDir = AppPaths.SafetyBackupDir,
             DataFiles = new[] { "data.json" },
             DataFolders = new[] { "attachments" }, // note attachments (pictures, files): restoring a backup brings them back
             AppVersion = App.AppVersion,
@@ -27,9 +27,9 @@ namespace HelmetDesk
         internal static BugReportService ReportService { get; } = new(new BugReportOptions
         {
             AppVersion = App.AppVersion,
-            LogDir = Log.Dir,
-            OutputDir = Path.Combine(Store.LocalDir, "relatorios"),
-            UserDataFiles = new[] { Store.FilePath },
+            LogDir = AppPaths.LogDir,
+            OutputDir = AppPaths.ReportsDir,
+            UserDataFiles = new[] { AppPaths.DataFile },
             // no Windows user name in the report
             Redactions = new System.Collections.Generic.Dictionary<string, string>
             {
@@ -186,11 +186,11 @@ namespace HelmetDesk
             return new[]
             {
                 new CacheTarget(LinkPreview.CacheDir),                              // link titles + site icons (fetched again)
-                new CacheTarget(Path.Combine(Store.LocalDir, "relatorios"), "*.zip"), // bug reports already generated
+                new CacheTarget(AppPaths.ReportsDir, "*.zip"), // bug reports already generated
                 new CacheTarget(tmp, "hd-selftest-*"),                              // self-test leftovers
                 new CacheTarget(tmp, "hd-zip-check"),
-                new CacheTarget(Path.GetDirectoryName(Store.Dir.TrimEnd('\\', '/')),  // half-finished import, if one was cut short
-                    Path.GetFileName(Store.Dir.TrimEnd('\\', '/')) + ".import-tmp"),
+                new CacheTarget(Path.GetDirectoryName(AppPaths.DataDir.TrimEnd('\\', '/')),  // half-finished import, if one was cut short
+                    Path.GetFileName(AppPaths.DataDir.TrimEnd('\\', '/')) + ".import-tmp"),
             };
         }
 
@@ -224,8 +224,8 @@ namespace HelmetDesk
 
         private void OpenLogs_Click(object sender, RoutedEventArgs e)
         {
-            Directory.CreateDirectory(Log.Dir);
-            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{Log.Dir}\"") { UseShellExecute = true });
+            Directory.CreateDirectory(AppPaths.LogDir);
+            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{AppPaths.LogDir}\"") { UseShellExecute = true });
         }
 
         /// <summary>Opens Explorer with the file selected.</summary>

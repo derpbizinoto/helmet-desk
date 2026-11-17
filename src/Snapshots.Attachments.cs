@@ -75,7 +75,7 @@ namespace HelmetDesk
                 var mixed = new DataObject(); mixed.SetImage(bmp); mixed.SetText("A1\tB1");
                 Check("anexos: células do Excel (texto + imagem) num campo de texto colam como texto", !PasteInto(n, mixed, false, true) && n.Attachments.Count == 2);
 
-                var file = Path.Combine(Store.Dir, "teste-anexo.txt");
+                var file = Path.Combine(AppPaths.DataDir, "teste-anexo.txt");
                 File.WriteAllText(file, "conteúdo de teste");
                 Check("anexos: arquivo colado é aceito", PasteInto(n, new DataObject(DataFormats.FileDrop, new[] { file }), false, false));
                 for (int i = 0; i < 40 && n.Attachments.Count < 3; i++) await Task.Delay(50);
@@ -113,10 +113,10 @@ namespace HelmetDesk
                 Check("anexos: nota excluída tem a pasta limpa", !Directory.Exists(Path.Combine(Attachments.Root, copy.Id)));
 
                 Store.Save();
-                var json = File.ReadAllText(Store.FilePath);
+                var json = File.ReadAllText(AppPaths.DataFile);
                 Check("anexos: salvos no data.json", json.Contains("\"Attachments\"") && json.Contains("youtube.com/watch?v=abc123"));
-                var bz = Path.Combine(Store.LocalDir, "teste-backup-anexos.zip");
-                Directory.CreateDirectory(Store.LocalDir);
+                var bz = Path.Combine(AppPaths.LocalDir, "teste-backup-anexos.zip");
+                Directory.CreateDirectory(AppPaths.LocalDir);
                 await CreateBackupService().ExportAsync(bz);
                 using (var z = System.IO.Compression.ZipFile.OpenRead(bz))
                     Check("anexos: entram no backup .zip", n.Attachments.Count(a => a.File != null) >= 1
@@ -150,7 +150,7 @@ namespace HelmetDesk
                     var src = Path.Combine(dir, shot);
                     if (File.Exists(src)) await Attachments.AddFilesAsync(n, new[] { src });
                 }
-                var pdf = Path.Combine(Store.Dir, "Receita - dra. Ana.pdf");
+                var pdf = Path.Combine(AppPaths.DataDir, "Receita - dra. Ana.pdf");
                 File.WriteAllBytes(pdf, new byte[184_320]);
                 await Attachments.AddFilesAsync(n, new[] { pdf });
                 File.Delete(pdf);

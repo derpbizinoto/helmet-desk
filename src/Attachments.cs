@@ -16,9 +16,9 @@ namespace HelmetDesk
     /// </summary>
     public static class Attachments
     {
-        public static string Root => Path.Combine(Store.Dir, "attachments");
+        public static string Root => AppPaths.AttachmentsDir;
 
-        public static string FullPath(Attachment a) => a.File == null ? null : Path.Combine(Store.Dir, a.File);
+        public static string FullPath(Attachment a) => a.File == null ? null : Path.Combine(AppPaths.DataDir, a.File);
 
         private static string ItemDir(Item it) => Path.Combine(Root, it.Id);
 
@@ -54,7 +54,7 @@ namespace HelmetDesk
             return path;
         }
 
-        private static string Rel(string full) => Path.GetRelativePath(Store.Dir, full);
+        private static string Rel(string full) => Path.GetRelativePath(AppPaths.DataDir, full);
 
         /// <summary>Copies files in (in the background: videos can be big). Folders are skipped.</summary>
         public static async Task<int> AddFilesAsync(Item it, IEnumerable<string> paths)

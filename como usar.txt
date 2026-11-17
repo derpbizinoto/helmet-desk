@@ -11,7 +11,7 @@ COMO ABRIR
 
 ONDE FICAM OS DADOS
   %APPDATA%\HelmetDesk\data.json   (salvo automaticamente)
-  %LOCALAPPDATA%\HelmetDesk\       logs, cópias de segurança automáticas e relatórios de problema
+  %LOCALAPPDATA%\HelmetDesk.Local\ logs, cópias de segurança automáticas e relatórios de problema
                                    (fica fora dos backups)
 
 BACKUP (Configurações > Dados)
@@ -19,7 +19,7 @@ BACKUP (Configurações > Dados)
                         e um manifest.json (versão do app, data e SHA-256 de cada arquivo).
   • Importar backup ... escolhe um .zip, confere tudo antes (integridade, versão, caminhos
                         perigosos, tamanho) e pede confirmação. Os dados atuais são SUBSTITUÍDOS:
-                        antes disso o app guarda uma cópia em %LOCALAPPDATA%\HelmetDesk\backups
+                        antes disso o app guarda uma cópia em %LOCALAPPDATA%\HelmetDesk.Local\backups
                         (pre-import-<data>.zip, as 5 últimas) e depois reinicia sozinho.
                         Se algo falhar no meio, a pasta original volta ao lugar.
   • Backup de uma versão mais nova do app é recusado: atualize o Helmet Desk primeiro.
@@ -28,11 +28,11 @@ REPORTAR PROBLEMA (Configurações > Suporte)
   • Preencha título e descrição (e-mail é opcional). "Incluir logs técnicos" vem marcado;
     "Incluir meus dados" vem desmarcado.
   • "Revisar" mostra o conteúdo exato. "Gerar relatório" cria um .zip em
-    %LOCALAPPDATA%\HelmetDesk\relatorios e abre o Explorer com ele selecionado: anexe num e-mail.
+    %LOCALAPPDATA%\HelmetDesk.Local\relatorios e abre o Explorer com ele selecionado: anexe num e-mail.
     (Por enquanto nada é enviado pela internet.) Um relatório por minuto.
   • O caminho da sua pasta de usuário aparece como %USERPROFILE% no relatório.
   • Se o app fechar por um erro, na próxima abertura aparece a opção de reportar.
-  • Logs: %LOCALAPPDATA%\HelmetDesk\logs (um arquivo por dia, até 1 MB, os 5 últimos).
+  • Logs: %LOCALAPPDATA%\HelmetDesk.Local\logs (um arquivo por dia, até 1 MB, os 5 últimos).
 
 FUNÇÕES
   • Hoje ............ resumo do dia: pendentes, horas planejadas, atrasadas e adição rápida.

@@ -45,7 +45,7 @@ namespace HelmetDesk
             Loaded += (s, e) => ApplySidebar(animate: false);
             LabelsEditor.ItemsSource = Store.Data.Labels;
             EdLabels.ItemsSource = Store.Data.Labels;
-            DataPath.Text = Store.FilePath;
+            DataPath.Text = AppPaths.DataFile;
             BuildDayNames();
             BuildLabelChips();
 
@@ -1346,8 +1346,8 @@ namespace HelmetDesk
 
         private void OpenDataFolder_Click(object sender, RoutedEventArgs e)
         {
-            Directory.CreateDirectory(Store.Dir);
-            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{Store.Dir}\"") { UseShellExecute = true });
+            Directory.CreateDirectory(AppPaths.DataDir);
+            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{AppPaths.DataDir}\"") { UseShellExecute = true });
         }
 
         // ================= snackbar =================

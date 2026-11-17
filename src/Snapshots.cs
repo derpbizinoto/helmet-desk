@@ -140,7 +140,7 @@ namespace HelmetDesk
             Check("etiqueta aplica cor", task.LabelBrush == lbl.Brush);
 
             Store.Save();
-            var json = File.ReadAllText(Store.FilePath);
+            var json = File.ReadAllText(AppPaths.DataFile);
             Check("salva em disco", json.Contains("Tarefa teste") && json.Contains("\"Teste\""));
 
             // ----- Lottie component -----
@@ -149,7 +149,7 @@ namespace HelmetDesk
             missing.Completed += (s, e) => missingDone = true;
             missing.Play();
             Check("lottie: arquivo ausente falha em silêncio", missing.LoadFailed && !missing.HasAnimation && missingDone);
-            Check("lottie: falha registrada no log", HelmetDesk.Core.LogTail.Read(Log.Dir, 400).Any(l => l.Contains("nao-existe-teste")));
+            Check("lottie: falha registrada no log", HelmetDesk.Core.LogTail.Read(AppPaths.LogDir, 400).Any(l => l.Contains("nao-existe-teste")));
 
             var bundled = new LottieView { Source = "tarefa-concluida", AutoPlay = false };
             bundled.Play();
@@ -347,7 +347,7 @@ namespace HelmetDesk
         {
             // ---- log ----
             Log.Info("autoteste: linha de log");
-            Check("log: Serilog grava em %LocalAppData%\\HelmetDesk\\logs", LogTail.Read(Log.Dir, 50).Any(l => l.Contains("autoteste: linha de log")));
+            Check("log: Serilog grava em %LocalAppData%\\HelmetDesk.Local\\logs", LogTail.Read(AppPaths.LogDir, 50).Any(l => l.Contains("autoteste: linha de log")));
 
             // ---- export → import inside the running app ----
             var tmpDir = Path.Combine(Path.GetTempPath(), "hd-selftest-" + Guid.NewGuid().ToString("N"));
@@ -357,7 +357,7 @@ namespace HelmetDesk
                 var svc = CreateBackupService();
                 var zip = Path.Combine(tmpDir, svc.SuggestedFileName(DateTimeOffset.Now));
                 Store.Save();
-                var before = File.ReadAllBytes(Store.FilePath);
+                var before = File.ReadAllBytes(AppPaths.DataFile);
                 bool exported = await ExportTo(svc, zip);
                 bool hasEntries = false;
                 if (File.Exists(zip))
@@ -368,9 +368,9 @@ namespace HelmetDesk
 
                 bool imported = await ImportFrom(svc, zip, confirm: false, restart: false);
                 Check("backup: importar o mesmo arquivo deixa os dados idênticos e trava gravações até reiniciar",
-                    imported && Store.Frozen && before.SequenceEqual(File.ReadAllBytes(Store.FilePath)));
+                    imported && Store.Frozen && before.SequenceEqual(File.ReadAllBytes(AppPaths.DataFile)));
                 Check("backup: cópia de segurança pre-import guardada",
-                    Directory.GetFiles(Path.Combine(Store.LocalDir, "backups"), "pre-import-*.zip").Length > 0);
+                    Directory.GetFiles(AppPaths.SafetyBackupDir, "pre-import-*.zip").Length > 0);
                 Store.Frozen = false;
 
                 var bad = Path.Combine(tmpDir, "ruim.zip");
@@ -378,7 +378,7 @@ namespace HelmetDesk
                 bool ok = await ImportFrom(svc, bad, confirm: false, restart: false);
                 Check("backup: zip inválido mostra erro e não mexe nos dados",
                     !ok && DialogOpen && DialogTitle.Text == "Backup não pode ser importado" && DialogCancel.Visibility == Visibility.Collapsed
-                    && before.SequenceEqual(File.ReadAllBytes(Store.FilePath)) && ExportBtn.IsEnabled && ImportBtn.IsEnabled);
+                    && before.SequenceEqual(File.ReadAllBytes(AppPaths.DataFile)) && ExportBtn.IsEnabled && ImportBtn.IsEnabled);
                 CloseDialog(true);
             }
             finally { try { Directory.Delete(tmpDir, true); } catch { } }
@@ -676,7 +676,7 @@ namespace HelmetDesk
                 Check("finanças: resumo do mês volta fora das estatísticas", fv.SumGrid.Visibility == Visibility.Visible);
 
                 Store.Save();
-                var json = File.ReadAllText(Store.FilePath);
+                var json = File.ReadAllText(AppPaths.DataFile);
                 Check("finanças: salvo dentro do data.json (entra no backup) com esquema 2", json.Contains("\"Finance\"") && json.Contains("\"Version\": 2") && json.Contains("1234.56"));
             }
             finally
