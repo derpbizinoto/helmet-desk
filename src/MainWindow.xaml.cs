@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Ellipse = System.Windows.Shapes.Ellipse;
 using System.Windows.Threading;
+using HelmetDesk.Core.Finance;
 
 namespace HelmetDesk
 {
@@ -70,7 +71,7 @@ namespace HelmetDesk
             PreviewKeyDown += OnKey;
 
             // Finanças: recurring bills of the months up to now (also those the app was closed in)
-            if (HelmetDesk.Core.Finance.FinanceService.GenerateUpTo(Store.Data.Finance, DateTime.Today).Count > 0) Store.MarkDirty();
+            if (FinanceService.GenerateUpTo(Store.Data.Finance, DateTime.Today).Count > 0) Store.MarkDirty();
             FinanceView.Changed += UpdateCounts;
 
             _ready = true;
@@ -122,16 +123,9 @@ namespace HelmetDesk
         {
             if (App.Current.IsExiting) return;
             SaveBounds();
-            if (Store.Data.Settings.CloseToTray)
-            {
-                e.Cancel = true;
-                App.Current.HideToTray();
-            }
-            else
-            {
-                e.Cancel = true;
-                App.Current.ExitApp();
-            }
+            e.Cancel = true; // the window is only hidden, or the whole app quits through ExitApp
+            if (Store.Data.Settings.CloseToTray) App.Current.HideToTray();
+            else App.Current.ExitApp();
         }
 
         private void LoadBounds()
@@ -321,7 +315,7 @@ namespace HelmetDesk
 
             // Finanças: pending bills overdue or due today (empty when 0, like Hoje/Tarefas)
             var fin = Store.Data.Finance;
-            var due = HelmetDesk.Core.Finance.FinanceService.Due(fin, today).ToList();
+            var due = FinanceService.Due(fin, today).ToList();
             CountFinance.Text = due.Count > 0 ? due.Count.ToString() : "";
             CountFinance.Foreground = due.Any(t => t.Date.Date < today) ? Ui.Res("Danger") : Ui.Res("Text2");
 
@@ -329,14 +323,14 @@ namespace HelmetDesk
             TodayFinance.Visibility = fin.Transactions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             if (fin.Transactions.Count > 0)
             {
-                var billsToday = due.Where(t => t.Kind != HelmetDesk.Core.Finance.TxKind.Income).ToList();
+                var billsToday = due.Where(t => t.Kind != TxKind.Income).ToList();
                 int overdue = billsToday.Count(t => t.Date.Date < today);
                 TodayFinanceText.Text = billsToday.Count == 0 ? T("Nenhuma conta a pagar hoje")
-                    : TN(billsToday.Count, "{0} conta a pagar", "{0} contas a pagar") + ": " + HelmetDesk.Core.Finance.Money.Format(billsToday.Sum(t => t.Amount))
+                    : TN(billsToday.Count, "{0} conta a pagar", "{0} contas a pagar") + ": " + Money.Format(billsToday.Sum(t => t.Amount))
                       + (overdue > 0 ? " · " + TN(overdue, "{0} vencida", "{0} vencidas") : "");
                 TodayFinanceText.Foreground = overdue > 0 ? Ui.Res("Danger") : Ui.Res("Text");
-                var bal = HelmetDesk.Core.Finance.FinanceService.TotalBalance(fin);
-                TodayFinanceBalance.Text = HelmetDesk.Core.Finance.Money.Format(bal);
+                var bal = FinanceService.TotalBalance(fin);
+                TodayFinanceBalance.Text = Money.Format(bal);
                 TodayFinanceBalance.Foreground = bal < 0 ? Ui.Res("Danger") : Ui.Res("Text");
             }
         }
@@ -359,8 +353,8 @@ namespace HelmetDesk
             var notesToday = Notes.Where(n => n.Date == today).ToList();
 
             StatToday.Text = todays.Count(t => !t.Done).ToString();
-            StatTodayHours.Text = HoursOrDash(todays.Sum(t => t.EstimateMinutes));
-            StatWeekHours.Text = HoursOrDash(Tasks.Where(t => t.Date.HasValue && t.Date.Value >= weekStart && t.Date.Value < weekStart.AddDays(7)).Sum(t => t.EstimateMinutes));
+            StatTodayHours.Text = HoursOrZero(todays.Sum(t => t.EstimateMinutes));
+            StatWeekHours.Text = HoursOrZero(Tasks.Where(t => t.Date.HasValue && t.Date.Value >= weekStart && t.Date.Value < weekStart.AddDays(7)).Sum(t => t.EstimateMinutes));
             StatOverdue.Text = overdue.Count.ToString();
             StatOverdue.Foreground = overdue.Count > 0 ? Ui.Res("Danger") : Ui.Res("Text");
 
@@ -378,7 +372,7 @@ namespace HelmetDesk
             TodayEmpty.Visibility = groups.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private static string HoursOrDash(int m) => m > 0 ? Hours.Format(m) : "0h";
+        private static string HoursOrZero(int m) => m > 0 ? Hours.Format(m) : "0h";
 
         private static string GroupMeta(List<Item> items)
         {
@@ -821,13 +815,13 @@ namespace HelmetDesk
         private void BuildCurrencyChoice()
         {
             CurrencyChoice.Children.Clear();
-            foreach (var c in HelmetDesk.Core.Finance.Money.Currencies)
+            foreach (var c in Money.Currencies)
             {
                 var b = new RadioButton
                 {
                     Style = Ui.St("SegButton"), GroupName = "currency", Tag = c.Code,
                     Content = $"{T(c.NamePt)} ({c.Symbol(L.IsEnglish)})",
-                    IsChecked = c == HelmetDesk.Core.Finance.Money.Current,
+                    IsChecked = c == Money.Current,
                 };
                 b.Click += Currency_Click;
                 CurrencyChoice.Children.Add(b);
@@ -837,12 +831,12 @@ namespace HelmetDesk
         /// <summary>Applies right away (no restart): only the symbol changes, amounts stay as they are.</summary>
         private void Currency_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as FrameworkElement)?.Tag is not string code || code == HelmetDesk.Core.Finance.Money.Current.Code) return;
-            HelmetDesk.Core.Finance.Money.SetCurrency(code);
+            if ((sender as FrameworkElement)?.Tag is not string code || code == Money.Current.Code) return;
+            Money.SetCurrency(code);
             Store.Data.Settings.Currency = code;
             FinanceView.CurrencyChanged();
             UpdateCounts(); // the Hoje card shows money too
-            ShowSnack(TF("Moeda alterada para {0}", T(HelmetDesk.Core.Finance.Money.Current.NamePt)), null, null);
+            ShowSnack(TF("Moeda alterada para {0}", T(Money.Current.NamePt)), null, null);
         }
 
         /// <summary>
@@ -885,7 +879,7 @@ namespace HelmetDesk
                 T("Excluir"), T("Cancelar"), DialogKind.Danger, dontAsk: true, ok =>
                 {
                     if (!ok) return;
-                    if (DialogDontAsk.IsChecked == true) Store.Data.Settings.ConfirmDelete = false;
+                    if (DialogChecked) Store.Data.Settings.ConfirmDelete = false;
                     DeleteItem(it);
                 });
         }
@@ -1250,7 +1244,7 @@ namespace HelmetDesk
                     TextDecorations = it.Done ? TextDecorations.Strikethrough : null
                 });
                 chip.Child = g;
-                chip.MouseLeftButtonUp += (s, e) => { e.Handled = true; _calDay = day; ToggleItem(it); RefreshCalendarSelection(); };
+                chip.MouseLeftButtonUp += (s, e) => { e.Handled = true; _calDay = day; ToggleItem(it); RefreshCalendar(); };
                 list.Children.Add(chip);
             }
             dock.Children.Add(list);
@@ -1277,11 +1271,6 @@ namespace HelmetDesk
                 }
             };
             return cell;
-        }
-
-        private void RefreshCalendarSelection()
-        {
-            RefreshCalendar();
         }
 
         private void RefreshDayPanel()

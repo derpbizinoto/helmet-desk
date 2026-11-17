@@ -3,59 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Windows.Threading;
-using Serilog; // WriteTo.File extension
+using HelmetDesk.Core.Finance;
 
 namespace HelmetDesk
 {
-    /// <summary>
-    /// Technical log (Serilog): %LocalAppData%\HelmetDesk.Local\logs (AppPaths.LogDir), one file per day, 1 MB each, the last 5 kept.
-    /// Kept out of the data folder so it never travels in backups and never holds a file open there.
-    /// </summary>
-    public static class Log
-    {
-        private static string Dir => AppPaths.LogDir;
-        private static bool _ready;
-
-        public static void Init()
-        {
-            if (_ready) return;
-            try
-            {
-                Directory.CreateDirectory(Dir);
-                Serilog.Log.Logger = new Serilog.LoggerConfiguration()
-                    .MinimumLevel.Information()
-                    .WriteTo.File(Path.Combine(Dir, "helmetdesk-.log"),
-                        rollingInterval: Serilog.RollingInterval.Day,
-                        fileSizeLimitBytes: 1024 * 1024,
-                        rollOnFileSizeLimit: true,
-                        retainedFileCountLimit: 5,
-                        shared: true, // the bug report reads it while it is open
-                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-                    .CreateLogger();
-                _ready = true;
-            }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("log init failed: " + ex.Message); }
-        }
-
-        public static void Info(string message) { System.Diagnostics.Debug.WriteLine(message); if (_ready) Serilog.Log.Information(message); }
-        public static void Warn(string message, Exception ex = null) { System.Diagnostics.Debug.WriteLine(message); if (_ready) Serilog.Log.Warning(ex, message); }
-
-        public static void Error(string message, Exception ex = null)
-        {
-            System.Diagnostics.Debug.WriteLine($"{message}{(ex != null ? ": " + ex.Message : "")}");
-            if (_ready) Serilog.Log.Error(ex, message);
-        }
-
-        public static void Fatal(string message, Exception ex)
-        {
-            if (_ready) Serilog.Log.Fatal(ex, message);
-            Flush();
-        }
-
-        /// <summary>Writes everything out (on exit, or when the process is about to die).</summary>
-        public static void Flush() { try { _ready = false; Serilog.Log.CloseAndFlush(); } catch { } }
-    }
-
     public static class Store
     {
         /// <summary>The data folder and data.json (see <see cref="AppPaths"/>, which holds every path).</summary>
@@ -116,7 +67,7 @@ namespace HelmetDesk
                     Data.Version = Math.Max(Data.Version, CurrentSchema);
                     // data from 1.0.0 (Portuguese only, always R$): keep the user's language and currency
                     Data.Settings.Language ??= L.Portuguese;
-                    Data.Settings.Currency ??= HelmetDesk.Core.Finance.Money.Brl.Code;
+                    Data.Settings.Currency ??= Money.Brl.Code;
                     ApplyLanguage();
                     try { File.Copy(FilePath, Path.Combine(Dir, "data.bak.json"), true); } catch { }
                     // attachment files nobody points to any more (removed, or their note was deleted): only after a good load
@@ -130,13 +81,13 @@ namespace HelmetDesk
                     Data = new AppData();
                     // HELMETDESK_LANG (tooling) also picks the first-run currency
                     Data.Settings.Language = Environment.GetEnvironmentVariable("HELMETDESK_LANG") is { Length: > 0 } forcedLang ? L.Normalize(forcedLang) : L.English;
-                    Data.Settings.Currency = HelmetDesk.Core.Finance.Money.DefaultFor(Data.Settings.Language);
+                    Data.Settings.Currency = Money.DefaultFor(Data.Settings.Language);
                     ApplyLanguage();
                     Seed();
                 }
                 if (Data.Labels.Count == 0) SeedLabels();
-                Data.Finance ??= new HelmetDesk.Core.Finance.FinanceData();
-                HelmetDesk.Core.Finance.FinanceService.Seed(Data.Finance);
+                Data.Finance ??= new FinanceData();
+                FinanceService.Seed(Data.Finance);
             }
             catch (Exception ex)
             {
@@ -149,10 +100,10 @@ namespace HelmetDesk
                     "Helmet Desk", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 Data = new AppData();
                 Data.Settings.Language = L.Lang;
-                Data.Settings.Currency = HelmetDesk.Core.Finance.Money.DefaultFor(L.Lang);
+                Data.Settings.Currency = Money.DefaultFor(L.Lang);
                 ApplyLanguage();
                 SeedLabels();
-                HelmetDesk.Core.Finance.FinanceService.Seed(Data.Finance);
+                FinanceService.Seed(Data.Finance);
             }
             finally { _loading = false; }
         }
@@ -166,8 +117,8 @@ namespace HelmetDesk
             var forced = Environment.GetEnvironmentVariable("HELMETDESK_LANG");
             L.Set(string.IsNullOrWhiteSpace(forced) ? Data.Settings.Language : forced);
             L.Missing = text => Log.Warn("Texto sem tradução para o inglês: " + text);
-            HelmetDesk.Core.Finance.Money.SetCurrency(Data.Settings.Currency);
-            Log.Info($"Idioma: {L.Lang}, moeda: {HelmetDesk.Core.Finance.Money.Current.Code}");
+            Money.SetCurrency(Data.Settings.Currency);
+            Log.Info($"Idioma: {L.Lang}, moeda: {Money.Current.Code}");
         }
 
         /// <summary>Saves the new language and restarts so every screen is rebuilt with it (like the theme).</summary>

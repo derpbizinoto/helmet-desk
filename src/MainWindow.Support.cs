@@ -151,7 +151,7 @@ namespace HelmetDesk
                 Store.Frozen = false;
                 Log.Error("Falha ao importar backup", ex);
                 SetBackupBusy(false, null);
-                OpenDialog(T("A importação falhou"), (ex is BackupException ? ex.Message : ex.Message) + T("\n\nSeus dados atuais não foram alterados."),
+                OpenDialog(T("A importação falhou"), ex.Message + T("\n\nSeus dados atuais não foram alterados."),
                     "OK", null, DialogKind.Error, false, null);
                 return false;
             }

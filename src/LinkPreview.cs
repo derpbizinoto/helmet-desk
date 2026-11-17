@@ -377,8 +377,6 @@ namespace HelmetDesk
             return list;
         }
 
-        public static bool HasUrl(string text) => Split(text).Any(p => p.url);
-
         /// <summary>Plain text with each address replaced by its short name (card previews).</summary>
         public static string Friendly(string text)
         {

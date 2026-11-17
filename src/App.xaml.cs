@@ -154,8 +154,6 @@ namespace HelmetDesk
         public static string AppVersion =>
             (Assembly.GetEntryAssembly() ?? typeof(App).Assembly).GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0] ?? "0.0.0";
 
-        private static string CrashMarker => AppPaths.CrashMarker;
-
         private void HookUnhandledErrors()
         {
             // UI thread: log, tell the user, keep running, offer to report
@@ -186,7 +184,7 @@ namespace HelmetDesk
                 try
                 {
                     System.IO.Directory.CreateDirectory(AppPaths.LocalDir);
-                    System.IO.File.WriteAllText(CrashMarker, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}\n{exc}");
+                    System.IO.File.WriteAllText(AppPaths.CrashMarker, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}\n{exc}");
                 }
                 catch { }
                 Log.Fatal("Erro fatal — o app vai fechar", exc);
@@ -203,9 +201,9 @@ namespace HelmetDesk
         {
             try
             {
-                if (!System.IO.File.Exists(CrashMarker)) return null;
-                var text = System.IO.File.ReadAllText(CrashMarker);
-                System.IO.File.Delete(CrashMarker);
+                if (!System.IO.File.Exists(AppPaths.CrashMarker)) return null;
+                var text = System.IO.File.ReadAllText(AppPaths.CrashMarker);
+                System.IO.File.Delete(AppPaths.CrashMarker);
                 return text;
             }
             catch { return null; }
@@ -333,14 +331,23 @@ namespace HelmetDesk
             foreach (var w in _widgets.Values.ToList()) w.SaveState();
             _tasksWidget?.SaveState();
             Store.Save(); // no-op while Store.Frozen (right after an import)
-            if (_tray != null) { _tray.Visible = false; _tray.Dispose(); }
+            RemoveTray();
             beforeShutdown?.Invoke();
             Shutdown();
         }
 
+        /// <summary>Takes the icon out of the notification area (once; ExitApp and OnExit both call it).</summary>
+        private void RemoveTray()
+        {
+            if (_tray == null) return;
+            _tray.Visible = false;
+            _tray.Dispose();
+            _tray = null;
+        }
+
         protected override void OnExit(ExitEventArgs e)
         {
-            if (_tray != null) { _tray.Visible = false; _tray.Dispose(); }
+            RemoveTray();
             try { _mutex?.ReleaseMutex(); } catch { }
             Log.Flush();
             base.OnExit(e);
@@ -348,15 +355,13 @@ namespace HelmetDesk
 
         // ---------- start with Windows ----------
 
-        public static string ExePath => Environment.ProcessPath;
-
         public void SyncStartupRegistration()
         {
             try
             {
                 using var key = Registry.CurrentUser.OpenSubKey(RunKey, true) ?? Registry.CurrentUser.CreateSubKey(RunKey);
                 if (Store.Data.Settings.StartWithWindows)
-                    key.SetValue(RunValue, $"\"{ExePath}\" --startup");
+                    key.SetValue(RunValue, $"\"{Environment.ProcessPath}\" --startup");
                 else if (key.GetValue(RunValue) != null)
                     key.DeleteValue(RunValue, false);
             }
