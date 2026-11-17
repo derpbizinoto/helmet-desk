@@ -64,6 +64,9 @@ if ($suspect) { Fail ("Arquivos de dados encontrados no publish (não devem ir n
 
 # ---------- 2. releases anteriores (para gerar o delta) ----------
 Step 'Baixando a release anterior do GitHub (para o pacote delta)'
+# sempre do zero: builds locais antigos (testes sem -Upload) fariam o vpk recusar a versão ou gerar delta contra
+# um pacote que não está no GitHub. A base do delta é a última release publicada, baixada logo abaixo.
+if (Test-Path $ReleaseDir) { Remove-Item $ReleaseDir -Recurse -Force }
 New-Item -ItemType Directory -Force $ReleaseDir | Out-Null
 # na primeira versão ainda não existe release (ou nem o repositório): só avisa e segue
 $dl = & { $ErrorActionPreference = 'Continue'; vpk download github --repoUrl $RepoUrl --outputDir $ReleaseDir --channel win -x 2>&1 }
