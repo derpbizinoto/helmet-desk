@@ -137,5 +137,5 @@ CÓDIGO-FONTE
   src\    app WPF (.NET 10)
   core\   serviços sem WPF: backup, relatório de problema e regras de Finanças (core\Finance)
   tests\  testes xUnit dos serviços:   dotnet test tests\HelmetDesk.Tests
-  Para recompilar:
-  dotnet publish src\HelmetDesk.csproj -c Release -r win-x64 --self-contained false -o app
+  Para gerar o instalador e publicar uma versão:  .\build-release.ps1 1.0.1 -Upload
+  (detalhes em README.md)

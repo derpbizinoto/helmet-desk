@@ -29,6 +29,7 @@ Efeitos do pacote [Interface Sounds](https://kenney.nl/assets/interface-sounds) 
 | [SkiaSharp](https://github.com/mono/SkiaSharp) / SkiaSharp.Skottie | Reprodução das animações Lottie | MIT |
 | [NAudio](https://github.com/naudio/NAudio) (NAudio.Core, NAudio.WinMM) | Reprodução dos efeitos sonoros com volume | MIT |
 | [Serilog](https://serilog.net) / Serilog.Sinks.File | Log técnico com rolagem diária | Apache-2.0 |
+| [Velopack](https://velopack.io) | Instalador (Setup.exe e MSI) e atualização automática | MIT |
 | [xUnit](https://xunit.net) (só nos testes) | Testes dos serviços de backup e report | Apache-2.0 |
 
 ## Identidade visual
