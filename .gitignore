@@ -5,3 +5,7 @@ app/
 .vs/
 *.user
 TestResults/
+
+# Velopack: saída do build-release.ps1
+publish/
+releases/
