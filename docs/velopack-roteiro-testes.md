@@ -2,6 +2,9 @@
 
 Para rodar quando o repositório **https://github.com/derpbizinoto/helmet-desk** estiver no ar (público).
 
+> Os números 1.0.0 a 1.0.4 citados nos resultados abaixo foram versões de teste, apagadas do GitHub em 16/11/2026.
+> A numeração recomeçou: a **1.0.0 atual** (publicada em 16/11/2026) é a primeira versão oficial; as próximas são 1.0.1, 1.0.2…
+
 Onde ficam as coisas:
 
 | O quê | Pasta |
