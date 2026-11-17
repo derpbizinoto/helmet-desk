@@ -61,7 +61,8 @@ As linhas do log que interessam começam com `atualização:` (Configurações �
 - Instalação pelo MSI pede UAC. Recusado: o assistente termina com "instalação interrompida", sem alterar nada.
 - O app (rodando como usuário comum) detectou e baixou a 1.0.2 sem pedir nada.
 - **Reiniciar e atualizar pede UAC.** Recusado: o app reabre na 1.0.1, sem erro e sem perder dados.
-- A confirmar: se o UAC aparece de novo ao sair pela bandeja e ao abrir o app (com a atualização baixada e não aplicada).
+- Com a atualização baixada e recusada, **sair pela bandeja pede UAC de novo** (aceito → atualizou para 1.0.2).
+- Não testado: UAC ao abrir o app com atualização pendente (o Velopack aplica na inicialização por padrão).
 
 ## 3. Desinstalar mantém os dados
 
