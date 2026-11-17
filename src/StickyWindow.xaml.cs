@@ -24,7 +24,7 @@ namespace HelmetDesk
             Width = Math.Max(MinWidth, item.WidgetW > 0 ? item.WidgetW : 280);
             Height = Math.Max(MinHeight, item.WidgetH > 0 ? item.WidgetH : 300);
             var wa = SystemParameters.WorkArea;
-            if (double.IsNaN(item.WidgetX) || double.IsNaN(item.WidgetY) || !OnScreen(item.WidgetX, item.WidgetY))
+            if (double.IsNaN(item.WidgetX) || double.IsNaN(item.WidgetY) || !Native.OnScreen(item.WidgetX, item.WidgetY))
             {
                 int k = _cascade++ % 8;
                 Left = wa.Right - Width - 32 - k * 28;
@@ -50,13 +50,6 @@ namespace HelmetDesk
             {
                 if (string.IsNullOrEmpty(Item.Title) && string.IsNullOrEmpty(Item.Body)) TitleBox.Focus();
             };
-        }
-
-        private static bool OnScreen(double x, double y)
-        {
-            var vs = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
-                SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
-            return vs.Contains(new Point(x + 40, y + 10));
         }
 
         public void SaveState()

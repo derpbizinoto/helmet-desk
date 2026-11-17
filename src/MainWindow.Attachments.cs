@@ -334,8 +334,17 @@ namespace HelmetDesk
             bool hasText = !string.IsNullOrWhiteSpace(text);
             if (!(hasText && inText) && ClipboardImage(data) is BitmapSource img)
             {
-                Attachments.AddImage(it, img);
-                RevealAttachments();
+                try
+                {
+                    Attachments.AddImage(it, img);
+                    RevealAttachments();
+                }
+                catch (Exception ex)
+                {
+                    // disk full, no permission…: say so instead of the generic error dialog
+                    Log.Warn("anexo: falha ao salvar a imagem colada", ex);
+                    ShowSnack(T("Não foi possível salvar a imagem"), null, null);
+                }
                 return true;
             }
             if (hasText && !inDescription && LinkText.IsSingleUrl(text))

@@ -440,9 +440,9 @@ namespace HelmetDesk
             Update();
 
             void OnUpdated(string u) { if (u == LinkText.Normalize(url)) Update(); }
+            // listens only while on screen: the static event would otherwise keep chips that are never shown alive forever
             chip.Loaded += (s, e) => { LinkPreview.Updated -= OnUpdated; LinkPreview.Updated += OnUpdated; Update(); };
             chip.Unloaded += (s, e) => LinkPreview.Updated -= OnUpdated;
-            LinkPreview.Updated += OnUpdated;
 
             chip.MouseEnter += (s, e) => chip.SetResourceReference(Border.BorderBrushProperty, "Accent");
             chip.MouseLeave += (s, e) => chip.SetResourceReference(Border.BorderBrushProperty, "Line");

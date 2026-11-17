@@ -12,6 +12,13 @@ namespace HelmetDesk
         private readonly string _exception;
         private BugReportPackage _package;
         private bool _busy;
+        private bool _done; // the report was saved: "Concluído" closes the window
+
+        private void ShowProblem(string text)
+        {
+            Status.Text = text;
+            Status.Foreground = Ui.Res("Danger");
+        }
 
         public BugReportWindow(IBugReportService svc, string exception = null)
         {
@@ -47,8 +54,14 @@ namespace HelmetDesk
             if (!OnPreview)
             {
                 var input = Input();
-                if (_svc.Validate(input) is string problem) { Status.Text = problem; Status.Foreground = Ui.Res("Danger"); return; }
-                _package = _svc.Build(input);
+                if (_svc.Validate(input) is string problem) { ShowProblem(problem); return; }
+                try { _package = _svc.Build(input); }
+                catch (Exception ex)
+                {
+                    Log.Error("Falha ao montar o relatório de problema", ex);
+                    ShowProblem(T("Erro inesperado: ") + ex.Message);
+                    return;
+                }
                 PreviewBox.Text = _package.PreviewText;
                 ShowPage(preview: true);
                 return;
@@ -69,6 +82,7 @@ namespace HelmetDesk
                     Log.Info($"Relatório de problema gerado: {r.ZipPath ?? "(enviado)"}");
                     Status.Foreground = Ui.Res("Success");
                     if (r.ZipPath != null) Explorer.Reveal(r.ZipPath);
+                    _done = true;
                     NextBtn.Content = T("Concluído");
                     NextBtn.Click -= Next_Click;
                     NextBtn.Click += (s, ev) => Close();
@@ -83,7 +97,7 @@ namespace HelmetDesk
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             if (_busy) return;
-            if (OnPreview && NextBtn.Content as string != T("Concluído")) { ShowPage(preview: false); return; }
+            if (OnPreview && !_done) { ShowPage(preview: false); return; }
             Close();
         }
 

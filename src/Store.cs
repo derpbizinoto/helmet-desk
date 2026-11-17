@@ -64,6 +64,7 @@ namespace HelmetDesk
                     else if (schema > CurrentSchema)
                         Log.Warn($"data.json usa o esquema {schema}, mais novo que o deste app ({CurrentSchema})");
                     Data = JsonSerializer.Deserialize<AppData>(text, Json) ?? new AppData();
+                    FillMissing(Data);
                     Data.Version = Math.Max(Data.Version, CurrentSchema);
                     // data from 1.0.0 (Portuguese only, always R$): keep the user's language and currency
                     Data.Settings.Language ??= L.Portuguese;
@@ -86,7 +87,6 @@ namespace HelmetDesk
                     Seed();
                 }
                 if (Data.Labels.Count == 0) SeedLabels();
-                Data.Finance ??= new FinanceData();
                 FinanceService.Seed(Data.Finance);
             }
             catch (Exception ex)
@@ -112,6 +112,27 @@ namespace HelmetDesk
         /// Language and currency of this run, from the settings. HELMETDESK_LANG=en|pt-BR overrides the language
         /// (snapshot/self-test tooling). Missing texts are logged once each.
         /// </summary>
+        /// <summary>
+        /// A data.json with a section written as null (or a null entry in a list) still loads: the gap gets an empty
+        /// default instead of failing the whole load, which would start the app with no data.
+        /// </summary>
+        private static void FillMissing(AppData d)
+        {
+            d.Items ??= new();
+            d.Labels ??= new();
+            foreach (var i in d.Items.Where(i => i == null).ToList()) d.Items.Remove(i);
+            foreach (var l in d.Labels.Where(l => l == null).ToList()) d.Labels.Remove(l);
+            d.Settings ??= new();
+            d.Settings.Main ??= new();
+            d.Settings.TasksWidgetBounds ??= new() { W = 300, H = 380 };
+            d.Settings.CollapsedGroups ??= new();
+            d.Finance ??= new();
+            d.Finance.Accounts ??= new();
+            d.Finance.Categories ??= new();
+            d.Finance.Transactions ??= new();
+            d.Finance.Recurrences ??= new();
+        }
+
         private static void ApplyLanguage()
         {
             var forced = Environment.GetEnvironmentVariable("HELMETDESK_LANG");

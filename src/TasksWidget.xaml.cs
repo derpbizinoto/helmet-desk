@@ -20,7 +20,7 @@ namespace HelmetDesk
             Height = b.H > 0 ? b.H : 380;
             var wa = SystemParameters.WorkArea;
             WindowStartupLocation = WindowStartupLocation.Manual;
-            if (double.IsNaN(b.X) || double.IsNaN(b.Y))
+            if (double.IsNaN(b.X) || double.IsNaN(b.Y) || !Native.OnScreen(b.X, b.Y)) // never saved, or on a monitor that is gone
             {
                 Left = wa.Right - Width - 32;
                 Top = wa.Bottom - Height - 32;

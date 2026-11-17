@@ -234,6 +234,7 @@ namespace HelmetDesk.Core
             ["Copiando arquivos para a nota…"] = "Copying files to the note…",
             ["O arquivo deste anexo não foi encontrado."] = "This attachment's file was not found.",
             ["Nenhum aplicativo abriu este arquivo."] = "No app could open this file.",
+            ["Não foi possível salvar a imagem"] = "Couldn't save the image",
             ["Abrir no navegador"] = "Open in browser",
             ["Copiar link"] = "Copy link",
             ["Mostrar na pasta"] = "Show in folder",
