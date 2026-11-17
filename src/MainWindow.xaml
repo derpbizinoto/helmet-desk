@@ -773,10 +773,16 @@
                                                 <TextBlock Text="Exportar backup"/>
                                             </StackPanel>
                                         </Button>
-                                        <Button x:Name="ImportBtn" Style="{StaticResource SecondaryButton}" Click="ImportBackup_Click">
+                                        <Button x:Name="ImportBtn" Style="{StaticResource SecondaryButton}" Click="ImportBackup_Click" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Download}" Margin="0,0,8,0"/>
                                                 <TextBlock Text="Importar backup"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button x:Name="ClearCacheBtn" Style="{StaticResource SecondaryButton}" Click="ClearCache_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <local:Icon Data="{StaticResource I.Trash}" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Limpar cache"/>
                                             </StackPanel>
                                         </Button>
                                     </WrapPanel>

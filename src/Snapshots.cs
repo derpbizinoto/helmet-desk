@@ -181,6 +181,10 @@ namespace HelmetDesk
                     Check("painel: depois volta ao desenho estático", !vfx.IsAnimating);
                 }
                 CloseEditor();
+                ToggleItem(t2);
+                Check("painel: clicar no cartão abre o painel", _editing == t2);
+                ToggleItem(t2);
+                Check("painel: clicar de novo no mesmo cartão fecha", _editing == null);
                 Store.Data.Items.Remove(t2);
                 LottieView.ReducedMotionOverride = null;
             }

@@ -72,6 +72,15 @@ namespace HelmetDesk
             }
         }
 
+        /// <summary>The on-disk cache folder (titles + favicons); Settings → "Limpar cache" empties it.</summary>
+        public static string CacheDir => Dir;
+
+        /// <summary>Forgets every cached title/icon in memory (call before deleting <see cref="CacheDir"/>); they are fetched again when shown.</summary>
+        public static void ForgetAll()
+        {
+            lock (_gate) { _index = new Dictionary<string, Entry>(); _icons.Clear(); }
+        }
+
         private static void SaveIndex()
         {
             try

@@ -176,6 +176,52 @@ namespace HelmetDesk
             ShowSnack("O Helmet Desk fechou por causa de um erro da última vez.", "Reportar", () => OpenBugReport(crash));
         }
 
+        /// <summary>
+        /// What "Limpar cache" deletes: things the app rebuilds or no longer needs. Never data.json, attachments,
+        /// the pre-import safety backups or the logs (the bug report reads them).
+        /// </summary>
+        private static CacheTarget[] CacheTargets()
+        {
+            var tmp = Path.GetTempPath();
+            return new[]
+            {
+                new CacheTarget(LinkPreview.CacheDir),                              // link titles + site icons (fetched again)
+                new CacheTarget(Path.Combine(Store.LocalDir, "relatorios"), "*.zip"), // bug reports already generated
+                new CacheTarget(tmp, "hd-selftest-*"),                              // self-test leftovers
+                new CacheTarget(tmp, "hd-zip-check"),
+                new CacheTarget(Path.GetDirectoryName(Store.Dir.TrimEnd('\\', '/')),  // half-finished import, if one was cut short
+                    Path.GetFileName(Store.Dir.TrimEnd('\\', '/')) + ".import-tmp"),
+            };
+        }
+
+        private async void ClearCache_Click(object sender, RoutedEventArgs e)
+        {
+            if (_backupBusy) return; // an import uses the .import-tmp folder
+            ClearCacheBtn.IsEnabled = false;
+            try
+            {
+                var targets = CacheTargets();
+                long size = await Task.Run(() => CacheService.Measure(targets));
+                if (size == 0) { ShowSnack("O cache já está vazio", null, null); return; }
+
+                var answer = new TaskCompletionSource<bool>();
+                OpenDialog("Limpar cache",
+                    $"Isso libera {CacheService.FormatSize(size)} (prévias de links e relatórios de erro antigos). " +
+                    "Suas notas, tarefas, finanças, anexos e backups não são afetados.",
+                    "Limpar", "Cancelar", DialogKind.Info, false, r => answer.TrySetResult(r));
+                if (!await answer.Task) return;
+
+                LinkPreview.ForgetAll();
+                var res = await Task.Run(() => CacheService.Clear(targets));
+                Log.Info($"cache: {res.Deleted} arquivo(s) apagado(s), {res.FreedBytes} bytes, {res.Skipped} em uso");
+                ShowSnack(res.Skipped > 0
+                    ? $"{CacheService.FormatSize(res.FreedBytes)} liberados ({res.Skipped} arquivo(s) em uso ficaram)"
+                    : $"Cache limpo: {CacheService.FormatSize(res.FreedBytes)} liberados", null, null);
+            }
+            catch (Exception ex) { Log.Warn("cache: falha ao limpar", ex); ShowSnack("Não foi possível limpar o cache", null, null); }
+            finally { ClearCacheBtn.IsEnabled = true; }
+        }
+
         private void OpenLogs_Click(object sender, RoutedEventArgs e)
         {
             Directory.CreateDirectory(Log.Dir);

@@ -731,7 +731,14 @@ namespace HelmetDesk
         private void Card_Click(object sender, MouseButtonEventArgs e)
         {
             if (e.OriginalSource is DependencyObject d && FindParent<ButtonBase>(d) != null) return;
-            if (ItemOf(sender) is Item it) OpenItem(it);
+            if (ItemOf(sender) is Item it) ToggleItem(it);
+        }
+
+        /// <summary>Card click: opens the item's panel, or closes it if that same item is already open.</summary>
+        private void ToggleItem(Item it)
+        {
+            if (_editing == it) CloseByUser();
+            else OpenItem(it);
         }
 
         private static T FindParent<T>(DependencyObject d) where T : DependencyObject
@@ -1181,7 +1188,7 @@ namespace HelmetDesk
                     TextDecorations = it.Done ? TextDecorations.Strikethrough : null
                 });
                 chip.Child = g;
-                chip.MouseLeftButtonUp += (s, e) => { e.Handled = true; _calDay = day; OpenItem(it); RefreshCalendarSelection(); };
+                chip.MouseLeftButtonUp += (s, e) => { e.Handled = true; _calDay = day; ToggleItem(it); RefreshCalendarSelection(); };
                 list.Children.Add(chip);
             }
             dock.Children.Add(list);
