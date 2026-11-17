@@ -62,19 +62,19 @@ namespace HelmetDesk
 
         public string StatusText => State switch
         {
-            UpdateState.NotInstalled => "As atualizações automáticas funcionam apenas na versão instalada.",
-            UpdateState.Checking => "Procurando atualizações…",
-            UpdateState.UpToDate => "Você está usando a versão mais recente.",
-            UpdateState.Downloading => $"Baixando a versão {ReadyVersionOrPending}… {Progress}%",
+            UpdateState.NotInstalled => T("As atualizações automáticas funcionam apenas na versão instalada."),
+            UpdateState.Checking => T("Procurando atualizações…"),
+            UpdateState.UpToDate => T("Você está usando a versão mais recente."),
+            UpdateState.Downloading => TF("Baixando a versão {0}… {1}%", ReadyVersionOrPending, Progress),
             UpdateState.Ready => InstallMode.NeedsAdmin
-                ? $"A versão {ReadyVersion} está pronta. Clique em Reiniciar e atualizar para instalar (o Windows vai pedir permissão de administrador)."
-                : $"A versão {ReadyVersion} está pronta. Ela será instalada ao reiniciar ou quando você fechar o Helmet Desk.",
-            UpdateState.Failed => "Não foi possível verificar agora. Tente de novo mais tarde.",
+                ? TF("A versão {0} está pronta. Clique em Reiniciar e atualizar para instalar (o Windows vai pedir permissão de administrador).", ReadyVersion)
+                : TF("A versão {0} está pronta. Ela será instalada ao reiniciar ou quando você fechar o Helmet Desk.", ReadyVersion),
+            UpdateState.Failed => T("Não foi possível verificar agora. Tente de novo mais tarde."),
             _ => "",
         };
 
         private string _pendingVersion;
-        private string ReadyVersionOrPending => ReadyVersion ?? _pendingVersion ?? "nova";
+        private string ReadyVersionOrPending => ReadyVersion ?? _pendingVersion ?? T("nova");
 
         /// <summary>Called once at startup: waits a bit, then checks and downloads without touching the UI thread.</summary>
         public void StartBackgroundCheck()

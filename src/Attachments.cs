@@ -39,9 +39,9 @@ namespace HelmetDesk
         }
 
         public static string FormatSize(long bytes) =>
-            bytes >= 1L << 30 ? $"{bytes / (double)(1L << 30):0.#} GB".Replace('.', ',')
-            : bytes >= 1 << 20 ? $"{bytes / (double)(1 << 20):0.#} MB".Replace('.', ',')
-            : bytes >= 1 << 10 ? $"{bytes / 1024.0:0} KB"
+            bytes >= 1L << 30 ? (bytes / (double)(1L << 30)).ToString("0.#", L.Culture) + " GB"
+            : bytes >= 1 << 20 ? (bytes / (double)(1 << 20)).ToString("0.#", L.Culture) + " MB"
+            : bytes >= 1 << 10 ? (bytes / 1024.0).ToString("0", L.Culture) + " KB"
             : $"{bytes} B";
 
         private static string UniqueName(string dir, string name)
@@ -85,7 +85,7 @@ namespace HelmetDesk
         {
             var dir = ItemDir(it);
             Directory.CreateDirectory(dir);
-            var dest = UniqueName(dir, $"Imagem {DateTime.Now:yyyy-MM-dd HH-mm-ss}.png");
+            var dest = UniqueName(dir, $"{T("Imagem")} {DateTime.Now:yyyy-MM-dd HH-mm-ss}.png");
             var enc = new PngBitmapEncoder();
             enc.Frames.Add(BitmapFrame.Create(img));
             using (var fs = File.Create(dest)) enc.Save(fs);
@@ -130,7 +130,7 @@ namespace HelmetDesk
         {
             if (a.Kind == AttachmentKind.Link) { LinkPreview.Open(a.Url); return; }
             var p = FullPath(a);
-            if (p == null || !File.Exists(p)) { MessageBox.Show("O arquivo deste anexo não foi encontrado.", "Helmet Desk"); return; }
+            if (p == null || !File.Exists(p)) { MessageBox.Show(T("O arquivo deste anexo não foi encontrado."), "Helmet Desk"); return; }
             try { Process.Start(new ProcessStartInfo(p) { UseShellExecute = true }); }
             catch (Exception ex) { Log.Warn("anexo: não abriu", ex); MessageBox.Show("Nenhum aplicativo abriu este arquivo.", "Helmet Desk"); }
         }

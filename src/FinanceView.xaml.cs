@@ -81,8 +81,26 @@ namespace HelmetDesk
 
         private bool _panelWanted;
 
+        /// <summary>Configurações › Moeda changed: redraw everything with the new symbol (amounts are not converted).</summary>
+        public void CurrencyChanged()
+        {
+            if (TxAmount.Text.Length > 0 && Money.TryParse(TxAmount.Text, out var typed)) TxAmount.Text = Money.Plain(typed);
+            Refresh();
+        }
+
+        /// <summary>The symbol drawn inside the amount box; the text starts after it ("US$" is wider than "$").</summary>
+        private void UpdateAmountSymbol()
+        {
+            TxAmountSymbol.Text = Money.Symbol;
+            TxAmountSymbol.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var p = TxAmount.Padding;
+            TxAmount.Padding = new Thickness(Math.Max(44, 13 + TxAmountSymbol.DesiredSize.Width + 10), p.Top, p.Right, p.Bottom);
+            TxAmount.Tag = AccInitial.Tag = CheckReal.Tag = Money.Plain(0); // placeholder "0,00" / "0.00"
+        }
+
         public void Refresh()
         {
+            UpdateAmountSymbol();
             ThisMonthBtn.Visibility = _month == FinanceService.MonthStart(DateTime.Today) ? Visibility.Collapsed : Visibility.Visible;
             MonthTitle.Text = Dates.MonthTitle(_month);
             var s = FinanceService.Summary(D, _month);
@@ -92,7 +110,7 @@ namespace HelmetDesk
             SumBalance.Foreground = s.CurrentBalance < 0 ? Ui.Res("Danger") : Ui.Res("Text");
             SumProjected.Text = Money.Format(s.ProjectedBalance);
             SumProjected.Foreground = s.ProjectedBalance < 0 ? Ui.Res("Danger") : Ui.Res("Text");
-            SumProjectedLabel.Text = "Previsto em " + FinanceService.MonthEnd(_month).ToString("dd/MM", Dates.Pt);
+            SumProjectedLabel.Text = TF("Previsto em {0}", FinanceService.MonthEnd(_month).ToString(T("dd/MM"), Dates.Culture));
 
             TxTab.Visibility = _tab == "tx" ? Visibility.Visible : Visibility.Collapsed;
             AccTab.Visibility = _tab == "acc" ? Visibility.Visible : Visibility.Collapsed;
@@ -184,10 +202,10 @@ namespace HelmetDesk
 
         public static string TypeName(AccountType t) => t switch
         {
-            AccountType.Checking => "Conta corrente",
-            AccountType.Wallet => "Carteira",
-            AccountType.CreditCard => "Cartão de crédito",
-            AccountType.Savings => "Poupança",
+            AccountType.Checking => T("Conta corrente"),
+            AccountType.Wallet => T("Carteira"),
+            AccountType.CreditCard => T("Cartão de crédito"),
+            AccountType.Savings => T("Poupança"),
             _ => ""
         };
 
@@ -271,8 +289,8 @@ namespace HelmetDesk
         private void FillStaticCombos()
         {
             _filling = true;
-            Fill(FilterKind, new[] { ("", "Todos os tipos"), ("0", "Despesas"), ("1", "Receitas"), ("2", "Transferências") }, "");
-            Fill(FilterStatus, new[] { ("", "Todos"), ("paid", "Pagos"), ("pending", "Pendentes"), ("overdue", "Vencidos") }, "");
+            Fill(FilterKind, new[] { ("", T("Todos os tipos")), ("0", T("Despesas")), ("1", T("Receitas")), ("2", T("Transferências")) }, "");
+            Fill(FilterStatus, new[] { ("", T("Todos")), ("paid", T("Pagos")), ("pending", T("Pendentes")), ("overdue", T("Vencidos")) }, "");
             Fill(AccType, Enum.GetValues<AccountType>().Select(t => (((int)t).ToString(), TypeName(t))), "0");
             _filling = false;
         }
@@ -282,9 +300,9 @@ namespace HelmetDesk
             _filling = true;
             var acc = Sel(FilterAccount) ?? "";
             var cat = Sel(FilterCategory) ?? "";
-            Fill(FilterAccount, new[] { ("", "Todas as contas") }.Concat(D.Accounts.Where(a => !a.Archived || a.Id == acc).Select(a => (a.Id, a.Name))), acc);
-            Fill(FilterCategory, new[] { ("", "Todas as categorias") }
-                .Concat(D.Categories.OrderBy(c => c.Kind).ThenBy(c => c.Name).Select(c => (c.Id, c.Name + (c.Kind == CategoryKind.Income ? " (receita)" : "")))), cat);
+            Fill(FilterAccount, new[] { ("", T("Todas as contas")) }.Concat(D.Accounts.Where(a => !a.Archived || a.Id == acc).Select(a => (a.Id, a.Name))), acc);
+            Fill(FilterCategory, new[] { ("", T("Todas as categorias")) }
+                .Concat(D.Categories.OrderBy(c => c.Kind).ThenBy(c => c.Name).Select(c => (c.Id, c.Name + (c.Kind == CategoryKind.Income ? T(" (receita)") : "")))), cat);
             _filling = false;
             ClearFiltersBtn.Visibility = (Sel(FilterAccount) + Sel(FilterCategory) + Sel(FilterKind) + Sel(FilterStatus)).Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -340,16 +358,16 @@ namespace HelmetDesk
             }
             bool filtered = ClearFiltersBtn.Visibility == Visibility.Visible;
             TxEmpty.Visibility = list.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            TxEmptyText.Text = filtered ? "Nenhum lançamento com esses filtros." : "Nenhum lançamento neste mês.\nUse “Novo lançamento” ou Ctrl+N.";
+            TxEmptyText.Text = filtered ? T("Nenhum lançamento com esses filtros.") : T("Nenhum lançamento neste mês.\nUse “Novo lançamento” ou Ctrl+N.");
         }
 
         private static string DayTitle(DateTime d)
         {
             var today = DateTime.Today;
-            var s = Dates.Cap(d.ToString("ddd, d 'de' MMMM", Dates.Pt).Replace(".", ""));
-            if (d == today) return "Hoje · " + s;
-            if (d == today.AddDays(-1)) return "Ontem · " + s;
-            if (d == today.AddDays(1)) return "Amanhã · " + s;
+            var s = Dates.Cap(d.ToString(T("ddd, d 'de' MMMM"), Dates.Culture).Replace(".", ""));
+            if (d == today) return T("Hoje · ") + s;
+            if (d == today.AddDays(-1)) return T("Ontem · ") + s;
+            if (d == today.AddDays(1)) return T("Amanhã · ") + s;
             return s;
         }
 
@@ -366,14 +384,14 @@ namespace HelmetDesk
             var status = new Button
             {
                 Style = Ui.St("IconButton"), Padding = new Thickness(4), Margin = new Thickness(-4, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center,
-                ToolTip = t.Paid ? "Pago · clique para marcar como pendente" : overdue ? "Vencido · clique para marcar como pago" : "Pendente · clique para marcar como pago",
+                ToolTip = t.Paid ? T("Pago · clique para marcar como pendente") : overdue ? T("Vencido · clique para marcar como pago") : T("Pendente · clique para marcar como pago"),
                 Content = new Icon
                 {
                     Data = Ui.Geo(t.Paid ? "I.Check2" : "I.Clock"), Width = 18, Height = 18,
                     Foreground = t.Paid ? Ui.Res("Success") : overdue ? Ui.Res("Danger") : Ui.Res("Warning")
                 }
             };
-            AutomationPropertiesName(status, t.Paid ? "Marcar como pendente" : "Marcar como pago");
+            AutomationPropertiesName(status, t.Paid ? T("Marcar como pendente") : T("Marcar como pago"));
             status.Click += (s, e) => TogglePaid(t);
             grid.Children.Add(status);
 
@@ -386,7 +404,7 @@ namespace HelmetDesk
             grid.Children.Add(bar);
 
             var main = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            var title = new TextBlock { Text = string.IsNullOrWhiteSpace(t.Description) ? "(sem descrição)" : t.Description, FontSize = 14, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
+            var title = new TextBlock { Text = string.IsNullOrWhiteSpace(t.Description) ? T("(sem descrição)") : t.Description, FontSize = 14, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
             if (!t.Paid) title.Foreground = Ui.Res("Text2");
             main.Children.Add(title);
             var pills = new WrapPanel();
@@ -394,15 +412,15 @@ namespace HelmetDesk
                 pills.Children.Add(Pill($"{AccountOf(t.AccountId)?.Name ?? "?"} → {AccountOf(t.ToAccountId)?.Name ?? "?"}", icon: Ui.Geo("I.Swap")));
             else
             {
-                if (t.IsAdjustment) pills.Children.Add(Pill("Ajuste", icon: Ui.Geo("I.Scale")));
-                else pills.Children.Add(Pill(cat?.Name ?? "Sem categoria", dot: cat?.Color ?? "#9A93A8"));
-                pills.Children.Add(Pill(AccountOf(t.AccountId)?.Name ?? "Sem conta", icon: AccGeo(AccountOf(t.AccountId)?.Type ?? AccountType.Wallet)));
+                if (t.IsAdjustment) pills.Children.Add(Pill(T("Ajuste"), icon: Ui.Geo("I.Scale")));
+                else pills.Children.Add(Pill(cat?.Name ?? T("Sem categoria"), dot: cat?.Color ?? "#9A93A8"));
+                pills.Children.Add(Pill(AccountOf(t.AccountId)?.Name ?? T("Sem conta"), icon: AccGeo(AccountOf(t.AccountId)?.Type ?? AccountType.Wallet)));
             }
-            if (t.IsInstallment) pills.Children.Add(Pill($"Parcela {t.InstallmentNumber}/{t.InstallmentCount}", icon: Ui.Geo("I.List")));
-            if (t.IsRecurring) pills.Children.Add(Pill("Mensal", icon: Ui.Geo("I.Repeat")));
-            if (overdue) pills.Children.Add(Pill("Vencido", Ui.Res("Danger"), Ui.Geo("I.Clock")));
-            else if (!t.Paid) pills.Children.Add(Pill("Pendente", Ui.Res("Warning")));
-            if (!string.IsNullOrWhiteSpace(t.Note)) pills.Children.Add(Pill("Obs.", icon: Ui.Geo("I.Note")));
+            if (t.IsInstallment) pills.Children.Add(Pill(TF("Parcela {0}/{1}", t.InstallmentNumber, t.InstallmentCount), icon: Ui.Geo("I.List")));
+            if (t.IsRecurring) pills.Children.Add(Pill(T("Mensal"), icon: Ui.Geo("I.Repeat")));
+            if (overdue) pills.Children.Add(Pill(T("Vencido"), Ui.Res("Danger"), Ui.Geo("I.Clock")));
+            else if (!t.Paid) pills.Children.Add(Pill(T("Pendente"), Ui.Res("Warning")));
+            if (!string.IsNullOrWhiteSpace(t.Note)) pills.Children.Add(Pill(T("Obs."), icon: Ui.Geo("I.Note")));
             main.Children.Add(pills);
             Grid.SetColumn(main, 2);
             grid.Children.Add(main);
@@ -418,9 +436,9 @@ namespace HelmetDesk
             grid.Children.Add(amount);
 
             var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-            actions.Children.Add(IconBtn("I.Copy", "Duplicar", (s, e) => DuplicateTx(t)));
-            actions.Children.Add(IconBtn("I.Trash", "Excluir", (s, e) => RequestDeleteTx(t), danger: true));
-            actions.Children.Add(IconBtn("I.Edit", "Editar", (s, e) => OpenTxForm(t)));
+            actions.Children.Add(IconBtn("I.Copy", T("Duplicar"), (s, e) => DuplicateTx(t)));
+            actions.Children.Add(IconBtn("I.Trash", T("Excluir"), (s, e) => RequestDeleteTx(t), danger: true));
+            actions.Children.Add(IconBtn("I.Edit", T("Editar"), (s, e) => OpenTxForm(t)));
             Grid.SetColumn(actions, 4);
             grid.Children.Add(actions);
 
@@ -456,21 +474,21 @@ namespace HelmetDesk
             Chart.Children.Clear();
             var list = FinanceService.ExpensesByCategory(D, _month);
             var total = list.Sum(c => c.Total);
-            ChartMeta.Text = total > 0 ? $"Total {Money.Format(total)} · pagos e pendentes" : "Nenhum gasto neste mês.";
+            ChartMeta.Text = total > 0 ? TF("Total {0} · pagos e pendentes", Money.Format(total)) : T("Nenhum gasto neste mês.");
             foreach (var ct in list)
             {
                 var cat = CategoryOf(ct.CategoryId);
                 var color = cat?.Color ?? "#9A93A8";
                 double pct = total > 0 ? (double)(ct.Total / total) : 0;
-                var item = new StackPanel { Margin = new Thickness(0, 0, 0, 12), ToolTip = $"{cat?.Name ?? "Sem categoria"}: {Money.Format(ct.Total)} ({pct:P0})" };
+                var item = new StackPanel { Margin = new Thickness(0, 0, 0, 12), ToolTip = $"{cat?.Name ?? T("Sem categoria")}: {Money.Format(ct.Total)} ({pct.ToString("P0", Dates.Culture)})" };
                 var head = new DockPanel { Margin = new Thickness(0, 0, 0, 5) };
                 var value = new TextBlock { Text = Money.Format(ct.Total), FontSize = 12.5, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
                 DockPanel.SetDock(value, Dock.Right);
                 head.Children.Add(value);
                 var name = new StackPanel { Orientation = Orientation.Horizontal };
                 name.Children.Add(new Icon { Data = CatGeo(cat?.Icon), Foreground = Palette.BrushFrom(color), Width = 14, Height = 14, Margin = new Thickness(0, 0, 7, 0), VerticalAlignment = VerticalAlignment.Center });
-                name.Children.Add(new TextBlock { Text = cat?.Name ?? "Sem categoria", FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center });
-                name.Children.Add(new TextBlock { Text = $"  {pct:P0}", Style = Ui.St("Muted"), VerticalAlignment = VerticalAlignment.Center });
+                name.Children.Add(new TextBlock { Text = cat?.Name ?? T("Sem categoria"), FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center });
+                name.Children.Add(new TextBlock { Text = "  " + pct.ToString("P0", Dates.Culture), Style = Ui.St("Muted"), VerticalAlignment = VerticalAlignment.Center });
                 head.Children.Add(name);
                 item.Children.Add(head);
 
@@ -507,7 +525,7 @@ namespace HelmetDesk
             _editing = t;
             var src = t ?? prefill;
             _paidTouched = t != null || prefill != null;
-            TxFormTitle.Text = t == null ? "Novo lançamento" : "Editar lançamento";
+            TxFormTitle.Text = t == null ? T("Novo lançamento") : T("Editar lançamento");
             TxEditActions.Visibility = t == null ? Visibility.Collapsed : Visibility.Visible;
             TxError.Visibility = Visibility.Collapsed;
 
@@ -533,13 +551,13 @@ namespace HelmetDesk
             TxSeriesInfo.Visibility = Visibility.Collapsed;
             if (t != null && t.IsInstallment)
             {
-                TxSeriesInfo.Text = $"Parcela {t.InstallmentNumber} de {t.InstallmentCount}. Ao salvar, você pode aplicar a mudança às parcelas seguintes.";
+                TxSeriesInfo.Text = TF("Parcela {0} de {1}. Ao salvar, você pode aplicar a mudança às parcelas seguintes.", t.InstallmentNumber, t.InstallmentCount);
                 TxSeriesInfo.Visibility = Visibility.Visible;
             }
             else if (t != null && t.IsRecurring)
             {
                 var r = D.Recurrences.FirstOrDefault(x => x.Id == t.RecurrenceId);
-                TxSeriesInfo.Text = r == null ? "Gerado por uma recorrência que não existe mais." : $"Recorrente: todo dia {r.DayOfMonth}. Ao salvar, você pode aplicar a mudança aos meses seguintes.";
+                TxSeriesInfo.Text = r == null ? T("Gerado por uma recorrência que não existe mais.") : TF("Recorrente: todo dia {0}. Ao salvar, você pode aplicar a mudança aos meses seguintes.", r.DayOfMonth);
                 TxSeriesInfo.Visibility = Visibility.Visible;
             }
             bool showMore = t != null && (!t.Paid || !string.IsNullOrWhiteSpace(t.Note));
@@ -554,7 +572,7 @@ namespace HelmetDesk
             var ck = kind == TxKind.Income ? CategoryKind.Income : CategoryKind.Expense;
             var cats = D.Categories.Where(c => c.Kind == ck).Select(c => (c.Id, c.Name)).ToList();
             var keep = select ?? Sel(TxCategory);
-            Fill(TxCategory, new[] { ("", "Sem categoria") }.Concat(cats), cats.Any(c => c.Id == keep) ? keep : cats.FirstOrDefault().Id ?? "");
+            Fill(TxCategory, new[] { ("", T("Sem categoria")) }.Concat(cats), cats.Any(c => c.Id == keep) ? keep : cats.FirstOrDefault().Id ?? "");
         }
 
         private TxKind FormKind => KindIncome.IsChecked == true ? TxKind.Income : KindTransfer.IsChecked == true ? TxKind.Transfer : TxKind.Expense;
@@ -571,7 +589,7 @@ namespace HelmetDesk
             bool transfer = FormKind == TxKind.Transfer;
             CatField.Visibility = transfer ? Visibility.Collapsed : Visibility.Visible;
             ToField.Visibility = transfer ? Visibility.Visible : Visibility.Collapsed;
-            AccountLabel.Text = transfer ? "Da conta" : "Conta";
+            AccountLabel.Text = transfer ? T("Da conta") : T("Conta");
             if (_editing == null) InstallmentField.Visibility = transfer ? Visibility.Collapsed : Visibility.Visible;
             UpdateInstallmentHint();
         }
@@ -610,9 +628,10 @@ namespace HelmetDesk
             if (int.TryParse(TxInstallments.Text, out var n) && n > 1 && n <= 360 && Money.TryParse(TxAmount.Text, out var v) && v > 0)
             {
                 var parts = FinanceService.SplitInstallments(v, n);
-                InstallmentHint.Text = parts[0] == parts[^1] ? $"{n}× de {Money.Format(parts[0])}" : $"{n - 1}× de {Money.Format(parts[0])} + 1× de {Money.Format(parts[^1])}";
+                InstallmentHint.Text = parts[0] == parts[^1] ? TF("{0}× de {1}", n, Money.Format(parts[0]))
+                    : TF("{0}× de {1}", n - 1, Money.Format(parts[0])) + " + " + TF("{0}× de {1}", 1, Money.Format(parts[^1]));
             }
-            else InstallmentHint.Text = "O valor acima é o total da compra.";
+            else InstallmentHint.Text = T("O valor acima é o total da compra.");
         }
 
         private void Form_KeyDown(object sender, KeyEventArgs e)
@@ -718,21 +737,21 @@ namespace HelmetDesk
         /// <summary>Validates and saves the form. Returns false when something is missing (the message is shown in the form).</summary>
         internal bool SaveTx()
         {
-            if (!Money.TryParse(TxAmount.Text, out var amount) || amount <= 0) { ShowTxError("Informe um valor maior que zero (ex.: 1.234,56).", TxAmount); return false; }
+            if (!Money.TryParse(TxAmount.Text, out var amount) || amount <= 0) { ShowTxError(T("Informe um valor maior que zero (ex.: 1.234,56)."), TxAmount); return false; }
             var kind = FormKind;
             string acc = Sel(TxAccount), to = kind == TxKind.Transfer ? Sel(TxToAccount) : null;
-            if (string.IsNullOrEmpty(acc)) { ShowTxError("Escolha uma conta (crie uma na aba Contas).", TxAccount); return false; }
-            if (kind == TxKind.Transfer && (string.IsNullOrEmpty(to) || to == acc)) { ShowTxError("Escolha uma conta de destino diferente da de origem.", TxToAccount); return false; }
+            if (string.IsNullOrEmpty(acc)) { ShowTxError(T("Escolha uma conta (crie uma na aba Contas)."), TxAccount); return false; }
+            if (kind == TxKind.Transfer && (string.IsNullOrEmpty(to) || to == acc)) { ShowTxError(T("Escolha uma conta de destino diferente da de origem."), TxToAccount); return false; }
             int installments = 1;
             if (_editing == null && kind != TxKind.Transfer && TxInstallments.Text.Trim().Length > 0
                 && (!int.TryParse(TxInstallments.Text.Trim(), out installments) || installments < 1 || installments > 360))
-            { ShowTxError("Parcelas: um número de 1 a 360.", TxInstallments); SetMore(true); return false; }
+            { ShowTxError(T("Parcelas: um número de 1 a 360."), TxInstallments); SetMore(true); return false; }
             bool repeat = _editing == null && TxRepeat.IsChecked == true;
-            if (repeat && installments > 1) { ShowTxError("Escolha parcelas ou repetição, não os dois.", TxInstallments); return false; }
+            if (repeat && installments > 1) { ShowTxError(T("Escolha parcelas ou repetição, não os dois."), TxInstallments); return false; }
 
             string cat = kind == TxKind.Transfer ? null : (Sel(TxCategory) is { Length: > 0 } c ? c : null);
             string desc = TxDesc.Text.Trim();
-            if (desc.Length == 0) desc = kind == TxKind.Transfer ? "Transferência" : CategoryOf(cat)?.Name ?? (kind == TxKind.Income ? "Receita" : "Despesa");
+            if (desc.Length == 0) desc = kind == TxKind.Transfer ? T("Transferência") : CategoryOf(cat)?.Name ?? (kind == TxKind.Income ? T("Receita") : T("Despesa"));
             var date = (TxDate.SelectedDate ?? DateTime.Today).Date;
             bool paid = TxPaid.IsChecked == true;
             string note = TxNote.Text.Trim();
@@ -773,10 +792,10 @@ namespace HelmetDesk
             if (seriesFields && (e0.IsRecurring || (e0.IsInstallment && following > 0)))
             {
                 string check = e0.IsInstallment
-                    ? $"Aplicar também às {following} parcela{(following == 1 ? "" : "s")} seguinte{(following == 1 ? "" : "s")}"
-                    : "Aplicar também aos meses seguintes (atualiza a recorrência)";
-                Host?.OpenDialog("Salvar alteração?", $"“{e0.Description}” faz parte de {(e0.IsInstallment ? "um parcelamento" : "uma recorrência")}.",
-                    "Salvar", "Cancelar", MainWindow.DialogKind.Info, false, ok => { if (ok) Apply(Host.DialogChecked); }, check);
+                    ? TN(following, "Aplicar também à parcela seguinte", "Aplicar também às {0} parcelas seguintes")
+                    : T("Aplicar também aos meses seguintes (atualiza a recorrência)");
+                Host?.OpenDialog(T("Salvar alteração?"), TF(e0.IsInstallment ? "“{0}” faz parte de um parcelamento." : "“{0}” faz parte de uma recorrência.", e0.Description),
+                    T("Salvar"), T("Cancelar"), MainWindow.DialogKind.Info, false, ok => { if (ok) Apply(Host.DialogChecked); }, check);
                 return true;
             }
             Apply(false);
@@ -802,11 +821,11 @@ namespace HelmetDesk
         {
             int following = FinanceService.Series(D, t, true).Count - 1;
             string check = t.IsInstallment && following > 0
-                ? $"Excluir também as {following} parcela{(following == 1 ? "" : "s")} seguinte{(following == 1 ? "" : "s")}"
-                : t.IsRecurring ? "Excluir também os meses seguintes e encerrar a recorrência" : null;
-            Host?.OpenDialog("Excluir lançamento?",
-                $"“{t.Description}” ({Money.Format(t.Amount)}) será excluído. Logo depois, você ainda pode desfazer pelo aviso no rodapé.",
-                "Excluir", "Cancelar", MainWindow.DialogKind.Danger, false, ok =>
+                ? TN(following, "Excluir também a parcela seguinte", "Excluir também as {0} parcelas seguintes")
+                : t.IsRecurring ? T("Excluir também os meses seguintes e encerrar a recorrência") : null;
+            Host?.OpenDialog(T("Excluir lançamento?"),
+                TF("“{0}” ({1}) será excluído. Logo depois, você ainda pode desfazer pelo aviso no rodapé.", t.Description, Money.Format(t.Amount)),
+                T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
                 {
                     if (!ok) return;
                     DeleteTx(t, Host.DialogChecked);
@@ -819,7 +838,7 @@ namespace HelmetDesk
             int n = FinanceService.Delete(D, t, following);
             if (_editing == t) ClosePanel();
             Commit();
-            Host?.ShowSnack(n == 1 ? "Lançamento excluído" : $"{n} lançamentos excluídos", "Desfazer", () => { Restore(before); Commit(); });
+            Host?.ShowSnack(TN(n, "Lançamento excluído", "{0} lançamentos excluídos"), T("Desfazer"), () => { Restore(before); Commit(); });
         }
 
         // ================= accounts =================
@@ -849,14 +868,14 @@ namespace HelmetDesk
 
                 var money = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
                 money.Children.Add(new TextBlock { Text = Money.Format(bal), FontSize = 16, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Right, Foreground = bal < 0 ? Ui.Res("Danger") : Ui.Res("Text") });
-                money.Children.Add(new TextBlock { Text = $"Previsto em {end:dd/MM}: {Money.Format(proj)}", Style = Ui.St("MutedItalic"), HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 2, 0, 0) });
+                money.Children.Add(new TextBlock { Text = TF("Previsto em {0}: {1}", end.ToString(T("dd/MM"), Dates.Culture), Money.Format(proj)), Style = Ui.St("MutedItalic"), HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 2, 0, 0) });
                 Grid.SetColumn(money, 2);
                 grid.Children.Add(money);
 
                 var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-                actions.Children.Add(IconBtn("I.Scale", "Conferir saldo", (s, e) => OpenCheckForm(a)));
-                actions.Children.Add(IconBtn("I.Archive", a.Archived ? "Desarquivar" : "Arquivar", (s, e) => ToggleArchive(a)));
-                actions.Children.Add(IconBtn("I.Edit", "Editar", (s, e) => OpenAccForm(a)));
+                actions.Children.Add(IconBtn("I.Scale", T("Conferir saldo"), (s, e) => OpenCheckForm(a)));
+                actions.Children.Add(IconBtn("I.Archive", a.Archived ? T("Desarquivar") : T("Arquivar"), (s, e) => ToggleArchive(a)));
+                actions.Children.Add(IconBtn("I.Edit", T("Editar"), (s, e) => OpenAccForm(a)));
                 Grid.SetColumn(actions, 3);
                 grid.Children.Add(actions);
 
@@ -868,7 +887,7 @@ namespace HelmetDesk
                 AccList.Children.Add(row);
             }
             if (AccList.Children.Count == 0)
-                AccList.Children.Add(new TextBlock { Text = "Nenhuma conta. Crie uma em “Nova conta”.", Style = Ui.St("MutedItalic"), FontSize = 13, Margin = new Thickness(0, 12, 0, 0) });
+                AccList.Children.Add(new TextBlock { Text = T("Nenhuma conta. Crie uma em “Nova conta”."), Style = Ui.St("MutedItalic"), FontSize = 13, Margin = new Thickness(0, 12, 0, 0) });
         }
 
         private void ToggleArchive(Account a)
@@ -876,7 +895,7 @@ namespace HelmetDesk
             a.Archived = !a.Archived;
             if (a.Archived && D.LastAccountId == a.Id) D.LastAccountId = D.Accounts.FirstOrDefault(x => !x.Archived)?.Id;
             Commit();
-            Host?.ShowSnack(a.Archived ? $"“{a.Name}” arquivada" : $"“{a.Name}” desarquivada", a.Archived ? "Desfazer" : null,
+            Host?.ShowSnack(TF(a.Archived ? "“{0}” arquivada" : "“{0}” desarquivada", a.Name), a.Archived ? T("Desfazer") : null,
                 a.Archived ? () => { a.Archived = false; Commit(); } : null);
         }
 
@@ -885,7 +904,7 @@ namespace HelmetDesk
         internal void OpenAccForm(Account a)
         {
             _editingAcc = a;
-            AccFormTitle.Text = a == null ? "Nova conta" : "Editar conta";
+            AccFormTitle.Text = a == null ? T("Nova conta") : T("Editar conta");
             AccName.Text = a?.Name ?? "";
             Fill(AccType, Enum.GetValues<AccountType>().Select(t => (((int)t).ToString(), TypeName(t))), ((int)(a?.Type ?? AccountType.Checking)).ToString());
             AccInitial.Text = a == null ? "" : Money.Plain(a.InitialBalance);
@@ -908,10 +927,10 @@ namespace HelmetDesk
         private void AccSave_Click(object sender, RoutedEventArgs e)
         {
             var name = AccName.Text.Trim();
-            if (name.Length == 0) { AccError.Text = "Dê um nome à conta."; AccError.Visibility = Visibility.Visible; AccName.Focus(); return; }
+            if (name.Length == 0) { AccError.Text = T("Dê um nome à conta."); AccError.Visibility = Visibility.Visible; AccName.Focus(); return; }
             decimal initial = 0;
             if (AccInitial.Text.Trim().Length > 0 && !Money.TryParse(AccInitial.Text, out initial))
-            { AccError.Text = "Saldo inicial inválido (ex.: 1.234,56 ou -200)."; AccError.Visibility = Visibility.Visible; AccInitial.Focus(); return; }
+            { AccError.Text = T("Saldo inicial inválido (ex.: 1.234,56 ou -200)."); AccError.Visibility = Visibility.Visible; AccInitial.Focus(); return; }
             var a = _editingAcc ?? new Account();
             a.Name = name;
             a.Type = (AccountType)int.Parse(Sel(AccType) ?? "0");
@@ -928,7 +947,7 @@ namespace HelmetDesk
         {
             var a = _editingAcc;
             if (a == null) return;
-            Host?.OpenDialog("Excluir conta?", $"“{a.Name}” não tem lançamentos e será excluída.", "Excluir", "Cancelar", MainWindow.DialogKind.Danger, false, ok =>
+            Host?.OpenDialog(T("Excluir conta?"), TF("“{0}” não tem lançamentos e será excluída.", a.Name), T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
             {
                 if (!ok) return;
                 D.Accounts.Remove(a);
@@ -944,7 +963,7 @@ namespace HelmetDesk
         {
             _checking = a;
             CheckAccount.Text = a.Name;
-            CheckCurrent.Text = "Saldo no Helmet Desk: " + Money.Format(FinanceService.Balance(D, a));
+            CheckCurrent.Text = T("Saldo no Helmet Desk: ") + Money.Format(FinanceService.Balance(D, a));
             CheckReal.Text = "";
             CheckReal_Changed(null, null);
             ShowPanel(CheckForm);
@@ -954,11 +973,11 @@ namespace HelmetDesk
         private void CheckReal_Changed(object sender, TextChangedEventArgs e)
         {
             if (_checking == null || CheckDiff == null) return;
-            if (!Money.TryParse(CheckReal.Text, out var real)) { CheckDiff.Text = "Digite o saldo que aparece no banco ou na carteira."; CheckSaveBtn.IsEnabled = false; return; }
+            if (!Money.TryParse(CheckReal.Text, out var real)) { CheckDiff.Text = T("Digite o saldo que aparece no banco ou na carteira."); CheckSaveBtn.IsEnabled = false; return; }
             var diff = real - FinanceService.Balance(D, _checking);
             CheckSaveBtn.IsEnabled = diff != 0;
-            CheckDiff.Text = diff == 0 ? "O saldo já confere. Nada a ajustar."
-                : $"Será criado um ajuste de {Money.Signed(diff)} com a data de hoje. Ele muda o saldo, mas não entra em Entradas/Saídas nem no gráfico.";
+            CheckDiff.Text = diff == 0 ? T("O saldo já confere. Nada a ajustar.")
+                : TF("Será criado um ajuste de {0} com a data de hoje. Ele muda o saldo, mas não entra em Entradas/Saídas nem no gráfico.", Money.Signed(diff));
         }
 
         private void CheckForm_KeyDown(object sender, KeyEventArgs e)
@@ -971,7 +990,7 @@ namespace HelmetDesk
             if (_checking == null || !Money.TryParse(CheckReal.Text, out var real)) return;
             var t = FinanceService.Adjust(D, _checking, real, DateTime.Today);
             ClosePanel();
-            if (t != null) { Commit(); Host?.ShowSnack("Ajuste criado: " + Money.Signed(t.Kind == TxKind.Income ? t.Amount : -t.Amount), null, null); }
+            if (t != null) { Commit(); Host?.ShowSnack(T("Ajuste criado: ") + Money.Signed(t.Kind == TxKind.Income ? t.Amount : -t.Amount), null, null); }
         }
 
         // ================= recurrences =================
@@ -995,17 +1014,17 @@ namespace HelmetDesk
                 var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                 info.Children.Add(new TextBlock { Text = r.Description, FontSize = 14, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis });
                 var pills = new WrapPanel();
-                pills.Children.Add(Pill($"Todo dia {r.DayOfMonth}", icon: Ui.Geo("I.Calendar")));
-                if (r.Kind != TxKind.Transfer) pills.Children.Add(Pill(cat?.Name ?? "Sem categoria", dot: cat?.Color ?? "#9A93A8"));
-                pills.Children.Add(Pill(AccountOf(r.AccountId)?.Name ?? "Sem conta"));
-                if (ended) pills.Children.Add(Pill("Encerrada em " + Dates.Cap(r.EndMonth.Value.ToString("MMM/yyyy", Dates.Pt).Replace(".", ""))));
-                else if (r.Paused) pills.Children.Add(Pill("Pausada", Ui.Res("Warning"), Ui.Geo("I.Pause")));
+                pills.Children.Add(Pill(TF("Todo dia {0}", r.DayOfMonth), icon: Ui.Geo("I.Calendar")));
+                if (r.Kind != TxKind.Transfer) pills.Children.Add(Pill(cat?.Name ?? T("Sem categoria"), dot: cat?.Color ?? "#9A93A8"));
+                pills.Children.Add(Pill(AccountOf(r.AccountId)?.Name ?? T("Sem conta")));
+                if (ended) pills.Children.Add(Pill(TF("Encerrada em {0}", Dates.Cap(r.EndMonth.Value.ToString("MMM/yyyy", Dates.Culture).Replace(".", "")))));
+                else if (r.Paused) pills.Children.Add(Pill(T("Pausada"), Ui.Res("Warning"), Ui.Geo("I.Pause")));
                 else
                 {
                     // skips months deleted on purpose and stops at the end month
                     var next = FinanceService.NextOccurrence(r, DateTime.Today);
-                    pills.Children.Add(next.HasValue ? Pill("Próximo: " + next.Value.ToString("dd/MM"), Ui.Res("Success")) : Pill("Sem próximos lançamentos"));
-                    if (r.EndMonth.HasValue) pills.Children.Add(Pill("até " + r.EndMonth.Value.ToString("MM/yyyy")));
+                    pills.Children.Add(next.HasValue ? Pill(TF("Próximo: {0}", next.Value.ToString(T("dd/MM"), Dates.Culture)), Ui.Res("Success")) : Pill(T("Sem próximos lançamentos")));
+                    if (r.EndMonth.HasValue) pills.Children.Add(Pill(TF("até {0}", r.EndMonth.Value.ToString("MM/yyyy", Dates.Culture))));
                 }
                 info.Children.Add(pills);
                 Grid.SetColumn(info, 1);
@@ -1023,10 +1042,10 @@ namespace HelmetDesk
                 var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 if (!ended)
                 {
-                    actions.Children.Add(IconBtn(r.Paused ? "I.Play" : "I.Pause", r.Paused ? "Retomar" : "Pausar", (s, e) => { r.Paused = !r.Paused; if (!r.Paused) GenerateMonth(); Commit(); }));
-                    actions.Children.Add(IconBtn("I.Stop", "Encerrar", (s, e) => RequestEndRecurrence(r), danger: true));
+                    actions.Children.Add(IconBtn(r.Paused ? "I.Play" : "I.Pause", r.Paused ? T("Retomar") : T("Pausar"), (s, e) => { r.Paused = !r.Paused; if (!r.Paused) GenerateMonth(); Commit(); }));
+                    actions.Children.Add(IconBtn("I.Stop", T("Encerrar"), (s, e) => RequestEndRecurrence(r), danger: true));
                 }
-                actions.Children.Add(IconBtn("I.Trash", "Excluir recorrência", (s, e) => RequestDeleteRecurrence(r), danger: true));
+                actions.Children.Add(IconBtn("I.Trash", T("Excluir recorrência"), (s, e) => RequestDeleteRecurrence(r), danger: true));
                 Grid.SetColumn(actions, 3);
                 grid.Children.Add(actions);
                 var row = Row(grid, actions);
@@ -1044,17 +1063,17 @@ namespace HelmetDesk
         internal void RequestEndRecurrence(Recurrence r)
         {
             var month = DateTime.Today;
-            var monthName = Dates.MonthTitle(month).ToLower(Dates.Pt);
+            var monthName = Dates.MonthTitle(month).ToLower(Dates.Culture);
             bool activeNow = FinanceService.IsActiveIn(r, month);
-            Host?.OpenDialog("Encerrar recorrência?",
-                $"“{r.Description}” não vai gerar lançamentos depois de {monthName}. Pendentes de meses seguintes que já existirem são removidos; os já pagos ficam.",
-                "Encerrar", "Cancelar", MainWindow.DialogKind.Danger, false, ok =>
+            Host?.OpenDialog(T("Encerrar recorrência?"),
+                TF("“{0}” não vai gerar lançamentos depois de {1}. Pendentes de meses seguintes que já existirem são removidos; os já pagos ficam.", r.Description, monthName),
+                T("Encerrar"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
                 {
                     if (!ok) return;
                     bool includeThis = activeNow && Host?.DialogChecked == true;
                     EndRecurrence(r, includeThis);
                 },
-                checkText: activeNow ? $"Encerrar já em {monthName} (remove o lançamento pendente deste mês)" : null);
+                checkText: activeNow ? TF("Encerrar já em {0} (remove o lançamento pendente deste mês)", monthName) : null);
         }
 
         internal void EndRecurrence(Recurrence r, bool includeThisMonth)
@@ -1063,7 +1082,7 @@ namespace HelmetDesk
             var month = DateTime.Today;
             FinanceService.EndRecurrence(D, r, includeThisMonth ? month.AddMonths(-1) : month);
             Commit();
-            Host?.ShowSnack("Recorrência encerrada", "Desfazer", () => { Restore(before); Commit(); });
+            Host?.ShowSnack(T("Recorrência encerrada"), T("Desfazer"), () => { Restore(before); Commit(); });
         }
 
         /// <summary>"Excluir recorrência": the model and its pending entries go; paid ones stay unless the box is ticked.</summary>
@@ -1071,15 +1090,15 @@ namespace HelmetDesk
         {
             int paid = D.Transactions.Count(t => t.RecurrenceId == r.Id && t.Paid);
             int pending = D.Transactions.Count(t => t.RecurrenceId == r.Id && !t.Paid);
-            var text = $"“{r.Description}” deixa de existir e não gera mais lançamentos."
-                       + (pending > 0 ? $" {(pending == 1 ? "O lançamento pendente é removido" : $"Os {pending} lançamentos pendentes são removidos")}." : "")
-                       + (paid > 0 ? $" {(paid == 1 ? "O lançamento já pago fica" : $"Os {paid} lançamentos já pagos ficam")} no histórico como lançamento comum." : "");
-            Host?.OpenDialog("Excluir recorrência?", text, "Excluir", "Cancelar", MainWindow.DialogKind.Danger, false, ok =>
+            var text = TF("“{0}” deixa de existir e não gera mais lançamentos.", r.Description)
+                       + (pending > 0 ? " " + TN(pending, "O lançamento pendente é removido.", "Os {0} lançamentos pendentes são removidos.") : "")
+                       + (paid > 0 ? " " + TN(paid, "O lançamento já pago fica no histórico como lançamento comum.", "Os {0} lançamentos já pagos ficam no histórico como lançamento comum.") : "");
+            Host?.OpenDialog(T("Excluir recorrência?"), text, T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
                 {
                     if (!ok) return;
                     DeleteRecurrence(r, paid > 0 && Host?.DialogChecked == true);
                 },
-                checkText: paid > 0 ? "Apagar também os já pagos (muda o saldo das contas)" : null);
+                checkText: paid > 0 ? T("Apagar também os já pagos (muda o saldo das contas)") : null);
         }
 
         internal void DeleteRecurrence(Recurrence r, bool includePaid)
@@ -1087,7 +1106,7 @@ namespace HelmetDesk
             var before = Snapshot();
             FinanceService.DeleteRecurrence(D, r, includePaid);
             Commit();
-            Host?.ShowSnack("Recorrência excluída", "Desfazer", () => { Restore(before); Commit(); });
+            Host?.ShowSnack(T("Recorrência excluída"), T("Desfazer"), () => { Restore(before); Commit(); });
         }
 
         // ================= categories =================
@@ -1107,11 +1126,11 @@ namespace HelmetDesk
                 int used = FinanceService.UsageCount(D, c);
                 var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                 info.Children.Add(new TextBlock { Text = c.Name, FontSize = 14, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis });
-                info.Children.Add(new TextBlock { Text = used == 0 ? "Sem lançamentos" : used == 1 ? "1 lançamento" : $"{used} lançamentos", Style = Ui.St("Muted"), Margin = new Thickness(0, 1, 0, 0) });
+                info.Children.Add(new TextBlock { Text = used == 0 ? T("Sem lançamentos") : TN(used, "{0} lançamento", "{0} lançamentos"), Style = Ui.St("Muted"), Margin = new Thickness(0, 1, 0, 0) });
                 Grid.SetColumn(info, 1);
                 grid.Children.Add(info);
                 var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-                actions.Children.Add(IconBtn("I.Edit", "Editar", (s, e) => OpenCatForm(c)));
+                actions.Children.Add(IconBtn("I.Edit", T("Editar"), (s, e) => OpenCatForm(c)));
                 Grid.SetColumn(actions, 2);
                 grid.Children.Add(actions);
                 var row = Row(grid, actions);
@@ -1126,7 +1145,7 @@ namespace HelmetDesk
         internal void OpenCatForm(Category c)
         {
             _editingCat = c;
-            CatFormTitle.Text = c == null ? "Nova categoria" : "Editar categoria";
+            CatFormTitle.Text = c == null ? T("Nova categoria") : T("Editar categoria");
             CatName.Text = c?.Name ?? "";
             (c?.Kind == CategoryKind.Income ? CatKindIncome : CatKindExpense).IsChecked = true;
             CatError.Visibility = Visibility.Collapsed;
@@ -1139,11 +1158,11 @@ namespace HelmetDesk
             if (c != null)
             {
                 int used = FinanceService.UsageCount(D, c);
-                CatUsage.Text = used == 0 ? "Esta categoria não está em uso." : $"Em uso por {used} lançamento{(used == 1 ? "" : "s")} ou recorrência{(used == 1 ? "" : "s")}.";
+                CatUsage.Text = used == 0 ? T("Esta categoria não está em uso.") : TN(used, "Em uso por {0} lançamento ou recorrência.", "Em uso por {0} lançamentos ou recorrências.");
                 CatMoveField.Visibility = used > 0 ? Visibility.Visible : Visibility.Collapsed;
                 var others = D.Categories.Where(x => x != c).OrderBy(x => x.Kind != c.Kind).ThenBy(x => x.Name)
-                    .Select(x => (x.Id, x.Name + (x.Kind != c.Kind ? (x.Kind == CategoryKind.Income ? " (receita)" : " (despesa)") : ""))).ToList();
-                Fill(CatMoveTo, others, others.FirstOrDefault(o => o.Item2 == "Outros").Id ?? others.FirstOrDefault().Id);
+                    .Select(x => (x.Id, x.Name + (x.Kind != c.Kind ? (x.Kind == CategoryKind.Income ? T(" (receita)") : T(" (despesa)")) : ""))).ToList();
+                Fill(CatMoveTo, others, others.FirstOrDefault(o => o.Item2 == T("Outros")).Id ?? others.FirstOrDefault().Id);
             }
             ShowPanel(CatForm);
             Dispatcher.BeginInvoke(new Action(() => CatName.Focus()), DispatcherPriority.Input);
@@ -1212,10 +1231,10 @@ namespace HelmetDesk
         private void CatSave_Click(object sender, RoutedEventArgs e)
         {
             var name = CatName.Text.Trim();
-            if (name.Length == 0) { CatError.Text = "Dê um nome à categoria."; CatError.Visibility = Visibility.Visible; CatName.Focus(); return; }
+            if (name.Length == 0) { CatError.Text = T("Dê um nome à categoria."); CatError.Visibility = Visibility.Visible; CatName.Focus(); return; }
             var kind = CatKindIncome.IsChecked == true ? CategoryKind.Income : CategoryKind.Expense;
             if (D.Categories.Any(x => x != _editingCat && x.Kind == kind && string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase)))
-            { CatError.Text = "Já existe uma categoria com esse nome."; CatError.Visibility = Visibility.Visible; CatName.Focus(); return; }
+            { CatError.Text = T("Já existe uma categoria com esse nome."); CatError.Visibility = Visibility.Visible; CatName.Focus(); return; }
             var c = _editingCat ?? new Category();
             c.Name = name; c.Kind = kind; c.Color = _catColor; c.Icon = _catIcon;
             if (_editingCat == null) D.Categories.Add(c);
@@ -1230,16 +1249,17 @@ namespace HelmetDesk
             int used = FinanceService.UsageCount(D, c);
             var moveTo = used > 0 ? CategoryOf(Sel(CatMoveTo)) : null;
             if (used > 0 && moveTo == null) return;
-            Host?.OpenDialog("Excluir categoria?",
-                used > 0 ? $"“{c.Name}” será excluída e {used} lançamento{(used == 1 ? "" : "s")} passa{(used == 1 ? "" : "m")} para “{moveTo.Name}”." : $"“{c.Name}” será excluída.",
-                "Excluir", "Cancelar", MainWindow.DialogKind.Danger, false, ok =>
+            Host?.OpenDialog(T("Excluir categoria?"),
+                used > 0 ? TF(used == 1 ? "“{0}” será excluída e {1} lançamento passa para “{2}”." : "“{0}” será excluída e {1} lançamentos passam para “{2}”.", c.Name, used, moveTo.Name)
+                         : TF("“{0}” será excluída.", c.Name),
+                T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
                 {
                     if (!ok) return;
                     var before = Snapshot();
                     FinanceService.DeleteCategory(D, c, moveTo);
                     ClosePanel();
                     Commit();
-                    Host?.ShowSnack("Categoria excluída", "Desfazer", () => { Restore(before); Commit(); });
+                    Host?.ShowSnack(T("Categoria excluída"), T("Desfazer"), () => { Restore(before); Commit(); });
                 });
         }
     }

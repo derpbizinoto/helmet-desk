@@ -43,7 +43,7 @@ namespace HelmetDesk.Core
         /// <summary>Windows 11 still reports itself as 10.0; the build number (22000+) tells them apart.</summary>
         public static string WindowsNameFor(Version v)
         {
-            if (v == null) return "Desconhecido";
+            if (v == null) return T("Desconhecido");
             if (v.Major == 10 && v.Build >= 22000) return "Windows 11";
             if (v.Major == 10) return "Windows 10";
             if (v.Major == 6 && v.Minor == 3) return "Windows 8.1";
@@ -55,13 +55,13 @@ namespace HelmetDesk.Core
         public string ToText()
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"Versão do app:   {AppVersion}");
-            sb.AppendLine($"Windows:         {WindowsName} (build {OsVersion})");
-            sb.AppendLine($"Sistema:         {OsDescription}");
-            sb.AppendLine($"Arquitetura:     {Architecture} (processo {ProcessArchitecture})");
+            sb.AppendLine(TF("Versão do app:   {0}", AppVersion));
+            sb.AppendLine(TF("Windows:         {0} (build {1})", WindowsName, OsVersion));
+            sb.AppendLine(TF("Sistema:         {0}", OsDescription));
+            sb.AppendLine(TF("Arquitetura:     {0} (processo {1})", Architecture, ProcessArchitecture));
             sb.AppendLine($".NET:            {Framework}");
-            sb.AppendLine($"Idioma:          {Culture} (interface {UiCulture})");
-            sb.AppendLine($"Data e hora:     {Timestamp:yyyy-MM-dd HH:mm:ss zzz}");
+            sb.AppendLine(TF("Idioma:          {0} (interface {1})", Culture, UiCulture));
+            sb.AppendLine(TF("Data e hora:     {0:yyyy-MM-dd HH:mm:ss zzz}", Timestamp));
             return sb.ToString();
         }
     }

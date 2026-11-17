@@ -33,7 +33,7 @@ namespace HelmetDesk
         }
 
         private static string Mon(DateTime m, bool year = false) =>
-            Dates.Cap(m.ToString(year ? "MMM/yy" : "MMM", Dates.Pt).Replace(".", ""));
+            Dates.Cap(m.ToString(year ? "MMM/yy" : "MMM", Dates.Culture).Replace(".", ""));
 
         private void Period_Checked(object sender, RoutedEventArgs e)
         {
@@ -86,12 +86,12 @@ namespace HelmetDesk
             var before = FinanceService.Totals(D, prev.from, prev.months);
             var last = from.AddMonths(months - 1);
 
-            string vs = _period == 1 ? "vs " + Dates.MonthTitle(prev.from).ToLower(Dates.Pt)
-                      : _period == 0 ? "vs mesmo período de " + prev.from.Year
-                      : "vs " + months + " meses anteriores";
+            string vs = _period == 1 ? TF("vs {0}", Dates.MonthTitle(prev.from).ToLower(Dates.Culture))
+                      : _period == 0 ? TF("vs mesmo período de {0}", prev.from.Year)
+                      : TF("vs {0} meses anteriores", months);
             StatsRange.Text = months == 1 ? Dates.MonthTitle(from)
-                : (from.Year == last.Year ? $"{Mon(from)} – {Mon(last)} de {last.Year}" : $"{Mon(from, true)} – {Mon(last, true)}")
-                  + $" · {months} meses";
+                : (from.Year == last.Year ? TF("{0} – {1} de {2}", Mon(from), Mon(last), last.Year) : $"{Mon(from, true)} – {Mon(last, true)}")
+                  + " · " + TF("{0} meses", months);
 
             StIncome.Text = Money.Format(now.Income);
             Delta(StIncomeDelta, before.Income, now.Income, vs, upIsGood: true);
@@ -101,17 +101,17 @@ namespace HelmetDesk
             StNet.Foreground = now.Net < 0 ? Ui.Res("Danger") : Ui.Res("Text");
             Delta(StNetDelta, before.Net, now.Net, vs, upIsGood: true);
 
-            StRate.Text = now.SavingsRate is double r ? r.ToString("P0", Dates.Pt) : "—";
+            StRate.Text = now.SavingsRate is double r ? r.ToString("P0", Dates.Culture) : "—";
             StRate.Foreground = now.SavingsRate < 0 ? Ui.Res("Danger") : Ui.Res("Text");
             if (now.SavingsRate is double rn && before.SavingsRate is double rb)
             {
                 double pp = Math.Round((rn - rb) * 100);
-                StRateDelta.Text = pp == 0 ? "= " + vs : $"{(pp > 0 ? "▲" : "▼")} {Math.Abs(pp):0} p.p. {vs}";
+                StRateDelta.Text = pp == 0 ? "= " + vs : $"{(pp > 0 ? "▲" : "▼")} {Math.Abs(pp):0} {T("p.p.")} {vs}";
                 StRateDelta.Foreground = pp == 0 ? Ui.Res("Text2") : pp > 0 ? Ui.Res("Success") : Ui.Res("Danger");
             }
             else
             {
-                StRateDelta.Text = now.SavingsRate == null ? "Sem ganhos no período" : "Sem base para comparar";
+                StRateDelta.Text = now.SavingsRate == null ? T("Sem ganhos no período") : T("Sem base para comparar");
                 StRateDelta.Foreground = Ui.Res("Text2");
             }
 
@@ -124,7 +124,7 @@ namespace HelmetDesk
             var ch = FinanceService.Change(before, now);
             if (ch == null)
             {
-                tb.Text = now == 0 ? "Nada no período" : "Sem dados para comparar";
+                tb.Text = now == 0 ? T("Nada no período") : T("Sem dados para comparar");
                 tb.Foreground = Ui.Res("Text2");
                 return;
             }
@@ -135,7 +135,7 @@ namespace HelmetDesk
                 tb.Foreground = Ui.Res("Text2");
                 return;
             }
-            tb.Text = $"{(c > 0 ? "▲" : "▼")} {Math.Abs(c).ToString("P0", Dates.Pt)} {vs}";
+            tb.Text = $"{(c > 0 ? "▲" : "▼")} {Math.Abs(c).ToString("P0", Dates.Culture)} {vs}";
             tb.Foreground = (c > 0) == upIsGood ? Ui.Res("Success") : Ui.Res("Danger");
         }
 
@@ -144,7 +144,7 @@ namespace HelmetDesk
         private void BuildPie(DateTime from, int months)
         {
             bool income = _pieKind == TxKind.Income;
-            PieTitle.Text = income ? "Ganhos por categoria" : "Gastos por categoria";
+            PieTitle.Text = income ? T("Ganhos por categoria") : T("Gastos por categoria");
             _pieData = FinanceService.ByCategory(D, _pieKind, from, months);
             _pieSel = -1;
             decimal total = _pieData.Sum(c => c.Total);
@@ -156,14 +156,14 @@ namespace HelmetDesk
                 var cat = CategoryOf(c.CategoryId);
                 double pct = total > 0 ? (double)(c.Total / total) : 0;
                 return new DonutChart.Slice((double)c.Total, Palette.BrushFrom(cat?.Color ?? "#9A93A8"),
-                    $"{cat?.Name ?? "Sem categoria"}: {Money.Format(c.Total)} ({pct.ToString("P0", Dates.Pt)})");
+                    $"{cat?.Name ?? T("Sem categoria")}: {Money.Format(c.Total)} ({pct.ToString("P0", Dates.Culture)})");
             }), animate: true);
 
             PieLegend.Children.Clear();
             if (_pieData.Count == 0)
                 PieLegend.Children.Add(new TextBlock
                 {
-                    Text = income ? "Nenhum ganho neste período." : "Nenhum gasto neste período.",
+                    Text = income ? T("Nenhum ganho neste período.") : T("Nenhum gasto neste período."),
                     Style = Ui.St("MutedItalic"), Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.Wrap,
                 });
             for (int i = 0; i < _pieData.Count; i++)
@@ -182,7 +182,7 @@ namespace HelmetDesk
             var value = new TextBlock { Text = Money.Format(ct.Total), FontSize = 12.5, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
             DockPanel.SetDock(value, Dock.Right);
             row.Children.Add(value);
-            var p = new TextBlock { Text = pct.ToString("P0", Dates.Pt), Style = Ui.St("Muted"), Width = 38, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+            var p = new TextBlock { Text = pct.ToString("P0", Dates.Culture), Style = Ui.St("Muted"), Width = 38, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
             DockPanel.SetDock(p, Dock.Right);
             row.Children.Add(p);
             row.Children.Add(new Border
@@ -190,7 +190,7 @@ namespace HelmetDesk
                 Width = 10, Height = 10, CornerRadius = new CornerRadius(5), Margin = new Thickness(0, 0, 8, 0),
                 Background = Palette.BrushFrom(cat?.Color ?? "#9A93A8"), VerticalAlignment = VerticalAlignment.Center,
             });
-            row.Children.Add(new TextBlock { Text = cat?.Name ?? "Sem categoria", FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new TextBlock { Text = cat?.Name ?? T("Sem categoria"), FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center });
 
             var b = new Border { Child = row, Padding = new Thickness(8, 6, 8, 6), CornerRadius = new CornerRadius(6), Background = Brushes.Transparent, Cursor = Cursors.Hand, Tag = index };
             b.MouseEnter += (s, e) => { if (_pieSel != index) b.Background = Ui.Res("AccentSoft"); };
@@ -225,15 +225,15 @@ namespace HelmetDesk
             if (_pieSel >= 0 && _pieSel < _pieData.Count)
             {
                 var ct = _pieData[_pieSel];
-                PieCenterLabel.Text = CategoryOf(ct.CategoryId)?.Name ?? "Sem categoria";
+                PieCenterLabel.Text = CategoryOf(ct.CategoryId)?.Name ?? T("Sem categoria");
                 PieCenterValue.Text = Money.Format(ct.Total);
-                PieCenterPct.Text = total > 0 ? ((double)(ct.Total / total)).ToString("P0", Dates.Pt) + " do total" : "";
+                PieCenterPct.Text = total > 0 ? ((double)(ct.Total / total)).ToString("P0", Dates.Culture) + T(" do total") : "";
             }
             else
             {
-                PieCenterLabel.Text = "Total";
+                PieCenterLabel.Text = T("Total");
                 PieCenterValue.Text = Money.Format(total);
-                PieCenterPct.Text = _pieData.Count switch { 0 => "", 1 => "1 categoria", var n => n + " categorias" };
+                PieCenterPct.Text = _pieData.Count switch { 0 => "", var n => TN(n, "{0} categoria", "{0} categorias") };
             }
         }
 
@@ -247,12 +247,12 @@ namespace HelmetDesk
             string catId = byCat ? _pieData[_pieSel].CategoryId : null;
             var list = FinanceService.Largest(D, _pieKind, from, months, 6, byCat, catId);
 
-            TopTitle.Text = income ? "Maiores ganhos" : "Maiores gastos";
-            TopMeta.Text = byCat ? CategoryOf(catId)?.Name ?? "Sem categoria" : "Todas as categorias";
+            TopTitle.Text = income ? T("Maiores ganhos") : T("Maiores gastos");
+            TopMeta.Text = byCat ? CategoryOf(catId)?.Name ?? T("Sem categoria") : T("Todas as categorias");
             TopList.Children.Clear();
             if (list.Count == 0)
             {
-                TopList.Children.Add(new TextBlock { Text = "Nada neste período.", Style = Ui.St("MutedItalic"), Margin = new Thickness(0, 4, 0, 0) });
+                TopList.Children.Add(new TextBlock { Text = T("Nada neste período."), Style = Ui.St("MutedItalic"), Margin = new Thickness(0, 4, 0, 0) });
                 return;
             }
             foreach (var t in list) TopList.Children.Add(TopRow(t, showCategory: !byCat));
@@ -278,13 +278,13 @@ namespace HelmetDesk
             row.Children.Add(badge);
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(new TextBlock { Text = t.Description, FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis });
-            string meta = t.Date.ToString("dd/MM/yyyy", Dates.Pt);
-            if (showCategory) meta += " · " + (cat?.Name ?? "Sem categoria");
-            if (!t.Paid) meta += " · pendente";
+            string meta = t.Date.ToString(T("dd/MM/yyyy"), Dates.Culture);
+            if (showCategory) meta += " · " + (cat?.Name ?? T("Sem categoria"));
+            if (!t.Paid) meta += " · " + T("pendente");
             text.Children.Add(new TextBlock { Text = meta, Style = Ui.St("Muted"), FontSize = 11, Margin = new Thickness(0, 2, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis });
             row.Children.Add(text);
 
-            var b = new Border { Child = row, Padding = new Thickness(6, 6, 6, 6), Margin = new Thickness(-6, 0, -6, 2), CornerRadius = new CornerRadius(8), Background = Brushes.Transparent, Cursor = Cursors.Hand, ToolTip = "Abrir lançamento" };
+            var b = new Border { Child = row, Padding = new Thickness(6, 6, 6, 6), Margin = new Thickness(-6, 0, -6, 2), CornerRadius = new CornerRadius(8), Background = Brushes.Transparent, Cursor = Cursors.Hand, ToolTip = T("Abrir lançamento") };
             b.MouseEnter += (s, e) => b.Background = Ui.Res("AccentSoft");
             b.MouseLeave += (s, e) => b.Background = Brushes.Transparent;
             b.MouseLeftButtonUp += (s, e) => OpenTxForm(t);
@@ -299,10 +299,10 @@ namespace HelmetDesk
             int n = Math.Max(months, 6); // short periods still get some history to compare with
             var start = _month.AddMonths(1 - n);
             bool years = start.Year != _month.Year;
-            BarsMeta.Text = n == months ? "Ganhos, gastos e saldo de cada mês do período" : $"Ganhos, gastos e saldo · últimos {n} meses";
+            BarsMeta.Text = n == months ? T("Ganhos, gastos e saldo de cada mês do período") : TF("Ganhos, gastos e saldo · últimos {0} meses", n);
             Bars.SetData(FinanceService.Monthly(D, start, n).Select(m => new MonthBarChart.Month(
                 Mon(m.Month, years), m.Income, m.Expense,
-                $"{Dates.MonthTitle(m.Month)}\nGanhos: {Money.Format(m.Income)}\nGastos: {Money.Format(m.Expense)}\nSaldo: {Money.Format(m.Income - m.Expense)}")), animate: true);
+                Dates.MonthTitle(m.Month) + "\n" + TF("Ganhos: {0}", Money.Format(m.Income)) + "\n" + TF("Gastos: {0}", Money.Format(m.Expense)) + "\n" + TF("Saldo: {0}", Money.Format(m.Income - m.Expense)))), animate: true);
         }
 
         // ================= layout =================

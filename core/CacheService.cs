@@ -48,7 +48,7 @@ namespace HelmetDesk.Core
         /// <summary>"1,4 MB" style, pt-BR.</summary>
         public static string FormatSize(long bytes)
         {
-            var pt = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+            var pt = L.Culture;
             if (bytes < 1024) return $"{bytes} bytes";
             if (bytes < 1024 * 1024) return (bytes / 1024.0).ToString("0", pt) + " KB";
             if (bytes < 1024L * 1024 * 1024) return (bytes / (1024.0 * 1024)).ToString("0.0", pt) + " MB";

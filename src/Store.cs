@@ -114,6 +114,10 @@ namespace HelmetDesk
                         Log.Warn($"data.json usa o esquema {schema}, mais novo que o deste app ({CurrentSchema})");
                     Data = JsonSerializer.Deserialize<AppData>(text, Json) ?? new AppData();
                     Data.Version = Math.Max(Data.Version, CurrentSchema);
+                    // data from 1.0.0 (Portuguese only, always R$): keep the user's language and currency
+                    Data.Settings.Language ??= L.Portuguese;
+                    Data.Settings.Currency ??= HelmetDesk.Core.Finance.Money.Brl.Code;
+                    ApplyLanguage();
                     try { File.Copy(FilePath, Path.Combine(Dir, "data.bak.json"), true); } catch { }
                     // attachment files nobody points to any more (removed, or their note was deleted): only after a good load
                     var snapshot = Data.Items.ToList();
@@ -122,7 +126,12 @@ namespace HelmetDesk
                 }
                 else
                 {
+                    // first run: English by default; the sample note, labels and categories are created in that language
                     Data = new AppData();
+                    // HELMETDESK_LANG (tooling) also picks the first-run currency
+                    Data.Settings.Language = Environment.GetEnvironmentVariable("HELMETDESK_LANG") is { Length: > 0 } forcedLang ? L.Normalize(forcedLang) : L.English;
+                    Data.Settings.Currency = HelmetDesk.Core.Finance.Money.DefaultFor(Data.Settings.Language);
+                    ApplyLanguage();
                     Seed();
                 }
                 if (Data.Labels.Count == 0) SeedLabels();
@@ -132,20 +141,48 @@ namespace HelmetDesk
             catch (Exception ex)
             {
                 Log.Error("Não foi possível ler data.json", ex);
+                // a data file existed, so this is someone updating from 1.0.0 or later: pt-BR unless it said otherwise
+                L.Set(Data?.Settings?.Language ?? L.Portuguese);
                 // Keep the broken file aside instead of overwriting it.
                 try { File.Copy(FilePath, Path.Combine(Dir, $"data.corrompido.{DateTime.Now:yyyyMMddHHmmss}.json"), true); } catch { }
-                System.Windows.MessageBox.Show("Não foi possível ler os dados salvos. Uma cópia do arquivo foi guardada na pasta de dados.\n\n" + ex.Message,
+                System.Windows.MessageBox.Show(T("Não foi possível ler os dados salvos. Uma cópia do arquivo foi guardada na pasta de dados.\n\n") + ex.Message,
                     "Helmet Desk", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 Data = new AppData();
+                Data.Settings.Language = L.Lang;
+                Data.Settings.Currency = HelmetDesk.Core.Finance.Money.DefaultFor(L.Lang);
+                ApplyLanguage();
                 SeedLabels();
                 HelmetDesk.Core.Finance.FinanceService.Seed(Data.Finance);
             }
             finally { _loading = false; }
         }
 
+        /// <summary>
+        /// Language and currency of this run, from the settings. HELMETDESK_LANG=en|pt-BR overrides the language
+        /// (snapshot/self-test tooling). Missing texts are logged once each.
+        /// </summary>
+        private static void ApplyLanguage()
+        {
+            var forced = Environment.GetEnvironmentVariable("HELMETDESK_LANG");
+            L.Set(string.IsNullOrWhiteSpace(forced) ? Data.Settings.Language : forced);
+            L.Missing = text => Log.Warn("Texto sem tradução para o inglês: " + text);
+            HelmetDesk.Core.Finance.Money.SetCurrency(Data.Settings.Currency);
+            Log.Info($"Idioma: {L.Lang}, moeda: {HelmetDesk.Core.Finance.Money.Current.Code}");
+        }
+
+        /// <summary>Saves the new language and restarts so every screen is rebuilt with it (like the theme).</summary>
+        public static void SwitchLanguage(string lang)
+        {
+            lang = L.Normalize(lang);
+            if (Data.Settings.Language == lang) return;
+            Data.Settings.Language = lang;
+            Save();
+            if (lang != L.Lang) App.Current.Restart();
+        }
+
         private static void SeedLabels()
         {
-            string[] names = { "Geral", "Pessoal", "Trabalho", "Estudos", "Ideias", "Urgente", "Casa", "Outros" };
+            string[] names = { T("Geral"), T("Pessoal"), T("Trabalho"), T("Estudos"), T("Ideias"), T("Urgente"), T("Casa"), T("Outros") };
             for (int i = 0; i < names.Length; i++)
                 Data.Labels.Add(new LabelTag { Name = names[i], Color = Palette.LabelColors[i] });
         }
@@ -156,18 +193,18 @@ namespace HelmetDesk
             var welcome = new Item
             {
                 Kind = ItemKind.Note,
-                Title = "Bem-vindo ao Helmet Desk",
-                Body = "Notas, tarefas e calendário num só lugar.\n\nDicas:\n• Use o botão de alfinete para fixar uma nota na área de trabalho.\n• Informe estimativas como 1:30, 1h30, 45min ou 2.\n• Agrupe por semana ou por mês na barra de ferramentas.",
+                Title = T("Bem-vindo ao Helmet Desk"),
+                Body = T("Notas, tarefas e calendário num só lugar.\n\nDicas:\n• Use o botão de alfinete para fixar uma nota na área de trabalho.\n• Informe estimativas como 1:30, 1h30, 45min ou 2.\n• Agrupe por semana ou por mês na barra de ferramentas."),
                 LabelId = Data.Labels[0].Id,
             };
-            welcome.Checklist.Add(new CheckItem { Text = "Criar minha primeira tarefa" });
-            welcome.Checklist.Add(new CheckItem { Text = "Fixar uma nota na área de trabalho" });
-            welcome.Checklist.Add(new CheckItem { Text = "Ativar \"Iniciar com o Windows\" nas configurações" });
+            welcome.Checklist.Add(new CheckItem { Text = T("Criar minha primeira tarefa") });
+            welcome.Checklist.Add(new CheckItem { Text = T("Fixar uma nota na área de trabalho") });
+            welcome.Checklist.Add(new CheckItem { Text = T("Ativar \"Iniciar com o Windows\" nas configurações") });
             Data.Items.Add(welcome);
             Data.Items.Add(new Item
             {
                 Kind = ItemKind.Task,
-                Title = "Planejar a semana",
+                Title = T("Planejar a semana"),
                 Date = DateTime.Today,
                 EstimateMinutes = 30,
                 Priority = 2,

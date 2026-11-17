@@ -1,0 +1,155 @@
+HELMET DESK — notes, tasks and calendar for Windows
+===================================================
+
+HOW TO INSTALL
+  Download HelmetDesk-win-Setup.exe from https://github.com/derpbizinoto/helmet-desk/releases/latest
+  and run it. It adds shortcuts to the desktop and the Start menu. You don't need to install .NET.
+  (HelmetDesk-win.msi installs it for all users on the PC.)
+  The installer is not signed: if Windows warns you, click "More info" > "Run anyway".
+
+UPDATES
+  The app checks for new versions when it opens, downloads them on its own and shows "New version ready":
+  "Restart and update" installs it right away; if you ignore it, it installs when you close the app.
+  Settings > Updates shows the current version and has "Check for updates".
+  Uninstalling (Windows Settings > Apps) does not delete your data.
+
+WHERE YOUR DATA IS
+  %APPDATA%\HelmetDesk\data.json   (saved automatically)
+  %LOCALAPPDATA%\HelmetDesk.Local\ logs, automatic safety copies and problem reports
+                                   (not included in backups)
+
+BACKUP (Settings > Data)
+  • Export backup ... saves a .zip (HelmetDesk-backup-YYYY-MM-DD-HHmm.zip) with your data
+                      and a manifest.json (app version, date and the SHA-256 of each file).
+  • Import backup ... pick a .zip; everything is checked first (integrity, version, dangerous
+                      paths, size) and you confirm. The current data is REPLACED: before that the
+                      app keeps a copy in %LOCALAPPDATA%\HelmetDesk.Local\backups
+                      (pre-import-<date>.zip, the last 5) and then restarts on its own.
+                      If something fails halfway, the original folder is put back.
+  • A backup from a newer version of the app is refused: update Helmet Desk first.
+
+REPORT A PROBLEM (Settings > Support)
+  • Fill in a title and a description (e-mail is optional). "Include technical logs" starts ticked;
+    "Include my data" starts unticked.
+  • "Review" shows the exact content. "Create report" makes a .zip in
+    %LOCALAPPDATA%\HelmetDesk.Local\relatorios and opens Explorer with it selected: attach it to an e-mail.
+    (For now nothing is sent over the internet.) One report per minute.
+  • Your user folder path shows up as %USERPROFILE% in the report.
+  • If the app closes because of an error, you're offered to report it the next time it opens.
+  • Logs: %LOCALAPPDATA%\HelmetDesk.Local\logs (one file per day, up to 1 MB, the last 5).
+
+FEATURES
+  • Today ........... the day at a glance: pending items, planned hours, overdue tasks and quick add.
+                      Also shows the notes dated today.
+                      E.g. type "Review the script 1h30" + Enter → creates the task with 1h30 estimated.
+  • Quick add (Today page only):
+      - "note:" or "task:" becomes a tag and sets the type (without it, it's saved as a task).
+      - Dates written in the text become a tag as soon as you finish the word, and leave the title:
+        today, tomorrow, day after tomorrow, next week (Monday), in 3 days / in a week / in 2 months,
+        on friday / by thursday / saturday, next friday, this weekend, end of the month, next month,
+        the 20th, Nov 15, November 15th, 15th of November, 11/15 or 11/15/2026.
+        Without a year, the current year is used.
+      - Times become a tag too: 13:00, 9:30, 3pm, 3:30 pm, at 9, around 8, noon, midnight,
+        in the morning / afternoon / evening, tonight.
+        "1h30", "2h" and "45min" stay the task's estimate.
+      - With no date, the note or task is for today.
+      - Click a tag (or Backspace at the start of the text) to undo it. Esc clears the field.
+      E.g. "note: Video ideas tomorrow" + Enter → a note for tomorrow.
+      The tasks widget's field works as before.
+      In Portuguese the field understands Portuguese ("amanhã às 14h", "na sexta", "15/11").
+  • Notes ........... free text + a checklist (check boxes) inside the note.
+  • Tasks ........... date, time, priority, checklist and estimated time.
+  • Calendar ........ the whole month; click a day to see its items, double-click to create a task.
+  • By week / By month ... groups notes and tasks by period, with the total hours of each group.
+                      Click a group's title to collapse/expand it (the app remembers).
+  • Color labels .... pick the color in the editor; rename/add them in Settings.
+  • Estimated time .. tasks only; accepts 1:30, 1h30, 45min, 1.5 or 2 (hours).
+  • Delete .......... asks first (tick "Don't ask again" to delete right away).
+                      To be asked again: Settings > Confirm before deleting.
+  • Sidebar ......... the button next to the name (or Ctrl+B) collapses it to icons only — hover
+                      to see the name. When open, drag its edge to change the width.
+
+FINANCES (sidebar, below Calendar)
+  Manual tracking: nothing is imported or synced with a bank.
+  • Top ............ ‹ › changes the month. The month's Income and Expenses (paid + pending, without
+                     transfers and adjustments), Current balance (starting balance + PAID transactions,
+                     archived accounts left out) and Projected at month end (current balance + pending
+                     up to the last day, overdue ones included).
+  • New transaction (button, or Ctrl+N on the page): starts on the amount; accepts 1234.56 · 1,234.56 · $50.
+                     Date = today, account = the last one used, Enter saves. A future date makes it "pending".
+                     When you repeat a description you've used before, the app suggests the amount,
+                     category and account of the last one.
+                     More options: Paid/pending, Installments (the amount is the TOTAL; the last installment
+                     takes the leftover cents), Repeat every month and Note.
+  • List ........... grouped by day, with account, category, type and status filters. Pending ones are
+                     faded, overdue ones are red. Click the status icon to switch paid/pending;
+                     click the row to edit. Duplicate and delete show up on hover.
+                     Installments and recurring entries: when editing or deleting, tick the option to
+                     apply it to the following ones. Right after deleting, you can undo from the notice
+                     at the bottom.
+  • Accounts ....... balance and projection of each account; create, edit, archive. "Check balance":
+                     type the real balance and the app creates a "Balance adjustment" with the difference
+                     (left out of Income/Expenses and the chart). Credit card: spending makes the balance negative.
+  • Recurring ...... monthly templates (made with "Repeat every month"). Each month's pending transaction
+                     is created when you open the month, without duplicates; when the app opens, missing
+                     past months are filled in too. Day 31 in a short month uses the last day.
+                     Pause or end them from the list.
+  • Categories ..... create, edit (name, type, color, icon) and delete; if one is in use, you choose
+                     which category its transactions move to.
+  • Chart .......... the month's spending by category, next to the list.
+  • Statistics ..... earnings, spending, savings rate and month-by-month bars for 1, 3, 6 or 12 months
+                     or the year.
+  • On Today, a card shows the bills due today/overdue and the current balance.
+  • The data lives in the same data.json ("Finance" section) and goes into the .zip backup.
+
+LANGUAGE AND CURRENCY
+  • Settings > General > Language: English or Português (Brasil). After switching, the app restarts
+    on its own. A new install starts in English; if you used a version before 1.0.1, it stays in Portuguese.
+  • Settings > Finances > Currency: Dollar ($), Euro (€) or Real (R$). It only changes the symbol of the
+    amounts; nothing is converted. Number separators follow the language (1,234.56 in English).
+
+DESKTOP (widgets, Sticky Notes style)
+  • The pin button on a note/task → pins it to the desktop.
+  • "New sticky note" (sidebar or tray) → creates a note that's already pinned.
+  • Settings > Tasks widget → a list of pending tasks pinned to the desktop.
+    Shortcut: the "Tasks widget" switch at the bottom of the sidebar turns the same widget on/off.
+  • On the widget: pin = always on top of other windows; X = closes the widget (the note stays saved).
+    Empty sticky notes are discarded when closed.
+
+TRAY AND STARTUP
+  • Close (X) sends it to the tray (you can turn this off in Settings).
+  • Click the tray icon to open; right-click for a new note/task or Exit.
+  • Settings > Start with Windows (optional: start minimized to the tray).
+  • Reminders: tasks with a time show a notification at that time.
+
+SHORTCUTS
+  Ctrl+N  new note/task     Ctrl+F  search     Ctrl+B  collapse/expand the sidebar
+  Esc     closes the editor (or cancels the delete confirmation)
+
+THEME (Settings > General > Theme)
+  • Classic (default): the original dark look.
+    Frutiger Aero: glass over a purple aurora background, with gel buttons.
+    After switching, the app restarts on its own; none of your data changes.
+  • The aurora's slow movement only runs with Windows "Animation effects" on.
+  • Files: src\Themes\FrutigerAero.xaml, src\Themes\Legacy.xaml (classic), src\Themes\Shared.xaml
+    (fonts, icons, animation). Copy of the old UI and how to restore it: _backup\ui-legacy\COMO_RESTAURAR.md
+
+FONTS (Google Fonts)
+  • App name: Geo. Rest of the interface: Roboto. Both are embedded in the app (they work offline)
+    and don't need to be installed in Windows.
+  • To update or change them: edit and run  tools\baixar-fontes.ps1  and rebuild.
+    Licenses in src\Assets\Fonts\*-OFL.txt; credits in CREDITS.md.
+
+ANIMATIONS
+  Transitions follow the Windows "Animation effects" option
+  (Settings > Accessibility > Visual effects). When it's off, the app swaps slides and
+  scaling for short fades.
+
+SOURCE CODE
+  HelmetDesk.sln
+  src\                app WPF (.NET 10)
+  core\               services without WPF: backup, problem report, Finances rules (core\Finance)
+                      and translations (core\Localization\En.cs: English text keyed by the Portuguese)
+  tests\              xUnit tests for the services:   dotnet test tests\HelmetDesk.Tests
+  To build the installer and publish a version:  .\build-release.ps1 1.0.1 -Upload
+  (details in README.md)

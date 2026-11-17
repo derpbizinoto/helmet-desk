@@ -295,16 +295,7 @@ namespace HelmetDesk
             return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
         }
 
-        private static readonly CultureInfo Pt = CultureInfo.GetCultureInfo("pt-BR");
-
-        /// <summary>Short money for axes: "R$ 850", "R$ 1,2 mil", "R$ 3,5 mi".</summary>
-        public static string Compact(decimal v)
-        {
-            string sign = v < 0 ? "-" : "";
-            v = Math.Abs(v);
-            if (v >= 1_000_000) return $"{sign}R$ {(v / 1_000_000).ToString("0.#", Pt)} mi";
-            if (v >= 1_000) return $"{sign}R$ {(v / 1_000).ToString("0.#", Pt)} mil";
-            return $"{sign}R$ {v.ToString("0", Pt)}";
-        }
+        /// <summary>Short money for axes, in the chosen currency: "R$ 1,2 mil" / "$1.2K" (see Money.Compact).</summary>
+        public static string Compact(decimal v) => HelmetDesk.Core.Finance.Money.Compact(v);
     }
 }

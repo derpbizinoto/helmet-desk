@@ -72,7 +72,7 @@ namespace HelmetDesk
             Empty.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             int mins = items.Sum(i => i.EstimateMinutes);
             int todayCount = items.Count(i => i.Date.HasValue && i.Date.Value <= today);
-            Meta.Text = $"{items.Count} pendente(s) · {todayCount} para hoje" + (mins > 0 ? $" · {Hours.Format(mins)}" : "");
+            Meta.Text = TN(items.Count, "{0} pendente", "{0} pendentes") + " · " + TF("{0} para hoje", todayCount) + (mins > 0 ? $" · {Hours.Format(mins)}" : "");
         }
 
         public void SaveState()

@@ -22,7 +22,7 @@ namespace HelmetDesk
             {
                 CrashBox.Visibility = Visibility.Visible;
                 CrashText.Text = exception.Trim();
-                TitleBox.Text = "O Helmet Desk apresentou um erro";
+                TitleBox.Text = T("O Helmet Desk apresentou um erro");
             }
             SourceInitialized += (s, e) => Native.Round(this);
             Loaded += (s, e) => { TitleBox.Focus(); TitleBox.SelectAll(); };
@@ -55,11 +55,11 @@ namespace HelmetDesk
             }
 
             // confirmed: save (and, in the future, send)
-            SetBusy(true, "Gerando o relatório…");
+            SetBusy(true, T("Gerando o relatório…"));
             var progress = new Progress<OperationProgress>(p => Status.Text = p.Message);
             BugReportResult r;
             try { r = await _svc.SubmitAsync(_package, progress); }
-            catch (Exception ex) { r = new BugReportResult { Outcome = ReportOutcome.Failed, Message = "Erro inesperado: " + ex.Message }; }
+            catch (Exception ex) { r = new BugReportResult { Outcome = ReportOutcome.Failed, Message = T("Erro inesperado: ") + ex.Message }; }
             SetBusy(false, r.Message);
 
             switch (r.Outcome)
@@ -69,7 +69,7 @@ namespace HelmetDesk
                     Log.Info($"Relatório de problema gerado: {r.ZipPath ?? "(enviado)"}");
                     Status.Foreground = Ui.Res("Success");
                     if (r.ZipPath != null) MainWindow.RevealFile(r.ZipPath);
-                    NextBtn.Content = "Concluído";
+                    NextBtn.Content = T("Concluído");
                     NextBtn.Click -= Next_Click;
                     NextBtn.Click += (s, ev) => Close();
                     BackBtn.Visibility = Visibility.Collapsed;
@@ -83,7 +83,7 @@ namespace HelmetDesk
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             if (_busy) return;
-            if (OnPreview && NextBtn.Content as string != "Concluído") { ShowPage(preview: false); return; }
+            if (OnPreview && NextBtn.Content as string != T("Concluído")) { ShowPage(preview: false); return; }
             Close();
         }
 
@@ -93,9 +93,9 @@ namespace HelmetDesk
         {
             FormPage.Visibility = preview ? Visibility.Collapsed : Visibility.Visible;
             PreviewPage.Visibility = preview ? Visibility.Visible : Visibility.Collapsed;
-            Heading.Text = preview ? "Revisar relatório" : "Reportar problema";
-            NextBtn.Content = preview ? "Gerar relatório" : "Revisar";
-            BackBtn.Content = preview ? "Voltar" : "Cancelar";
+            Heading.Text = preview ? T("Revisar relatório") : T("Reportar problema");
+            NextBtn.Content = preview ? T("Gerar relatório") : T("Revisar");
+            BackBtn.Content = preview ? T("Voltar") : T("Cancelar");
             Status.Text = "";
             Status.Foreground = Ui.Res("Text2");
             Motion.Enter(preview ? PreviewPage : FormPage, dx: preview ? Motion.ShiftSmall : -Motion.ShiftSmall);

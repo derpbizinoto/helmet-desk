@@ -4,7 +4,7 @@
 
 Notas, tarefas, calendário e finanças pessoais num só lugar, para Windows. Tudo fica salvo no seu computador.
 
-![Tela Hoje do Helmet Desk](docs/screenshots/hoje.png)
+![Tela Hoje do Helmet Desk](docs/screenshots/pt-BR/classic/hoje.png)
 
 **[⬇ Baixar a versão mais recente](https://github.com/derpbizinoto/helmet-desk/releases/latest)**: Windows 10 e 11, 64 bits.
 
@@ -13,16 +13,32 @@ Notas, tarefas, calendário e finanças pessoais num só lugar, para Windows. Tu
 - **Hoje**: resumo do dia com pendentes, horas planejadas, atrasadas e um campo de adição rápida que entende linguagem natural ("Revisar roteiro amanhã às 14h 1h30").
 - **Notas e tarefas**: checklist, data, horário, prioridade, tempo estimado, etiquetas coloridas, anexos (imagens e arquivos) e links com título e ícone do site.
 - **Calendário**: o mês inteiro, com os itens de cada dia. Clique duas vezes num dia para criar uma tarefa.
-- **Finanças**: lançamentos manuais, contas e cartões, parcelas, recorrentes, categorias e estatísticas com gráficos. Nada é conectado ao banco.
+- **Finanças**: lançamentos manuais, contas e cartões, parcelas, recorrentes, categorias e estatísticas com gráficos. Nada é conectado ao banco. Os valores aparecem na moeda que você escolher: real (R$), dólar (US$) ou euro (€).
 - **Na área de trabalho**: notas adesivas e um widget com a lista de tarefas.
 - **Lembretes**: notificação na hora marcada da tarefa, ícone na bandeja e opção de iniciar com o Windows.
 - **Backup**: exporta e importa um `.zip` com todos os dados e anexos, conferido antes de restaurar.
-- **Temas**: Frutiger Aero (vidro roxo com aurora) e Clássico (escuro).
+- **Dois idiomas**: português do Brasil e inglês.
 - **Atualização automática**: avisa quando há uma versão nova e instala com um clique.
 
 | Calendário | Finanças | Estatísticas |
 |---|---|---|
-| ![Calendário](docs/screenshots/calendario.png) | ![Finanças](docs/screenshots/financas.png) | ![Estatísticas](docs/screenshots/estatisticas.png) |
+| ![Calendário](docs/screenshots/pt-BR/classic/calendario.png) | ![Finanças](docs/screenshots/pt-BR/classic/financas.png) | ![Estatísticas](docs/screenshots/pt-BR/classic/estatisticas.png) |
+
+### Tema inspirado em Frutiger Aero
+
+Além do visual escuro Clássico, há um tema inspirado no estilo Frutiger Aero: vidro roxo sobre um fundo com aurora e botões em gel. Para trocar, vá em *Configurações → Geral → Tema*; o app reinicia sozinho e nenhum dado muda.
+
+| Hoje | Calendário |
+|---|---|
+| ![Hoje, tema Frutiger Aero](docs/screenshots/pt-BR/aero/hoje.png) | ![Calendário, tema Frutiger Aero](docs/screenshots/pt-BR/aero/calendario.png) |
+| **Finanças** | **Estatísticas** |
+| ![Finanças, tema Frutiger Aero](docs/screenshots/pt-BR/aero/financas.png) | ![Estatísticas, tema Frutiger Aero](docs/screenshots/pt-BR/aero/estatisticas.png) |
+
+## Idioma e moeda
+
+- Numa instalação nova, o app abre em **inglês**. Para usar em português, vá em *Settings → General → Language* e escolha **Português (Brasil)**: o app reinicia no novo idioma. Quem já usava o Helmet Desk antes da versão 1.0.1 continua em português.
+- A adição rápida entende datas e horários no idioma do app ("amanhã às 15h", "na sexta", "daqui 2 semanas"; em inglês, "tomorrow at 3pm", "next Friday", "in 2 weeks").
+- A moeda das Finanças fica em *Configurações → Finanças → Moeda*. Trocar a moeda muda só o símbolo: os valores já lançados não são convertidos.
 
 ## Instalação
 
@@ -55,7 +71,7 @@ A versão atual e o botão **Verificar atualizações** ficam em *Configuraçõe
 - **Desinstalar não apaga seus dados.** Ao instalar de novo, tudo aparece como estava.
 - Para levar seus dados a outro PC: *Configurações → Dados → Exportar backup* e, no outro PC, *Importar backup*.
 
-O guia completo de uso (atalhos, adição rápida, finanças, backup) está em [`como usar.txt`](como%20usar.txt).
+O guia completo de uso (atalhos, adição rápida, finanças, backup) está em [`como usar.txt`](como%20usar.txt) ([versão em inglês](how%20to%20use.txt)).
 
 ## Problemas e sugestões
 
@@ -76,10 +92,18 @@ dotnet test tests/HelmetDesk.Tests
 | Pasta | Conteúdo |
 |---|---|
 | `src/` | App WPF (.NET 10): janelas, temas (`src/Themes`), fontes, animações e sons embutidos |
-| `core/` | Serviços sem WPF: caminhos (`AppPaths`), backup, relatório de problema, regras de Finanças |
+| `core/` | Serviços sem WPF: caminhos (`AppPaths`), backup, relatório de problema, regras de Finanças, traduções (`core/Localization`) |
 | `tests/` | Testes xUnit dos serviços |
 | `docs/` | Identidade visual, roteiro de testes do instalador e capturas de tela |
 | `_backup/` | Cópias da interface antiga, para consulta (não são compiladas) |
+
+### Traduções
+
+O código-fonte é escrito em português, e todo texto da interface passa por `T("…")` no C# ou `{local:Tr '…'}` no XAML.
+O texto em inglês de cada um fica em [`core/Localization/En.cs`](core/Localization/En.cs), com o texto em português como chave.
+Um teste falha se algum texto ficar sem tradução para o inglês.
+
+As capturas acima são feitas com `HelmetDesk.exe --readme-shots <pasta>`, numa pasta de dados vazia (`HELMETDESK_DATA`), com `HELMETDESK_LANG` (`en` / `pt-BR`) e `HELMETDESK_THEME` (`classic` / `aero`).
 
 ### Publicar uma versão
 

@@ -39,10 +39,10 @@ namespace HelmetDesk.Core
             {
                 var sb = new StringBuilder(ReportText);
                 sb.AppendLine();
-                sb.AppendLine("──────── Arquivos no pacote ────────");
-                sb.AppendLine("report.txt  (este texto)");
-                sb.AppendLine("report.json (o mesmo conteúdo, em formato estruturado)");
-                foreach (var a in Attachments) sb.AppendLine($"{a.Key}  (seus dados)");
+                sb.AppendLine(T("──────── Arquivos no pacote ────────"));
+                sb.AppendLine(T("report.txt  (este texto)"));
+                sb.AppendLine(T("report.json (o mesmo conteúdo, em formato estruturado)"));
+                foreach (var a in Attachments) sb.AppendLine($"{a.Key}  {T("(seus dados)")}");
                 return sb.ToString();
             }
         }
@@ -105,11 +105,11 @@ namespace HelmetDesk.Core
         /// <summary>Null when the form is fine, otherwise the message to show.</summary>
         public string Validate(BugReportInput input)
         {
-            if (string.IsNullOrWhiteSpace(input?.Title)) return "Dê um título ao problema.";
-            if (string.IsNullOrWhiteSpace(input.Description)) return "Descreva o que aconteceu.";
+            if (string.IsNullOrWhiteSpace(input?.Title)) return T("Dê um título ao problema.");
+            if (string.IsNullOrWhiteSpace(input.Description)) return T("Descreva o que aconteceu.");
             var mail = input.Email?.Trim() ?? "";
             if (mail.Length > 0 && (!mail.Contains('@') || mail.StartsWith("@") || mail.EndsWith("@") || mail.Contains(' ')))
-                return "O e-mail não parece válido (ou deixe em branco).";
+                return T("O e-mail não parece válido (ou deixe em branco).");
             return null;
         }
 
@@ -125,32 +125,32 @@ namespace HelmetDesk.Core
             var id = _clock.Now.ToString("yyyyMMdd-HHmmss");
 
             var sb = new StringBuilder();
-            sb.AppendLine("RELATÓRIO DE PROBLEMA — HELMET DESK");
+            sb.AppendLine(T("RELATÓRIO DE PROBLEMA — HELMET DESK"));
             sb.AppendLine();
-            sb.AppendLine($"Título: {input.Title.Trim()}");
-            sb.AppendLine($"Contato: {(string.IsNullOrWhiteSpace(input.Email) ? "(não informado)" : input.Email.Trim())}");
+            sb.AppendLine(TF("Título: {0}", input.Title.Trim()));
+            sb.AppendLine(TF("Contato: {0}", string.IsNullOrWhiteSpace(input.Email) ? T("(não informado)") : input.Email.Trim()));
             sb.AppendLine();
-            sb.AppendLine("Descrição:");
+            sb.AppendLine(T("Descrição:"));
             sb.AppendLine(input.Description.Trim());
             sb.AppendLine();
-            sb.AppendLine("──────── Sistema ────────");
+            sb.AppendLine(T("──────── Sistema ────────"));
             sb.Append(info.ToText());
             if (!string.IsNullOrWhiteSpace(input.Exception))
             {
                 sb.AppendLine();
-                sb.AppendLine("──────── Erro capturado ────────");
+                sb.AppendLine(T("──────── Erro capturado ────────"));
                 sb.AppendLine(input.Exception.Trim());
             }
             sb.AppendLine();
             if (input.IncludeLogs)
             {
-                sb.AppendLine($"──────── Log técnico (últimas {logs.Count} linhas) ────────");
+                sb.AppendLine(TF("──────── Log técnico (últimas {0} linhas) ────────", logs.Count));
                 foreach (var l in logs) sb.AppendLine(l);
-                if (logs.Count == 0) sb.AppendLine("(nenhum registro)");
+                if (logs.Count == 0) sb.AppendLine(T("(nenhum registro)"));
             }
-            else sb.AppendLine("Log técnico: não incluído.");
+            else sb.AppendLine(T("Log técnico: não incluído."));
             sb.AppendLine();
-            sb.AppendLine(input.IncludeUserData ? "Dados do usuário: incluídos (anexo)." : "Dados do usuário: não incluídos.");
+            sb.AppendLine(input.IncludeUserData ? T("Dados do usuário: incluídos (anexo).") : T("Dados do usuário: não incluídos."));
 
             var attachments = new Dictionary<string, string>();
             if (input.IncludeUserData)
@@ -191,7 +191,7 @@ namespace HelmetDesk.Core
                     {
                         Outcome = ReportOutcome.RateLimited,
                         RetryAfter = wait,
-                        Message = $"Aguarde {Math.Ceiling(wait.TotalSeconds):0} s para enviar outro relatório."
+                        Message = TF("Aguarde {0:0} s para enviar outro relatório.", Math.Ceiling(wait.TotalSeconds))
                     });
                 }
                 _last = now;
@@ -204,36 +204,36 @@ namespace HelmetDesk.Core
             string onlineError = null;
             if (_online != null)
             {
-                progress?.Report(new(20, "Enviando…"));
+                progress?.Report(new(20, T("Enviando…")));
                 try
                 {
                     await _online.SendAsync(package, ct).ConfigureAwait(false);
-                    progress?.Report(new(100, "Enviado."));
-                    return new BugReportResult { Outcome = ReportOutcome.Sent, Message = "Relatório enviado. Obrigado!" };
+                    progress?.Report(new(100, T("Enviado.")));
+                    return new BugReportResult { Outcome = ReportOutcome.Sent, Message = T("Relatório enviado. Obrigado!") };
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                 catch (Exception ex) { onlineError = ex.Message; }
             }
 
             // offline fallback: a .zip the user can attach to an e-mail
-            progress?.Report(new(60, "Gerando o pacote…"));
+            progress?.Report(new(60, T("Gerando o pacote…")));
             try
             {
                 var path = await Task.Run(() => SaveZip(package), ct).ConfigureAwait(false);
-                progress?.Report(new(100, "Pacote gerado."));
+                progress?.Report(new(100, T("Pacote gerado.")));
                 return new BugReportResult
                 {
                     Outcome = ReportOutcome.SavedOffline,
                     ZipPath = path,
                     Message = onlineError == null
-                        ? "Relatório salvo. Anexe o arquivo selecionado num e-mail para o desenvolvedor."
-                        : $"Não foi possível enviar ({onlineError}). O relatório foi salvo: anexe o arquivo selecionado num e-mail."
+                        ? T("Relatório salvo. Anexe o arquivo selecionado num e-mail para o desenvolvedor.")
+                        : TF("Não foi possível enviar ({0}). O relatório foi salvo: anexe o arquivo selecionado num e-mail.", onlineError)
                 };
             }
             catch (Exception ex)
             {
                 lock (_gate) _last = null; // nothing went out: let the user try again right away
-                return new BugReportResult { Outcome = ReportOutcome.Failed, Message = "Não foi possível gerar o relatório: " + ex.Message };
+                return new BugReportResult { Outcome = ReportOutcome.Failed, Message = T("Não foi possível gerar o relatório: ") + ex.Message };
             }
         }
 

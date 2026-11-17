@@ -573,7 +573,7 @@ namespace HelmetDesk
 
                 // delete: "this and following" through the dialog
                 fv.RequestDeleteTx(parts[1]);
-                Check("finanças: excluir parcela pergunta e oferece 'as seguintes'", DialogOpen && DialogDontAsk.Visibility == Visibility.Visible && DialogCheckText.Text.Contains("1 parcela seguinte"));
+                Check("finanças: excluir parcela pergunta e oferece 'as seguintes'", DialogOpen && DialogDontAsk.Visibility == Visibility.Visible && DialogCheckText.Text.Contains("a parcela seguinte"));
                 DialogDontAsk.IsChecked = true;
                 CloseDialog(true);
                 Check("finanças: excluir esta e as seguintes", !D.Transactions.Contains(parts[1]) && !D.Transactions.Contains(parts[2]) && D.Transactions.Contains(parts[0]));

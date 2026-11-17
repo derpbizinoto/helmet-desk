@@ -104,7 +104,7 @@ namespace HelmetDesk.Core
 
         private BackupManifest Export(string zipPath, IProgress<OperationProgress> progress, CancellationToken ct)
         {
-            progress?.Report(new(5, "Lendo os dados…"));
+            progress?.Report(new(5, T("Lendo os dados…")));
             // a consistent snapshot: copy the files into memory while the app is not writing them
             var files = new List<(string rel, byte[] bytes)>();
             var folderFiles = new List<(string rel, string full, long size)>();
@@ -124,7 +124,7 @@ namespace HelmetDesk.Core
                         folderFiles.Add((Normalize(Path.GetRelativePath(_o.DataDir, f)), f, new FileInfo(f).Length));
                 }
             }
-            if (files.Count == 0) throw new BackupException(BackupError.Io, "Não há dados para exportar.");
+            if (files.Count == 0) throw new BackupException(BackupError.Io, T("Não há dados para exportar."));
             ct.ThrowIfCancellationRequested();
 
             var manifest = new BackupManifest
@@ -137,7 +137,7 @@ namespace HelmetDesk.Core
             };
             long folderTotal = Math.Max(1, folderFiles.Sum(f => f.size)), folderDone = 0;
 
-            progress?.Report(new(40, "Compactando…"));
+            progress?.Report(new(40, T("Compactando…")));
             var dir = Path.GetDirectoryName(Path.GetFullPath(zipPath));
             Directory.CreateDirectory(dir);
             // write next to the target and move into place: a cancelled/failed export never leaves half a zip
@@ -156,7 +156,7 @@ namespace HelmetDesk.Core
                     foreach (var (rel, full, size) in folderFiles)
                     {
                         ct.ThrowIfCancellationRequested();
-                        progress?.Report(new(40 + (int)(55 * folderDone / folderTotal), "Compactando anexos…"));
+                        progress?.Report(new(40 + (int)(55 * folderDone / folderTotal), T("Compactando anexos…")));
                         FileStream src;
                         try { src = new FileStream(full, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete); }
                         catch (FileNotFoundException) { continue; } // removed meanwhile
@@ -181,7 +181,7 @@ namespace HelmetDesk.Core
                 TryDelete(tmp);
                 throw;
             }
-            progress?.Report(new(100, "Backup exportado."));
+            progress?.Report(new(100, T("Backup exportado.")));
             return manifest;
         }
 
@@ -192,19 +192,19 @@ namespace HelmetDesk.Core
 
         private BackupManifest Validate(string zipPath, IProgress<OperationProgress> progress, CancellationToken ct)
         {
-            progress?.Report(new(5, "Verificando o backup…"));
+            progress?.Report(new(5, T("Verificando o backup…")));
             ZipArchive zip;
             try { zip = ZipFile.OpenRead(zipPath); }
             catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException or NotSupportedException)
             {
-                throw new BackupException(BackupError.Corrupt, "O arquivo não é um .zip válido ou está corrompido.", ex);
+                throw new BackupException(BackupError.Corrupt, T("O arquivo não é um .zip válido ou está corrompido."), ex);
             }
             using (zip)
             {
                 // ---- size and paths, before reading anything ----
                 IReadOnlyCollection<ZipArchiveEntry> entries;
                 try { entries = zip.Entries; }
-                catch (InvalidDataException ex) { throw new BackupException(BackupError.Corrupt, "O arquivo .zip está corrompido.", ex); }
+                catch (InvalidDataException ex) { throw new BackupException(BackupError.Corrupt, T("O arquivo .zip está corrompido."), ex); }
                 int dataCount = 0, folderCount = 0;
                 long total = 0;
                 foreach (var e in entries)
@@ -213,21 +213,21 @@ namespace HelmetDesk.Core
                     if (InDataFolder(e.FullName))
                     {
                         if (++folderCount > _o.MaxFolderEntries)
-                            throw new BackupException(BackupError.TooLarge, "O backup tem arquivos demais para ser um backup do Helmet Desk.");
+                            throw new BackupException(BackupError.TooLarge, T("O backup tem arquivos demais para ser um backup do Helmet Desk."));
                         if (e.Length > 1024 * 1024 && e.Length > e.CompressedLength * _o.MaxCompressionRatio)
-                            throw new BackupException(BackupError.TooLarge, $"Um arquivo do backup está compactado de forma suspeita e foi recusado por segurança: {e.FullName}");
+                            throw new BackupException(BackupError.TooLarge, TF("Um arquivo do backup está compactado de forma suspeita e foi recusado por segurança: {0}", e.FullName));
                         continue;
                     }
                     if (++dataCount > _o.MaxEntries)
-                        throw new BackupException(BackupError.TooLarge, "O backup tem arquivos demais para ser um backup do Helmet Desk.");
+                        throw new BackupException(BackupError.TooLarge, T("O backup tem arquivos demais para ser um backup do Helmet Desk."));
                     total += e.Length;
                     if (total > _o.MaxUncompressedBytes)
-                        throw new BackupException(BackupError.TooLarge, $"O backup é grande demais (limite de {_o.MaxUncompressedBytes / (1024 * 1024)} MB descompactado).");
+                        throw new BackupException(BackupError.TooLarge, TF("O backup é grande demais (limite de {0} MB descompactado).", _o.MaxUncompressedBytes / (1024 * 1024)));
                 }
 
                 // ---- manifest ----
                 var me = zip.GetEntry(BackupManifest.FileName)
-                    ?? throw new BackupException(BackupError.NotHelmetDesk, "Este .zip não é um backup do Helmet Desk (falta o manifest.json).");
+                    ?? throw new BackupException(BackupError.NotHelmetDesk, T("Este .zip não é um backup do Helmet Desk (falta o manifest.json)."));
                 BackupManifest manifest;
                 try
                 {
@@ -236,15 +236,15 @@ namespace HelmetDesk.Core
                 }
                 catch (Exception ex) when (ex is JsonException or InvalidDataException or BackupException)
                 {
-                    throw new BackupException(BackupError.Corrupt, "O manifest.json do backup está ilegível.", ex);
+                    throw new BackupException(BackupError.Corrupt, T("O manifest.json do backup está ilegível."), ex);
                 }
                 if (manifest == null || manifest.App != BackupManifest.AppName)
-                    throw new BackupException(BackupError.NotHelmetDesk, "Este .zip não é um backup do Helmet Desk.");
+                    throw new BackupException(BackupError.NotHelmetDesk, T("Este .zip não é um backup do Helmet Desk."));
                 if (manifest.SchemaVersion > _o.CurrentSchema)
                     throw new BackupException(BackupError.NewerSchema,
-                        $"Este backup foi criado por uma versão mais nova do Helmet Desk ({manifest.AppVersion}). Atualize o Helmet Desk para importá-lo.");
+                        TF("Este backup foi criado por uma versão mais nova do Helmet Desk ({0}). Atualize o Helmet Desk para importá-lo.", manifest.AppVersion));
                 if (manifest.SchemaVersion < 1 || manifest.Files == null || manifest.Files.Count == 0)
-                    throw new BackupException(BackupError.Corrupt, "O manifest.json do backup está incompleto.");
+                    throw new BackupException(BackupError.Corrupt, T("O manifest.json do backup está incompleto."));
 
                 // ---- every listed file is there, nothing else is, and the hashes match ----
                 var listed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -252,29 +252,29 @@ namespace HelmetDesk.Core
                 {
                     CheckSafePath(f.Path);
                     if (!listed.Add(Normalize(f.Path)))
-                        throw new BackupException(BackupError.Corrupt, "O manifest.json lista o mesmo arquivo duas vezes.");
+                        throw new BackupException(BackupError.Corrupt, T("O manifest.json lista o mesmo arquivo duas vezes."));
                 }
                 foreach (var e in entries)
                 {
                     if (e.FullName.EndsWith("/") && e.Length == 0) continue; // folder entry
                     if (e.FullName == BackupManifest.FileName) continue;
                     if (!listed.Contains(Normalize(e.FullName)))
-                        throw new BackupException(BackupError.HashMismatch, $"O backup tem um arquivo que não está no manifesto: {e.FullName}");
+                        throw new BackupException(BackupError.HashMismatch, TF("O backup tem um arquivo que não está no manifesto: {0}", e.FullName));
                 }
                 int i = 0;
                 foreach (var f in manifest.Files)
                 {
                     ct.ThrowIfCancellationRequested();
-                    progress?.Report(new(10 + 60 * i++ / manifest.Files.Count, "Conferindo a integridade…"));
+                    progress?.Report(new(10 + 60 * i++ / manifest.Files.Count, T("Conferindo a integridade…")));
                     var e = zip.GetEntry(Normalize(f.Path))
-                        ?? throw new BackupException(BackupError.HashMismatch, $"Falta no backup o arquivo {f.Path}.");
+                        ?? throw new BackupException(BackupError.HashMismatch, TF("Falta no backup o arquivo {0}.", f.Path));
                     string h;
                     try { using var s = e.Open(); h = Hash(s, f.Size); }
-                    catch (InvalidDataException ex) { throw new BackupException(BackupError.Corrupt, $"O arquivo {f.Path} dentro do backup está corrompido.", ex); }
+                    catch (InvalidDataException ex) { throw new BackupException(BackupError.Corrupt, TF("O arquivo {0} dentro do backup está corrompido.", f.Path), ex); }
                     if (!string.Equals(h, f.Sha256, StringComparison.OrdinalIgnoreCase))
-                        throw new BackupException(BackupError.HashMismatch, $"O arquivo {f.Path} não confere com o manifesto (SHA-256 diferente). O backup pode ter sido alterado ou danificado.");
+                        throw new BackupException(BackupError.HashMismatch, TF("O arquivo {0} não confere com o manifesto (SHA-256 diferente). O backup pode ter sido alterado ou danificado.", f.Path));
                 }
-                progress?.Report(new(70, "Backup verificado."));
+                progress?.Report(new(70, T("Backup verificado.")));
                 return manifest;
             }
         }
@@ -283,13 +283,13 @@ namespace HelmetDesk.Core
         internal static void CheckSafePath(string name)
         {
             if (string.IsNullOrWhiteSpace(name) || name.Contains('\0'))
-                throw new BackupException(BackupError.UnsafePath, "O backup tem um nome de arquivo inválido.");
+                throw new BackupException(BackupError.UnsafePath, T("O backup tem um nome de arquivo inválido."));
             if (Path.IsPathRooted(name) || name.StartsWith("/") || name.StartsWith("\\") || name.Contains(':'))
-                throw new BackupException(BackupError.UnsafePath, $"O backup tem um caminho absoluto, recusado por segurança: {name}");
+                throw new BackupException(BackupError.UnsafePath, TF("O backup tem um caminho absoluto, recusado por segurança: {0}", name));
             var root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "hd-zip-check")) + Path.DirectorySeparatorChar;
             var full = Path.GetFullPath(Path.Combine(root, name));
             if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-                throw new BackupException(BackupError.UnsafePath, $"O backup tenta gravar fora da pasta de dados, recusado por segurança: {name}");
+                throw new BackupException(BackupError.UnsafePath, TF("O backup tenta gravar fora da pasta de dados, recusado por segurança: {0}", name));
         }
 
         // ======================= import =======================
@@ -310,10 +310,10 @@ namespace HelmetDesk.Core
             long free = FreeSpace(dataDir);
             if (free >= 0 && free < need)
                 throw new BackupException(BackupError.TooLarge,
-                    $"Espaço em disco insuficiente para importar este backup: são necessários {Gb(need)} livres e há {Gb(free)}.");
+                    TF("Espaço em disco insuficiente para importar este backup: são necessários {0} livres e há {1}.", Gb(need), Gb(free)));
 
             // 1. safety copy of what is there now
-            progress?.Report(new(72, "Guardando uma cópia dos dados atuais…"));
+            progress?.Report(new(72, T("Guardando uma cópia dos dados atuais…")));
             string safety = null;
             if (_o.DataFiles.Any(f => File.Exists(Path.Combine(dataDir, f))))
             {
@@ -327,7 +327,7 @@ namespace HelmetDesk.Core
             try
             {
                 // 2. extract into a sibling folder (same volume, so the swap is a rename)
-                progress?.Report(new(80, "Extraindo…"));
+                progress?.Report(new(80, T("Extraindo…")));
                 if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
                 Directory.CreateDirectory(tmp);
                 var tmpRoot = tmp + Path.DirectorySeparatorChar;
@@ -337,7 +337,7 @@ namespace HelmetDesk.Core
                     {
                         var target = Path.GetFullPath(Path.Combine(tmp, Normalize(f.Path)));
                         if (!target.StartsWith(tmpRoot, StringComparison.OrdinalIgnoreCase))
-                            throw new BackupException(BackupError.UnsafePath, $"Caminho recusado: {f.Path}");
+                            throw new BackupException(BackupError.UnsafePath, TF("Caminho recusado: {0}", f.Path));
                         Directory.CreateDirectory(Path.GetDirectoryName(target));
                         using (var src = zip.GetEntry(Normalize(f.Path)).Open())
                         using (var dst = new FileStream(target, FileMode.CreateNew, FileAccess.Write))
@@ -345,7 +345,7 @@ namespace HelmetDesk.Core
                         // validate what actually landed on disk
                         using var check = File.OpenRead(target);
                         if (!string.Equals(Hash(check, f.Size), f.Sha256, StringComparison.OrdinalIgnoreCase))
-                            throw new BackupException(BackupError.HashMismatch, $"O arquivo {f.Path} mudou ao ser extraído.");
+                            throw new BackupException(BackupError.HashMismatch, TF("O arquivo {0} mudou ao ser extraído.", f.Path));
                     }
                 }
                 _o.FaultInjector?.Invoke(ImportStage.Extracted);
@@ -371,7 +371,7 @@ namespace HelmetDesk.Core
                 }
 
                 // 5. swap: current → .old, new → current
-                progress?.Report(new(92, "Substituindo os dados…"));
+                progress?.Report(new(92, T("Substituindo os dados…")));
                 if (Directory.Exists(old)) Directory.Delete(old, true);
                 bool hadData = Directory.Exists(dataDir);
                 if (hadData) Directory.Move(dataDir, old);
@@ -398,15 +398,15 @@ namespace HelmetDesk.Core
                 catch (Exception rex)
                 {
                     throw new BackupException(BackupError.Io,
-                        $"A importação falhou e não foi possível restaurar a pasta automaticamente. Seus dados originais estão em \"{old}\" e a cópia de segurança em \"{safety}\".", new AggregateException(ex, rex));
+                        TF("A importação falhou e não foi possível restaurar a pasta automaticamente. Seus dados originais estão em \"{0}\" e a cópia de segurança em \"{1}\".", old, safety), new AggregateException(ex, rex));
                 }
                 finally { TryDeleteDir(tmp); }
                 if (ex is BackupException) throw;
-                throw new BackupException(BackupError.Io, "A importação falhou e os dados atuais foram mantidos: " + ex.Message, ex);
+                throw new BackupException(BackupError.Io, T("A importação falhou e os dados atuais foram mantidos: ") + ex.Message, ex);
             }
 
             TryDeleteDir(old); // only after success
-            progress?.Report(new(100, "Backup importado."));
+            progress?.Report(new(100, T("Backup importado.")));
             return safety;
         }
 
@@ -482,7 +482,7 @@ namespace HelmetDesk.Core
             while ((n = s.Read(buf, 0, buf.Length)) > 0)
             {
                 total += n;
-                if (total > declared) throw new BackupException(BackupError.HashMismatch, "Um arquivo do backup é maior do que o manifesto diz.");
+                if (total > declared) throw new BackupException(BackupError.HashMismatch, T("Um arquivo do backup é maior do que o manifesto diz."));
                 sha.AppendData(buf, 0, n);
             }
             return Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant();
@@ -496,7 +496,7 @@ namespace HelmetDesk.Core
             while ((n = src.Read(buf, 0, buf.Length)) > 0)
             {
                 total += n;
-                if (total > max) throw new BackupException(BackupError.HashMismatch, "Um arquivo do backup é maior do que o manifesto diz.");
+                if (total > max) throw new BackupException(BackupError.HashMismatch, T("Um arquivo do backup é maior do que o manifesto diz."));
                 dst.Write(buf, 0, n);
             }
         }

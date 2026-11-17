@@ -61,10 +61,10 @@ namespace HelmetDesk
             var head = new DockPanel { Margin = new Thickness(0, 0, 0, 10) };
             if (editable)
             {
-                var add = new Button { Style = (Style)FindResource("GhostButton"), Padding = new Thickness(8, 4, 8, 4), ToolTip = "Escolher arquivos do computador" };
+                var add = new Button { Style = (Style)FindResource("GhostButton"), Padding = new Thickness(8, 4, 8, 4), ToolTip = T("Escolher arquivos do computador") };
                 var addRow = new StackPanel { Orientation = Orientation.Horizontal };
                 addRow.Children.Add(new Icon { Data = Ui.Geo("I.Plus"), Width = 14, Height = 14, Margin = new Thickness(0, 0, 6, 0) });
-                addRow.Children.Add(new TextBlock { Text = "Adicionar" });
+                addRow.Children.Add(new TextBlock { Text = T("Adicionar") });
                 add.Content = addRow;
                 add.Click += (s, e) => PickFiles(it);
                 DockPanel.SetDock(add, Dock.Right);
@@ -74,7 +74,7 @@ namespace HelmetDesk
             var clip = new Icon { Data = Ui.Geo("I.Paperclip"), Width = 15, Height = 15, Margin = new Thickness(0, 0, 8, 0) };
             clip.SetResourceReference(HelmetDesk.Icon.ForegroundProperty, "Text2");
             title.Children.Add(clip);
-            title.Children.Add(new TextBlock { Text = "Anexos", FontSize = 14, FontWeight = FontWeights.SemiBold });
+            title.Children.Add(new TextBlock { Text = T("Anexos"), FontSize = 14, FontWeight = FontWeights.SemiBold });
             if (it.HasAttachments) title.Children.Add(new TextBlock { Text = "  " + it.Attachments.Count, Style = Ui.St("Muted"), VerticalAlignment = VerticalAlignment.Center });
             head.Children.Add(title);
             host.Children.Add(head);
@@ -99,7 +99,7 @@ namespace HelmetDesk
         {
             var text = new TextBlock
             {
-                Text = "Cole aqui com Ctrl+V ou arraste imagens, links e arquivos", TextWrapping = TextWrapping.Wrap,
+                Text = T("Cole aqui com Ctrl+V ou arraste imagens, links e arquivos"), TextWrapping = TextWrapping.Wrap,
                 TextAlignment = TextAlignment.Center, FontSize = 12.5, Margin = new Thickness(12, 14, 12, 14),
             };
             text.SetResourceReference(TextBlock.ForegroundProperty, "Text2");
@@ -112,7 +112,7 @@ namespace HelmetDesk
             {
                 Child = grid, Margin = new Thickness(0, 6, 0, 0), Focusable = true, FocusVisualStyle = null, Background = Brushes.Transparent,
                 CornerRadius = new CornerRadius(10), Cursor = Cursors.Hand, Name = "AttachZone",
-                ToolTip = "Clique para escolher arquivos no computador",
+                ToolTip = T("Clique para escolher arquivos no computador"),
             };
             zone.GotKeyboardFocus += (s, e) => { dash.SetResourceReference(Shape.StrokeProperty, "Accent"); zone.SetResourceReference(Border.BackgroundProperty, "AccentSoft"); };
             zone.LostKeyboardFocus += (s, e) => { dash.SetResourceReference(Shape.StrokeProperty, "Line"); zone.Background = Brushes.Transparent; };
@@ -146,7 +146,7 @@ namespace HelmetDesk
             // rounded clip for the picture itself
             frame.SizeChanged += (s, e) => img.Clip = new RectangleGeometry(new Rect(0, 0, frame.ActualWidth - 2, frame.ActualHeight - 2), 7, 7);
 
-            var grid = new Grid { Margin = new Thickness(0, 0, 8, 8), ToolTip = $"{a.Name}\n{Attachments.FormatSize(a.Size)} · clique para abrir" };
+            var grid = new Grid { Margin = new Thickness(0, 0, 8, 8), ToolTip = $"{a.Name}\n{Attachments.FormatSize(a.Size)} · {T("clique para abrir")}" };
             grid.Children.Add(frame);
             if (editable)
             {
@@ -220,7 +220,7 @@ namespace HelmetDesk
             string name = link ? LinkPreview.FullTitle(a.Url) ?? LinkPreview.Label(a.Url) : a.Name;
             text.Children.Add(new TextBlock { Text = name, FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis });
             string meta = link ? LinkPreview.Host(a.Url)
-                : $"{Attachments.FormatSize(a.Size)} · {(System.IO.Path.GetExtension(a.Name) is { Length: > 1 } ext ? ext.Substring(1).ToUpperInvariant() : "arquivo")}";
+                : $"{Attachments.FormatSize(a.Size)} · {(System.IO.Path.GetExtension(a.Name) is { Length: > 1 } ext ? ext.Substring(1).ToUpperInvariant() : T("arquivo"))}";
             text.Children.Add(new TextBlock { Text = meta, Style = Ui.St("Muted"), FontSize = 11.5, Margin = new Thickness(0, 2, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis });
             row.Children.Add(text);
 
@@ -228,7 +228,7 @@ namespace HelmetDesk
             {
                 Child = row, Padding = new Thickness(6), Margin = new Thickness(-6, 0, -6, 4), CornerRadius = new CornerRadius(8),
                 Background = Brushes.Transparent, Cursor = Cursors.Hand,
-                ToolTip = (link ? a.Url : a.Name) + (link ? "\nClique para abrir no navegador" : "\nClique para abrir"),
+                ToolTip = (link ? a.Url : a.Name) + (link ? T("\nClique para abrir no navegador") : T("\nClique para abrir")),
             };
             b.MouseEnter += (s, e) => { b.SetResourceReference(Border.BackgroundProperty, "AccentSoft"); if (editable) row.Children[0].Visibility = Visibility.Visible; };
             b.MouseLeave += (s, e) => { b.Background = Brushes.Transparent; if (editable) row.Children[0].Visibility = Visibility.Hidden; };
@@ -241,7 +241,7 @@ namespace HelmetDesk
         {
             var rm = new Button
             {
-                Style = (Style)FindResource("IconButton"), Padding = new Thickness(4), ToolTip = "Remover anexo", VerticalAlignment = VerticalAlignment.Center,
+                Style = (Style)FindResource("IconButton"), Padding = new Thickness(4), ToolTip = T("Remover anexo"), VerticalAlignment = VerticalAlignment.Center,
                 Content = new Icon { Data = Ui.Geo("I.X"), Width = 13, Height = 13 },
             };
             rm.SetResourceReference(Control.BackgroundProperty, "Elevated");
@@ -258,10 +258,10 @@ namespace HelmetDesk
                 mi.Click += (s, e) => act();
                 menu.Items.Add(mi);
             }
-            Add(a.Kind == AttachmentKind.Link ? "Abrir no navegador" : "Abrir", () => Attachments.Open(a));
-            if (a.Kind == AttachmentKind.Link) Add("Copiar link", () => { try { Clipboard.SetText(a.Url); } catch { } });
-            else Add("Mostrar na pasta", () => Attachments.Reveal(a));
-            if (editable) { menu.Items.Add(new Separator()); Add("Remover", () => RemoveAttachment(it, a)); }
+            Add(a.Kind == AttachmentKind.Link ? T("Abrir no navegador") : T("Abrir"), () => Attachments.Open(a));
+            if (a.Kind == AttachmentKind.Link) Add(T("Copiar link"), () => { try { Clipboard.SetText(a.Url); } catch { } });
+            else Add(T("Mostrar na pasta"), () => Attachments.Reveal(a));
+            if (editable) { menu.Items.Add(new Separator()); Add(T("Remover"), () => RemoveAttachment(it, a)); }
             return menu;
         }
 
@@ -271,12 +271,12 @@ namespace HelmetDesk
             if (index < 0) return;
             it.Attachments.Remove(a);
             // the file stays on disk until the next start, so "Desfazer" brings it back intact
-            ShowSnack("Anexo removido", "Desfazer", () => it.Attachments.Insert(Math.Min(index, it.Attachments.Count), a));
+            ShowSnack(T("Anexo removido"), T("Desfazer"), () => it.Attachments.Insert(Math.Min(index, it.Attachments.Count), a));
         }
 
         private async void PickFiles(Item it)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Title = "Anexar arquivos" };
+            var dlg = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Title = T("Anexar arquivos") };
             if (dlg.ShowDialog(this) != true) return;
             await AddFiles(it, dlg.FileNames);
         }
@@ -284,11 +284,11 @@ namespace HelmetDesk
         private async Task AddFiles(Item it, IEnumerable<string> files)
         {
             var list = files.ToList();
-            if (list.Any(Directory.Exists)) ShowSnack("Pastas não podem ser anexadas, só arquivos", null, null);
+            if (list.Any(Directory.Exists)) ShowSnack(T("Pastas não podem ser anexadas, só arquivos"), null, null);
             long big = list.Where(File.Exists).Sum(f => new FileInfo(f).Length);
-            if (big > 50L << 20) ShowSnack("Copiando arquivos para a nota…", null, null);
+            if (big > 50L << 20) ShowSnack(T("Copiando arquivos para a nota…"), null, null);
             int n = await Attachments.AddFilesAsync(it, list);
-            if (big > 50L << 20 && n > 0) ShowSnack(n == 1 ? "Arquivo anexado" : $"{n} arquivos anexados", null, null);
+            if (big > 50L << 20 && n > 0) ShowSnack(n == 1 ? T("Arquivo anexado") : TF("{0} arquivos anexados", n), null, null);
             RevealAttachments();
         }
 

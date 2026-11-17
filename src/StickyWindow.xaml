@@ -17,7 +17,7 @@
             <Border DockPanel.Dock="Top" Height="4" local:Motion.Background="{Binding LabelBrush}"/>
             <DockPanel DockPanel.Dock="Top" Height="30" Margin="10,0,4,0">
                 <!-- top right: only "open in Helmet Desk"; the other actions sit in the bottom bar -->
-                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Padding="5" Click="Open_Click" ToolTip="Abrir no Helmet Desk"
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Padding="5" Click="Open_Click" ToolTip="{local:Tr 'Abrir no Helmet Desk'}"
                         WindowChrome.IsHitTestVisibleInChrome="True" VerticalAlignment="Center">
                     <local:Icon Data="{StaticResource I.Open}" Width="14" Height="14"/>
                 </Button>
@@ -27,16 +27,16 @@
 
             <!-- bottom right: new / label / always on top / close -->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,4,4">
-                <Button Style="{StaticResource IconButton}" Padding="5" Click="New_Click" ToolTip="Nova nota na área de trabalho">
+                <Button Style="{StaticResource IconButton}" Padding="5" Click="New_Click" ToolTip="{local:Tr 'Nova nota na área de trabalho'}">
                     <local:Icon Data="{StaticResource I.Plus}" Width="14" Height="14"/>
                 </Button>
-                <Button x:Name="ColorBtn" Style="{StaticResource IconButton}" Padding="5" Click="Color_Click" ToolTip="Etiqueta de cor">
+                <Button x:Name="ColorBtn" Style="{StaticResource IconButton}" Padding="5" Click="Color_Click" ToolTip="{local:Tr 'Etiqueta de cor'}">
                     <local:Icon Data="{StaticResource I.Tag}" Width="14" Height="14"/>
                 </Button>
-                <ToggleButton x:Name="TopBtn" Style="{StaticResource ToggleIcon}" Padding="5" Click="Top_Click" ToolTip="Manter sempre visível (sobre as outras janelas)">
+                <ToggleButton x:Name="TopBtn" Style="{StaticResource ToggleIcon}" Padding="5" Click="Top_Click" ToolTip="{local:Tr 'Manter sempre visível (sobre as outras janelas)'}">
                     <local:Icon Data="{StaticResource I.Pin}" Width="14" Height="14"/>
                 </ToggleButton>
-                <Button Style="{StaticResource IconButton}" Padding="5" Click="Close_Click" ToolTip="Fechar widget (a nota continua salva)">
+                <Button Style="{StaticResource IconButton}" Padding="5" Click="Close_Click" ToolTip="{local:Tr 'Fechar widget (a nota continua salva)'}">
                     <local:Icon Data="{StaticResource I.X}" Width="14" Height="14"/>
                 </Button>
             </StackPanel>
@@ -59,10 +59,10 @@
             <ScrollViewer x:Name="BodyScroll" VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="14,2,12,14">
                     <TextBox x:Name="TitleBox" Style="{StaticResource BareTextBox}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
-                             Tag="Título" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
+                             Tag="{local:Tr 'Título'}" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <StackPanel Visibility="{Binding IsTask, Converter={StaticResource Vis}}" Margin="0,8,0,0">
-                        <CheckBox Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}" Content="Concluída"/>
+                        <CheckBox Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}" Content="{local:Tr 'Concluída'}"/>
                     </StackPanel>
 
                     <WrapPanel Margin="0,12,0,0">
@@ -81,7 +81,7 @@
                     </WrapPanel>
 
                     <TextBox Style="{StaticResource BareTextBox}" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
-                             TextWrapping="Wrap" Tag="Escreva aqui…" MinHeight="36" Margin="0,14,0,0" Foreground="{StaticResource Text}" SpellCheck.IsEnabled="False"/>
+                             TextWrapping="Wrap" Tag="{local:Tr 'Escreva aqui…'}" MinHeight="36" Margin="0,14,0,0" Foreground="{StaticResource Text}" SpellCheck.IsEnabled="False"/>
 
                     <ItemsControl ItemsSource="{Binding Checklist}" Margin="0,14,0,0">
                         <ItemsControl.ItemTemplate>
@@ -112,7 +112,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <Grid Margin="0,4,0,0">
-                        <TextBox x:Name="NewCheck" Style="{StaticResource BareTextBox}" Tag="Adicionar item (Enter)" Padding="26,4,0,4" KeyDown="NewCheck_KeyDown"/>
+                        <TextBox x:Name="NewCheck" Style="{StaticResource BareTextBox}" Tag="{local:Tr 'Adicionar item (Enter)'}" Padding="26,4,0,4" KeyDown="NewCheck_KeyDown"/>
                         <local:Icon Data="{StaticResource I.Square}" Foreground="{StaticResource Text2}" Width="16" Height="16"
                                     HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False" Opacity="0.6"/>
                     </Grid>

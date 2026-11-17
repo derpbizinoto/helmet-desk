@@ -43,7 +43,7 @@
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="local:Ui.Radius" Value="6"/>
         <Setter Property="local:Motion.Press" Value="False"/>
-        <Setter Property="ToolTip" Value="Recolher ou expandir"/>
+        <Setter Property="ToolTip" Value="{local:Tr 'Recolher ou expandir'}"/>
     </Style>
 
     <Style x:Key="SettingTitle" TargetType="TextBlock">

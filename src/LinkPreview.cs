@@ -437,7 +437,7 @@ namespace HelmetDesk
                 }
                 label.Text = LinkPreview.Label(url);
                 var title = LinkPreview.FullTitle(url);
-                chip.ToolTip = (title != null ? title + "\n" : "") + url + "\nClique para abrir no navegador";
+                chip.ToolTip = (title != null ? title + "\n" : "") + url + T("\nClique para abrir no navegador");
             }
             Update();
 

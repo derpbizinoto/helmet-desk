@@ -205,13 +205,13 @@ namespace HelmetDesk
         public DateField()
         {
             var grid = new Grid();
-            _box = new TextBox { Tag = "dd/mm/aaaa", Padding = new Thickness(10, 7, 34, 7) };
+            _box = new TextBox { Tag = T("dd/mm/aaaa"), Padding = new Thickness(10, 7, 34, 7) };
             _box.LostFocus += (s, e) => Commit();
             _box.KeyDown += (s, e) => { if (e.Key == Key.Enter) { Commit(); e.Handled = true; } };
             var btn = new Button
             {
                 Style = Ui.St("IconButton"), Content = new Icon { Data = Ui.Geo("I.Calendar"), Width = 15, Height = 15 },
-                HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 4, 0), ToolTip = "Escolher data"
+                HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 4, 0), ToolTip = T("Escolher data")
             };
             grid.Children.Add(_box);
             grid.Children.Add(btn);
@@ -220,10 +220,10 @@ namespace HelmetDesk
             _cal.Picked += d => { SelectedDate = d; _popup.IsOpen = false; };
 
             var quick = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
-            quick.Children.Add(Quick("Hoje", () => DateTime.Today));
-            quick.Children.Add(Quick("Amanhã", () => DateTime.Today.AddDays(1)));
-            quick.Children.Add(Quick("+1 semana", () => (SelectedDate ?? DateTime.Today).AddDays(7)));
-            quick.Children.Add(Quick("Limpar", () => null));
+            quick.Children.Add(Quick(T("Hoje"), () => DateTime.Today));
+            quick.Children.Add(Quick(T("Amanhã"), () => DateTime.Today.AddDays(1)));
+            quick.Children.Add(Quick(T("+1 semana"), () => (SelectedDate ?? DateTime.Today).AddDays(7)));
+            quick.Children.Add(Quick(T("Limpar"), () => null));
 
             var panel = new StackPanel();
             panel.Children.Add(_cal);
@@ -260,7 +260,7 @@ namespace HelmetDesk
 
         private void SyncText()
         {
-            _box.Text = SelectedDate.HasValue ? SelectedDate.Value.ToString("dd/MM/yyyy") : "";
+            _box.Text = SelectedDate.HasValue ? SelectedDate.Value.ToString(T("dd/MM/yyyy"), System.Globalization.CultureInfo.InvariantCulture) : "";
         }
     }
 }

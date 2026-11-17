@@ -256,7 +256,7 @@ namespace HelmetDesk
         [JsonIgnore] public bool IsTask => Kind == ItemKind.Task;
         [JsonIgnore] public bool IsNote => Kind == ItemKind.Note;
         [JsonIgnore] public string KindName => IsTask ? "Tarefa" : "Nota";
-        [JsonIgnore] public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? (IsTask ? "Tarefa sem título" : "Nota sem título") : Title;
+        [JsonIgnore] public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? (IsTask ? T("Tarefa sem título") : T("Nota sem título")) : Title;
 
         [JsonIgnore] public SolidColorBrush LabelBrush => Store.LabelById(LabelId)?.Brush ?? Palette.BrushFrom("#8950D9");
         [JsonIgnore] public string LabelName => Store.LabelById(LabelId)?.Name ?? "";
@@ -318,7 +318,7 @@ namespace HelmetDesk
         [JsonIgnore] public bool HasPreview => !string.IsNullOrWhiteSpace(Body);
 
         [JsonIgnore] public bool HasPriority => Priority > 0;
-        [JsonIgnore] public string PriorityText => Priority switch { 1 => "Baixa", 2 => "Média", 3 => "Alta", _ => "" };
+        [JsonIgnore] public string PriorityText => Priority switch { 1 => T("Baixa"), 2 => T("Média"), 3 => T("Alta"), _ => "" };
         [JsonIgnore]
         public SolidColorBrush PriorityBrush => Priority switch
         {
@@ -379,8 +379,15 @@ namespace HelmetDesk
         private bool _confirmDelete = true;
         /// <summary>Ask "tem certeza?" before deleting a note/task.</summary>
         public bool ConfirmDelete { get => _confirmDelete; set { if (Set(ref _confirmDelete, value)) Store.MarkDirty(); } }
-        /// <summary>Visual theme: "aero" (Frutiger Aero, default) or "classic" (the dark UI). Applied at startup.</summary>
-        public string Theme { get; set; } = "aero";
+        /// <summary>Visual theme: "classic" (the dark UI, default) or "aero" (Frutiger Aero). Applied at startup.</summary>
+        public string Theme { get; set; } = "classic";
+        /// <summary>Interface language: "en" or "pt-BR". Applied at startup (changing it restarts the app).
+        /// Missing in data files from 1.0.0, which keep pt-BR; a new install starts in English (Store.Load).</summary>
+        public string Language { get; set; }
+        private string _currency;
+        /// <summary>Currency shown in Finanças: "BRL", "USD" or "EUR" (symbol only, amounts are not converted).
+        /// Missing in data files from 1.0.0, which keep BRL; a new install follows the language (Store.Load).</summary>
+        public string Currency { get => _currency; set { if (Set(ref _currency, value)) Store.MarkDirty(); } }
         public bool SidebarCollapsed { get; set; }
         public double SidebarWidth { get; set; } = 228;
 
@@ -457,7 +464,8 @@ namespace HelmetDesk
 
     public static class Dates
     {
-        public static readonly CultureInfo Pt = CultureInfo.GetCultureInfo("pt-BR");
+        /// <summary>Culture of the interface language (dates, numbers). See HelmetDesk.Core.L.</summary>
+        public static CultureInfo Culture => L.Culture;
 
         public static bool TryParseTime(string s, out TimeSpan t)
         {
@@ -485,12 +493,15 @@ namespace HelmetDesk
             s = (s ?? "").Trim().ToLowerInvariant();
             if (s.Length == 0) return true;
             var today = DateTime.Today;
-            if (s == "hoje") { d = today; return true; }
-            if (s == "amanhã" || s == "amanha") { d = today.AddDays(1); return true; }
-            if (s == "ontem") { d = today.AddDays(-1); return true; }
-            string[] formats = { "d/M/yyyy", "d/M/yy", "d-M-yyyy", "d.M.yyyy", "yyyy-M-d" };
-            if (DateTime.TryParseExact(s, formats, Pt, DateTimeStyles.None, out var r)) { d = r.Date; return true; }
-            if (DateTime.TryParseExact(s, new[] { "d/M", "d-M", "d.M" }, Pt, DateTimeStyles.None, out r))
+            if (s is "hoje" or "today") { d = today; return true; }
+            if (s is "amanhã" or "amanha" or "tomorrow") { d = today.AddDays(1); return true; }
+            if (s is "ontem" or "yesterday") { d = today.AddDays(-1); return true; }
+            // day first in pt-BR (25/12), month first in English (12/25); ISO always works
+            string[] formats = L.IsEnglish
+                ? new[] { "M/d/yyyy", "M/d/yy", "M-d-yyyy", "yyyy-M-d" }
+                : new[] { "d/M/yyyy", "d/M/yy", "d-M-yyyy", "d.M.yyyy", "yyyy-M-d" };
+            if (DateTime.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var r)) { d = r.Date; return true; }
+            if (DateTime.TryParseExact(s, L.IsEnglish ? new[] { "M/d", "M-d" } : new[] { "d/M", "d-M", "d.M" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out r))
             {
                 d = new DateTime(today.Year, r.Month, r.Day);
                 return true;
@@ -504,11 +515,11 @@ namespace HelmetDesk
             var d = date.Value.Date;
             var today = DateTime.Today;
             string s;
-            if (d == today) s = "Hoje";
-            else if (d == today.AddDays(1)) s = "Amanhã";
-            else if (d == today.AddDays(-1)) s = "Ontem";
-            else if (d.Year == today.Year) s = d.ToString("ddd, d MMM", Pt).Replace(".", "");
-            else s = d.ToString("d MMM yyyy", Pt).Replace(".", "");
+            if (d == today) s = T("Hoje");
+            else if (d == today.AddDays(1)) s = T("Amanhã");
+            else if (d == today.AddDays(-1)) s = T("Ontem");
+            else if (d.Year == today.Year) s = d.ToString(T("ddd, d MMM"), Culture).Replace(".", "");
+            else s = d.ToString(T("d MMM yyyy"), Culture).Replace(".", "");
             if (!string.IsNullOrWhiteSpace(time)) s += " · " + time;
             return s;
         }
@@ -519,22 +530,23 @@ namespace HelmetDesk
             return d.Date.AddDays(-diff);
         }
 
-        public static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0], Pt) + s.Substring(1);
+        public static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0], Culture) + s.Substring(1);
 
-        public static string MonthTitle(DateTime d) => Cap(d.ToString("MMMM 'de' yyyy", Pt));
+        public static string MonthTitle(DateTime d) => Cap(d.ToString(T("MMMM 'de' yyyy"), Culture));
 
         public static string WeekTitle(DateTime start)
         {
             var end = start.AddDays(6);
             var today = DateTime.Today;
             var cur = StartOfWeek(today);
-            string prefix = start == cur ? "Esta semana" : start == cur.AddDays(7) ? "Próxima semana" : start == cur.AddDays(-7) ? "Semana passada" : "Semana";
+            string prefix = start == cur ? T("Esta semana") : start == cur.AddDays(7) ? T("Próxima semana") : start == cur.AddDays(-7) ? T("Semana passada") : T("Semana");
             int wk = ISOWeek.GetWeekOfYear(start.AddDays(1));
-            string range = start.Month == end.Month
-                ? $"{start.Day}–{end.Day} {end.ToString("MMM", Pt).Replace(".", "")}"
-                : $"{start.Day} {start.ToString("MMM", Pt).Replace(".", "")} – {end.Day} {end.ToString("MMM", Pt).Replace(".", "")}";
-            if (end.Year != today.Year) range += $" {end.Year}";
-            return $"{prefix} · {range} (S{wk})";
+            string M(DateTime x) => x.ToString("MMM", Culture).Replace(".", "");
+            string range = L.IsEnglish
+                ? (start.Month == end.Month ? $"{M(end)} {start.Day}–{end.Day}" : $"{M(start)} {start.Day} – {M(end)} {end.Day}")
+                : (start.Month == end.Month ? $"{start.Day}–{end.Day} {M(end)}" : $"{start.Day} {M(start)} – {end.Day} {M(end)}");
+            if (end.Year != today.Year) range += L.IsEnglish ? $", {end.Year}" : $" {end.Year}";
+            return $"{prefix} · {range} ({T("S")}{wk})";
         }
     }
 }

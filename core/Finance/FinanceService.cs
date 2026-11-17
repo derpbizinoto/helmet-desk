@@ -21,7 +21,7 @@ namespace HelmetDesk.Core.Finance
     /// </summary>
     public static class FinanceService
     {
-        public const string AdjustmentDescription = "Ajuste de saldo";
+        public static string AdjustmentDescription => T("Ajuste de saldo");
 
         // ================= first run =================
 
@@ -33,19 +33,19 @@ namespace HelmetDesk.Core.Finance
             {
                 (string name, string color, string icon)[] expense =
                 {
-                    ("Alimentação", "#F2A65A", "food"), ("Moradia", "#78B7FF", "home"), ("Transporte", "#5CC8C8", "car"),
-                    ("Assinaturas", "#B48CF2", "repeat"), ("Lazer", "#FF8FB1", "fun"), ("Saúde", "#64D6A2", "health"),
-                    ("Outros", "#9A93A8", "dots"),
+                    (T("Alimentação"), "#F2A65A", "food"), (T("Moradia"), "#78B7FF", "home"), (T("Transporte"), "#5CC8C8", "car"),
+                    (T("Assinaturas"), "#B48CF2", "repeat"), (T("Lazer"), "#FF8FB1", "fun"), (T("Saúde"), "#64D6A2", "health"),
+                    (T("Outros"), "#9A93A8", "dots"),
                 };
                 (string name, string color, string icon)[] income =
                 {
-                    ("Salário", "#64D6A2", "salary"), ("Freelance", "#8BD3FF", "laptop"), ("Outros", "#9A93A8", "dots"),
+                    (T("Salário"), "#64D6A2", "salary"), (T("Freelance"), "#8BD3FF", "laptop"), (T("Outros"), "#9A93A8", "dots"),
                 };
                 foreach (var (n, c, i) in expense) d.Categories.Add(new Category { Name = n, Kind = CategoryKind.Expense, Color = c, Icon = i });
                 foreach (var (n, c, i) in income) d.Categories.Add(new Category { Name = n, Kind = CategoryKind.Income, Color = c, Icon = i });
             }
             if (d.Accounts.Count == 0)
-                d.Accounts.Add(new Account { Name = "Carteira", Type = AccountType.Wallet, Color = "#8950D9" });
+                d.Accounts.Add(new Account { Name = T("Carteira"), Type = AccountType.Wallet, Color = "#8950D9" });
             d.LastAccountId ??= d.Accounts[0].Id;
             d.Seeded = true;
         }
@@ -453,8 +453,8 @@ namespace HelmetDesk.Core.Finance
         /// <summary>Deletes a category, moving its transactions and recurrences to <paramref name="moveTo"/> (may be null when unused).</summary>
         public static void DeleteCategory(FinanceData d, Category c, Category moveTo)
         {
-            if (moveTo == c) throw new ArgumentException("A categoria de destino é a mesma que será excluída.");
-            if (moveTo == null && UsageCount(d, c) > 0) throw new InvalidOperationException("Escolha para qual categoria mover os lançamentos.");
+            if (moveTo == c) throw new ArgumentException(T("A categoria de destino é a mesma que será excluída."));
+            if (moveTo == null && UsageCount(d, c) > 0) throw new InvalidOperationException(T("Escolha para qual categoria mover os lançamentos."));
             foreach (var t in d.Transactions.Where(t => t.CategoryId == c.Id)) t.CategoryId = moveTo.Id;
             foreach (var r in d.Recurrences.Where(r => r.CategoryId == c.Id)) r.CategoryId = moveTo.Id;
             d.Categories.Remove(c);

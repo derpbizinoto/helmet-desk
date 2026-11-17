@@ -27,19 +27,19 @@
                         <TextBlock Text="{Binding DateText}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource Pill}" Visibility="{Binding HasEstimate, Converter={StaticResource Vis}}" Margin="0,4,6,0" ToolTip="Tempo estimado">
+                <Border Style="{StaticResource Pill}" Visibility="{Binding HasEstimate, Converter={StaticResource Vis}}" Margin="0,4,6,0" ToolTip="{local:Tr 'Tempo estimado'}">
                     <StackPanel Orientation="Horizontal">
                         <local:Icon Data="{StaticResource I.Clock}" Style="{StaticResource PillIcon}"/>
                         <TextBlock Text="{Binding EstimateDisplay}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource Pill}" Visibility="{Binding HasChecklist, Converter={StaticResource Vis}}" Margin="0,4,6,0" ToolTip="Checklist">
+                <Border Style="{StaticResource Pill}" Visibility="{Binding HasChecklist, Converter={StaticResource Vis}}" Margin="0,4,6,0" ToolTip="{local:Tr 'Checklist'}">
                     <StackPanel Orientation="Horizontal">
                         <local:Icon Data="{StaticResource I.Tasks}" Style="{StaticResource PillIcon}"/>
                         <TextBlock Text="{Binding ChecklistText}"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource Pill}" Visibility="{Binding HasPriority, Converter={StaticResource Vis}}" Margin="0,4,6,0" ToolTip="Prioridade">
+                <Border Style="{StaticResource Pill}" Visibility="{Binding HasPriority, Converter={StaticResource Vis}}" Margin="0,4,6,0" ToolTip="{local:Tr 'Prioridade'}">
                     <StackPanel Orientation="Horizontal">
                         <local:Icon Data="{StaticResource I.Flag}" Style="{StaticResource PillIcon}" Foreground="{Binding PriorityBrush}"/>
                         <TextBlock Text="{Binding PriorityText}"/>
@@ -65,10 +65,10 @@
                     <DockPanel Margin="16,14,10,14" LastChildFill="True">
                         <DockPanel DockPanel.Dock="Top">
                             <StackPanel x:Name="actions" DockPanel.Dock="Right" Orientation="Horizontal" Opacity="0" Margin="4,-2,0,0">
-                                <Button Style="{StaticResource IconButton}" Click="PinWidget_Click" ToolTip="Fixar na área de trabalho">
+                                <Button Style="{StaticResource IconButton}" Click="PinWidget_Click" ToolTip="{local:Tr 'Fixar na área de trabalho'}">
                                     <local:Icon Data="{StaticResource I.Pin}" Width="14" Height="14"/>
                                 </Button>
-                                <Button Style="{StaticResource DangerGhost}" Padding="6" Click="Delete_Click" ToolTip="Excluir">
+                                <Button Style="{StaticResource DangerGhost}" Padding="6" Click="Delete_Click" ToolTip="{local:Tr 'Excluir'}">
                                     <local:Icon Data="{StaticResource I.Trash}" Width="14" Height="14"/>
                                 </Button>
                             </StackPanel>
@@ -133,7 +133,7 @@
                     <!-- fixed width so the task ring and the note icon share one centre line -->
                     <Grid Width="24" Margin="0,0,12,0" VerticalAlignment="Center">
                         <CheckBox x:Name="cb" Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}"
-                                  Visibility="{Binding IsTask, Converter={StaticResource Vis}}" ToolTip="Concluir"/>
+                                  Visibility="{Binding IsTask, Converter={StaticResource Vis}}" ToolTip="{local:Tr 'Concluir'}"/>
                         <local:Icon Data="{StaticResource I.Note}" Foreground="{StaticResource Text2}" Width="18" Height="18" HorizontalAlignment="Center"
                                     Visibility="{Binding IsNote, Converter={StaticResource Vis}}"/>
                     </Grid>
@@ -144,10 +144,10 @@
                     </StackPanel>
                     <!-- pin · delete · edit, side by side; shown on hover (or when one of them has keyboard focus) -->
                     <StackPanel x:Name="actions" Grid.Column="3" Orientation="Horizontal" Opacity="0" VerticalAlignment="Center" Margin="8,0,0,0">
-                        <Button Style="{StaticResource IconButton}" Click="PinWidget_Click" ToolTip="Fixar na área de trabalho">
+                        <Button Style="{StaticResource IconButton}" Click="PinWidget_Click" ToolTip="{local:Tr 'Fixar na área de trabalho'}">
                             <local:Icon Data="{StaticResource I.Pin}" Width="14" Height="14"/>
                         </Button>
-                        <Button Style="{StaticResource DangerGhost}" Padding="6" Click="Delete_Click" ToolTip="Excluir">
+                        <Button Style="{StaticResource DangerGhost}" Padding="6" Click="Delete_Click" ToolTip="{local:Tr 'Excluir'}">
                             <local:Icon Data="{StaticResource I.Trash}" Width="14" Height="14"/>
                         </Button>
                         <Button Style="{StaticResource EditButton}" Click="EditItem_Click" VerticalAlignment="Center">
@@ -245,7 +245,7 @@
                                        TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                         <Button x:Name="SideToggle" Grid.Column="1" Style="{StaticResource IconButton}" Click="SideToggle_Click"
-                                VerticalAlignment="Center" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Recolher barra lateral (Ctrl+B)">
+                                VerticalAlignment="Center" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="{local:Tr 'Recolher barra lateral (Ctrl+B)'}">
                             <local:Icon Data="{StaticResource I.PanelLeft}" Width="16" Height="16"/>
                         </Button>
                     </Grid>
@@ -254,7 +254,7 @@
                         <!-- 1. today's pending tasks -->
                         <Border Background="{StaticResource Bg}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" local:Ui.WideOnly="True">
                             <StackPanel>
-                                <TextBlock Text="HOJE" Style="{StaticResource Overline}"/>
+                                <TextBlock Text="{local:Tr 'HOJE'}" Style="{StaticResource Overline}"/>
                                 <TextBlock x:Name="SideTodayText" FontSize="13" Margin="0,6,0,0" TextWrapping="Wrap"/>
                                 <TextBlock x:Name="SideTodayHours" Style="{StaticResource Muted}" Margin="0,2,0,0"/>
                             </StackPanel>
@@ -267,35 +267,35 @@
                         <!-- 2. new sticky note -->
                         <Button x:Name="SideStickyRow" Style="{StaticResource SideRowButton}" Click="NewSticky_Click" Margin="0,0,0,8"
                                 MinHeight="{Binding ActualHeight, ElementName=SideWidgetRow}"
-                                ToolTip="Cria uma nota já fixada na área de trabalho" local:Ui.WideOnly="True">
+                                ToolTip="{local:Tr 'Cria uma nota já fixada na área de trabalho'}" local:Ui.WideOnly="True">
                             <StackPanel Orientation="Horizontal">
                                 <local:Icon Data="{StaticResource I.Widget}" Foreground="{StaticResource Text2}" Width="15" Height="15" Margin="0,0,8,0"/>
-                                <TextBlock Text="Nova nota adesiva"/>
+                                <TextBlock Text="{local:Tr 'Nova nota adesiva'}"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource SideRowButton}" Click="NewSticky_Click" Padding="0" Height="36" Margin="0,0,0,8"
                                 HorizontalContentAlignment="Center" local:Ui.Radius="8"
-                                ToolTip="Nova nota adesiva" local:Ui.CompactOnly="True" Visibility="Collapsed">
+                                ToolTip="{local:Tr 'Nova nota adesiva'}" local:Ui.CompactOnly="True" Visibility="Collapsed">
                             <local:Icon Data="{StaticResource I.Widget}" Foreground="{StaticResource Text2}" Width="16" Height="16"/>
                         </Button>
 
                         <!-- 3. desktop tasks widget on/off (same setting as Configurações › Widget de tarefas) -->
                         <Border x:Name="SideWidgetRow" Background="{StaticResource Bg}" CornerRadius="10" Padding="14,9,10,9"
                                 Cursor="Hand" MouseLeftButtonUp="SideWidgetRow_Click" local:Ui.WideOnly="True"
-                                ToolTip="Mostra ou esconde a lista de tarefas na área de trabalho">
+                                ToolTip="{local:Tr 'Mostra ou esconde a lista de tarefas na área de trabalho'}">
                             <DockPanel>
                                 <CheckBox x:Name="SideWidgetSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" VerticalAlignment="Center"
                                           IsChecked="{Binding TasksWidget, Mode=OneWay}" Click="TasksWidgetToggle_Click"
-                                          AutomationProperties.Name="Widget de tarefas na área de trabalho"/>
+                                          AutomationProperties.Name="{local:Tr 'Widget de tarefas na área de trabalho'}"/>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <local:Icon Data="{StaticResource I.List}" Foreground="{StaticResource Text2}" Width="15" Height="15" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Widget de tarefas" FontSize="13"/>
+                                    <TextBlock Text="{local:Tr 'Widget de tarefas'}" FontSize="13"/>
                                 </StackPanel>
                             </DockPanel>
                         </Border>
                         <ToggleButton x:Name="SideWidgetCompact" Style="{StaticResource ToggleIcon}" Height="36" HorizontalAlignment="Stretch"
                                       IsChecked="{Binding TasksWidget, Mode=OneWay}" Click="SideWidgetCompact_Click"
-                                      local:Ui.CompactOnly="True" Visibility="Collapsed" ToolTip="Widget de tarefas (ligar/desligar)">
+                                      local:Ui.CompactOnly="True" Visibility="Collapsed" ToolTip="{local:Tr 'Widget de tarefas (ligar/desligar)'}">
                             <local:Icon Data="{StaticResource I.List}"/>
                         </ToggleButton>
                     </StackPanel>
@@ -310,7 +310,7 @@
                                 <TextBlock x:Name="CountToday" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center" local:Ui.WideOnly="True"/>
                                 <StackPanel Orientation="Horizontal">
                                     <local:Icon Data="{StaticResource I.Home}" Margin="0,0,10,0"/>
-                                    <TextBlock Text="Hoje" local:Ui.WideOnly="True"/>
+                                    <TextBlock Text="{local:Tr 'Hoje'}" local:Ui.WideOnly="True"/>
                                 </StackPanel>
                             </DockPanel>
                         </RadioButton>
@@ -319,7 +319,7 @@
                                 <TextBlock x:Name="CountNotes" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center" local:Ui.WideOnly="True"/>
                                 <StackPanel Orientation="Horizontal">
                                     <local:Icon Data="{StaticResource I.Note}" Margin="0,0,10,0"/>
-                                    <TextBlock Text="Notas" local:Ui.WideOnly="True"/>
+                                    <TextBlock Text="{local:Tr 'Notas'}" local:Ui.WideOnly="True"/>
                                 </StackPanel>
                             </DockPanel>
                         </RadioButton>
@@ -328,23 +328,23 @@
                                 <TextBlock x:Name="CountTasks" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center" local:Ui.WideOnly="True"/>
                                 <StackPanel Orientation="Horizontal">
                                     <local:Icon Data="{StaticResource I.Tasks}" Margin="0,0,10,0"/>
-                                    <TextBlock Text="Tarefas" local:Ui.WideOnly="True"/>
+                                    <TextBlock Text="{local:Tr 'Tarefas'}" local:Ui.WideOnly="True"/>
                                 </StackPanel>
                             </DockPanel>
                         </RadioButton>
                         <RadioButton x:Name="NavCalendar" Style="{StaticResource NavButton}" GroupName="nav" Tag="calendar" Checked="Nav_Checked" HorizontalContentAlignment="Stretch" local:Ui.CompactTip="Calendário">
                             <StackPanel Orientation="Horizontal">
                                 <local:Icon Data="{StaticResource I.Calendar}" Margin="0,0,10,0"/>
-                                <TextBlock Text="Calendário" local:Ui.WideOnly="True"/>
+                                <TextBlock Text="{local:Tr 'Calendário'}" local:Ui.WideOnly="True"/>
                             </StackPanel>
                         </RadioButton>
                         <RadioButton x:Name="NavFinance" Style="{StaticResource NavButton}" GroupName="nav" Tag="finance" Checked="Nav_Checked" HorizontalContentAlignment="Stretch" local:Ui.CompactTip="Finanças">
                             <DockPanel>
                                 <TextBlock x:Name="CountFinance" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center" local:Ui.WideOnly="True"
-                                           ToolTip="Lançamentos pendentes vencidos ou que vencem hoje"/>
+                                           ToolTip="{local:Tr 'Lançamentos pendentes vencidos ou que vencem hoje'}"/>
                                 <StackPanel Orientation="Horizontal">
                                     <local:Icon Data="{StaticResource I.Wallet}" Margin="0,0,10,0"/>
-                                    <TextBlock Text="Finanças" local:Ui.WideOnly="True"/>
+                                    <TextBlock Text="{local:Tr 'Finanças'}" local:Ui.WideOnly="True"/>
                                 </StackPanel>
                             </DockPanel>
                         </RadioButton>
@@ -352,7 +352,7 @@
                         <RadioButton x:Name="NavSettings" Style="{StaticResource NavButton}" GroupName="nav" Tag="settings" Checked="Nav_Checked" HorizontalContentAlignment="Stretch" local:Ui.CompactTip="Configurações">
                             <StackPanel Orientation="Horizontal">
                                 <local:Icon Data="{StaticResource I.Settings}" Margin="0,0,10,0"/>
-                                <TextBlock Text="Configurações" local:Ui.WideOnly="True"/>
+                                <TextBlock Text="{local:Tr 'Configurações'}" local:Ui.WideOnly="True"/>
                             </StackPanel>
                         </RadioButton>
                     </StackPanel>
@@ -364,7 +364,7 @@
             <GridSplitter x:Name="SideSplitter" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="7" Margin="0,0,-3,0"
                           ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" Panel.ZIndex="10" Focusable="False"
                           Cursor="SizeWE" WindowChrome.IsHitTestVisibleInChrome="True" DragCompleted="SideSplitter_DragCompleted"
-                          ToolTip="Arraste para ajustar a largura">
+                          ToolTip="{local:Tr 'Arraste para ajustar a largura'}">
                 <GridSplitter.Template>
                     <ControlTemplate TargetType="GridSplitter">
                         <Grid Background="Transparent">
@@ -395,13 +395,13 @@
 
                 <!-- window buttons -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                    <Button Style="{StaticResource ChromeButton}" Click="Min_Click" ToolTip="Minimizar">
+                    <Button Style="{StaticResource ChromeButton}" Click="Min_Click" ToolTip="{local:Tr 'Minimizar'}">
                         <local:Icon Data="{StaticResource I.Minus}" Width="14" Height="14" Thickness="1.6"/>
                     </Button>
-                    <Button Style="{StaticResource ChromeButton}" Click="Max_Click" ToolTip="Maximizar">
+                    <Button Style="{StaticResource ChromeButton}" Click="Max_Click" ToolTip="{local:Tr 'Maximizar'}">
                         <local:Icon x:Name="MaxIcon" Data="{StaticResource I.Max}" Width="12" Height="12" Thickness="1.8"/>
                     </Button>
-                    <Button Style="{StaticResource CloseChromeButton}" Click="Close_Click" ToolTip="Fechar">
+                    <Button Style="{StaticResource CloseChromeButton}" Click="Close_Click" ToolTip="{local:Tr 'Fechar'}">
                         <local:Icon Data="{StaticResource I.X}" Width="14" Height="14" Thickness="1.6"/>
                     </Button>
                 </StackPanel>
@@ -413,25 +413,25 @@
                             <Button x:Name="BtnNewNote" Style="{StaticResource SecondaryButton}" Click="NewNote_Click" Margin="8,0,0,0">
                                 <StackPanel Orientation="Horizontal">
                                     <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Nova nota"/>
+                                    <TextBlock Text="{local:Tr 'Nova nota'}"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnNewTask" Style="{StaticResource PrimaryButton}" Click="NewTask_Click" Margin="8,0,0,0">
                                 <StackPanel Orientation="Horizontal">
                                     <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Nova tarefa"/>
+                                    <TextBlock Text="{local:Tr 'Nova tarefa'}"/>
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnNewTx" Style="{StaticResource PrimaryButton}" Click="NewTx_Click" Margin="8,0,0,0" Visibility="Collapsed"
-                                    ToolTip="Novo lançamento (Ctrl+N)">
+                                    ToolTip="{local:Tr 'Novo lançamento (Ctrl+N)'}">
                                 <StackPanel Orientation="Horizontal">
                                     <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Novo lançamento"/>
+                                    <TextBlock Text="{local:Tr 'Novo lançamento'}"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                         <StackPanel>
-                            <TextBlock x:Name="PageTitle" Style="{StaticResource H1}" Text="Hoje"/>
+                            <TextBlock x:Name="PageTitle" Style="{StaticResource H1}" Text="{local:Tr 'Hoje'}"/>
                             <TextBlock x:Name="PageSub" Style="{StaticResource MutedItalic}" FontSize="13" Margin="0,4,0,0"/>
                         </StackPanel>
                     </DockPanel>
@@ -439,22 +439,22 @@
                     <StackPanel x:Name="Toolbar" Margin="0,16,0,0">
                         <WrapPanel>
                             <Grid Width="260" Margin="0,0,10,8">
-                                <TextBox x:Name="SearchBox" Tag="Buscar…" Padding="32,7,10,7" TextChanged="Search_Changed"/>
+                                <TextBox x:Name="SearchBox" Tag="{local:Tr 'Buscar…'}" Padding="32,7,10,7" TextChanged="Search_Changed"/>
                                 <local:Icon Data="{StaticResource I.Search}" Foreground="{StaticResource Text2}" Width="14" Height="14"
                                             HorizontalAlignment="Left" Margin="11,0,0,0" IsHitTestVisible="False"/>
                             </Grid>
-                            <Border Style="{StaticResource SegBox}" Margin="0,0,10,8" ToolTip="Separar por período">
+                            <Border Style="{StaticResource SegBox}" Margin="0,0,10,8" ToolTip="{local:Tr 'Separar por período'}">
                                 <StackPanel Orientation="Horizontal">
-                                    <RadioButton x:Name="GroupNone" Style="{StaticResource SegButton}" GroupName="grp" Content="Tudo" Tag="none" Checked="Group_Checked"/>
-                                    <RadioButton x:Name="GroupWeek" Style="{StaticResource SegButton}" GroupName="grp" Content="Por semana" Tag="week" Checked="Group_Checked"/>
-                                    <RadioButton x:Name="GroupMonth" Style="{StaticResource SegButton}" GroupName="grp" Content="Por mês" Tag="month" Checked="Group_Checked"/>
+                                    <RadioButton x:Name="GroupNone" Style="{StaticResource SegButton}" GroupName="grp" Content="{local:Tr 'Tudo'}" Tag="none" Checked="Group_Checked"/>
+                                    <RadioButton x:Name="GroupWeek" Style="{StaticResource SegButton}" GroupName="grp" Content="{local:Tr 'Por semana'}" Tag="week" Checked="Group_Checked"/>
+                                    <RadioButton x:Name="GroupMonth" Style="{StaticResource SegButton}" GroupName="grp" Content="{local:Tr 'Por mês'}" Tag="month" Checked="Group_Checked"/>
                                 </StackPanel>
                             </Border>
                             <Border x:Name="StatusBox" Style="{StaticResource SegBox}" Margin="0,0,10,8">
                                 <StackPanel Orientation="Horizontal">
-                                    <RadioButton x:Name="StatusPending" Style="{StaticResource SegButton}" GroupName="st" Content="Pendentes" Tag="0" Checked="Status_Checked" IsChecked="True"/>
-                                    <RadioButton Style="{StaticResource SegButton}" GroupName="st" Content="Concluídas" Tag="1" Checked="Status_Checked"/>
-                                    <RadioButton Style="{StaticResource SegButton}" GroupName="st" Content="Todas" Tag="2" Checked="Status_Checked"/>
+                                    <RadioButton x:Name="StatusPending" Style="{StaticResource SegButton}" GroupName="st" Content="{local:Tr 'Pendentes'}" Tag="0" Checked="Status_Checked" IsChecked="True"/>
+                                    <RadioButton Style="{StaticResource SegButton}" GroupName="st" Content="{local:Tr 'Concluídas'}" Tag="1" Checked="Status_Checked"/>
+                                    <RadioButton Style="{StaticResource SegButton}" GroupName="st" Content="{local:Tr 'Todas'}" Tag="2" Checked="Status_Checked"/>
                                 </StackPanel>
                             </Border>
                         </WrapPanel>
@@ -476,35 +476,35 @@
                             <UniformGrid Columns="4" Margin="-6,0,-6,16">
                                 <Border Style="{StaticResource Card}" Margin="6,0">
                                     <StackPanel>
-                                        <TextBlock Text="Pendentes hoje" Style="{StaticResource Muted}"/>
+                                        <TextBlock Text="{local:Tr 'Pendentes hoje'}" Style="{StaticResource Muted}"/>
                                         <TextBlock x:Name="StatToday" Style="{StaticResource BigNumber}" Margin="0,6,0,0"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource Card}" Margin="6,0">
                                     <StackPanel>
-                                        <TextBlock Text="Horas planejadas hoje" Style="{StaticResource Muted}"/>
+                                        <TextBlock Text="{local:Tr 'Horas planejadas hoje'}" Style="{StaticResource Muted}"/>
                                         <TextBlock x:Name="StatTodayHours" Style="{StaticResource BigNumber}" Margin="0,6,0,0"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource Card}" Margin="6,0">
                                     <StackPanel>
-                                        <TextBlock Text="Horas nesta semana" Style="{StaticResource Muted}"/>
+                                        <TextBlock Text="{local:Tr 'Horas nesta semana'}" Style="{StaticResource Muted}"/>
                                         <TextBlock x:Name="StatWeekHours" Style="{StaticResource BigNumber}" Margin="0,6,0,0"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource Card}" Margin="6,0">
                                     <StackPanel>
-                                        <TextBlock Text="Atrasadas" Style="{StaticResource Muted}"/>
+                                        <TextBlock Text="{local:Tr 'Atrasadas'}" Style="{StaticResource Muted}"/>
                                         <TextBlock x:Name="StatOverdue" Style="{StaticResource BigNumber}" Margin="0,6,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </UniformGrid>
                             <!-- Finanças: bills due today and the current balance (only once something was entered there) -->
                             <Border x:Name="TodayFinance" Style="{StaticResource Card}" Padding="14,10" Margin="0,0,0,16" Cursor="Hand"
-                                    MouseLeftButtonUp="TodayFinance_Click" ToolTip="Abrir Finanças" Visibility="Collapsed">
+                                    MouseLeftButtonUp="TodayFinance_Click" ToolTip="{local:Tr 'Abrir Finanças'}" Visibility="Collapsed">
                                 <DockPanel>
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="Saldo atual" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{local:Tr 'Saldo atual'}" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                         <TextBlock x:Name="TodayFinanceBalance" FontSize="15" FontWeight="SemiBold" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <local:Icon DockPanel.Dock="Left" Data="{StaticResource I.Wallet}" Foreground="{StaticResource Accent}" Margin="0,0,10,0" VerticalAlignment="Center"/>
@@ -528,7 +528,7 @@
                                     <local:Icon DockPanel.Dock="Left" Data="{StaticResource I.Plus}" Foreground="{StaticResource Accent}"
                                                 VerticalAlignment="Center" Margin="0,0,10,0" IsHitTestVisible="False"/>
                                     <Border x:Name="QuickKindChip" DockPanel.Dock="Left" Visibility="Collapsed" CornerRadius="5" Padding="8,3"
-                                            Margin="0,0,6,0" VerticalAlignment="Center" Cursor="Hand" ToolTip="Clique para remover"
+                                            Margin="0,0,6,0" VerticalAlignment="Center" Cursor="Hand" ToolTip="{local:Tr 'Clique para remover'}"
                                             MouseLeftButtonDown="QuickKindChip_MouseDown">
                                         <StackPanel Orientation="Horizontal">
                                             <local:Icon x:Name="QuickKindIcon" Width="13" Height="13" Margin="0,0,5,0" VerticalAlignment="Center"/>
@@ -537,7 +537,7 @@
                                     </Border>
                                     <Border x:Name="QuickDateChip" DockPanel.Dock="Left" Visibility="Collapsed" CornerRadius="5" Padding="8,3"
                                             Margin="0,0,6,0" VerticalAlignment="Center" Background="{StaticResource ChipBg}" Cursor="Hand"
-                                            ToolTip="Clique para remover a data" MouseLeftButtonDown="QuickDateChip_MouseDown">
+                                            ToolTip="{local:Tr 'Clique para remover a data'}" MouseLeftButtonDown="QuickDateChip_MouseDown">
                                         <StackPanel Orientation="Horizontal">
                                             <local:Icon Data="{StaticResource I.Calendar}" Width="13" Height="13" Margin="0,0,5,0"
                                                         Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
@@ -547,7 +547,7 @@
                                     </Border>
                                     <Border x:Name="QuickTimeChip" DockPanel.Dock="Left" Visibility="Collapsed" CornerRadius="5" Padding="8,3"
                                             Margin="0,0,6,0" VerticalAlignment="Center" Background="{StaticResource ChipBg}" Cursor="Hand"
-                                            ToolTip="Clique para remover o horário" MouseLeftButtonDown="QuickTimeChip_MouseDown">
+                                            ToolTip="{local:Tr 'Clique para remover o horário'}" MouseLeftButtonDown="QuickTimeChip_MouseDown">
                                         <StackPanel Orientation="Horizontal">
                                             <local:Icon Data="{StaticResource I.Clock}" Width="13" Height="13" Margin="0,0,5,0"
                                                         Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
@@ -556,12 +556,12 @@
                                         </StackPanel>
                                     </Border>
                                     <TextBox x:Name="QuickAdd" Style="{StaticResource BareTextBox}" VerticalContentAlignment="Center" Padding="0,10"
-                                             Tag="Adicionar rápido"
+                                             Tag="{local:Tr 'Adicionar rápido'}"
                                              PreviewKeyDown="QuickAdd_PreviewKeyDown" KeyDown="QuickAdd_KeyDown" TextChanged="QuickAdd_TextChanged"/>
                                 </DockPanel>
                             </Border>
                             <ItemsControl x:Name="TodayGroups" ItemTemplate="{StaticResource RowGroup}"/>
-                            <TextBlock x:Name="TodayEmpty" Text="Nada pendente por aqui. Aproveite o dia."
+                            <TextBlock x:Name="TodayEmpty" Text="{local:Tr 'Nada pendente por aqui. Aproveite o dia.'}"
                                        Style="{StaticResource MutedItalic}" FontSize="13" Margin="0,8,0,0" Visibility="Collapsed"/>
                         </StackPanel>
                     </ScrollViewer>
@@ -588,13 +588,13 @@
                         <DockPanel Margin="0,0,0,12">
                             <TextBlock x:Name="CalMeta" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource SecondaryButton}" Padding="7" Click="CalPrev_Click" ToolTip="Mês anterior">
+                                <Button Style="{StaticResource SecondaryButton}" Padding="7" Click="CalPrev_Click" ToolTip="{local:Tr 'Mês anterior'}">
                                     <local:Icon Data="{StaticResource I.Left}"/>
                                 </Button>
-                                <Button Style="{StaticResource SecondaryButton}" Padding="7" Margin="6,0,0,0" Click="CalNext_Click" ToolTip="Próximo mês">
+                                <Button Style="{StaticResource SecondaryButton}" Padding="7" Margin="6,0,0,0" Click="CalNext_Click" ToolTip="{local:Tr 'Próximo mês'}">
                                     <local:Icon Data="{StaticResource I.Right}"/>
                                 </Button>
-                                <Button Style="{StaticResource SecondaryButton}" Content="Hoje" Margin="6,0,14,0" Click="CalToday_Click"/>
+                                <Button Style="{StaticResource SecondaryButton}" Content="{local:Tr 'Hoje'}" Margin="6,0,14,0" Click="CalToday_Click"/>
                                 <TextBlock x:Name="CalTitle" Style="{StaticResource H2}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DockPanel>
@@ -610,79 +610,93 @@
                         <StackPanel x:Name="SettingsPanel" Margin="32,0,32,32" MaxWidth="760" HorizontalAlignment="Left">
                             <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="Geral" Style="{StaticResource H2}"/>
+                                    <TextBlock Text="{local:Tr 'Geral'}" Style="{StaticResource H2}"/>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <Border DockPanel.Dock="Right" Style="{StaticResource SegBox}" VerticalAlignment="Center"
-                                                AutomationProperties.Name="Tema">
+                                                AutomationProperties.Name="{local:Tr 'Tema'}">
                                             <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="ThemeClassic" Style="{StaticResource SegButton}" GroupName="theme" Content="{local:Tr 'Clássico'}" Tag="classic" Click="Theme_Click"/>
                                                 <RadioButton x:Name="ThemeAero" Style="{StaticResource SegButton}" GroupName="theme" Content="Frutiger Aero" Tag="aero" Click="Theme_Click"/>
-                                                <RadioButton x:Name="ThemeClassic" Style="{StaticResource SegButton}" GroupName="theme" Content="Clássico" Tag="classic" Click="Theme_Click"/>
                                             </StackPanel>
                                         </Border>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Tema" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Visual do app. Ao trocar, o Helmet Desk reinicia sozinho para aplicar." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Tema'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Visual do app. Ao trocar, o Helmet Desk reinicia sozinho para aplicar.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <Border DockPanel.Dock="Right" Style="{StaticResource SegBox}" VerticalAlignment="Center"
+                                                AutomationProperties.Name="{local:Tr 'Idioma'}">
+                                            <!-- language names are written in their own language, so anyone can find theirs -->
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton x:Name="LangEnglish" Style="{StaticResource SegButton}" GroupName="lang" Content="English" Tag="en" Click="Language_Click"/>
+                                                <RadioButton x:Name="LangPortuguese" Style="{StaticResource SegButton}" GroupName="lang" Content="Português (Brasil)" Tag="pt-BR" Click="Language_Click"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <StackPanel Margin="0,0,16,0">
+                                            <TextBlock Text="{local:Tr 'Idioma'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Idioma da interface. Ao trocar, o Helmet Desk reinicia sozinho para aplicar.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding StartWithWindows}" Click="StartupToggle_Click" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Iniciar com o Windows" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Abre o Helmet Desk automaticamente quando você entra no Windows." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Iniciar com o Windows'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Abre o Helmet Desk automaticamente quando você entra no Windows.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding StartMinimized}" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Iniciar minimizado na bandeja" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Ao iniciar com o Windows, abre só os widgets e o ícone da bandeja." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Iniciar minimizado na bandeja'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Ao iniciar com o Windows, abre só os widgets e o ícone da bandeja.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding CloseToTray}" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Fechar para a bandeja" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="O botão fechar (X) esconde a janela e mantém o app na bandeja. Para sair, use o menu da bandeja." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Fechar para a bandeja'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'O botão fechar (X) esconde a janela e mantém o app na bandeja. Para sair, use o menu da bandeja.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding MinimizeToTray}" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Minimizar para a bandeja" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Ao minimizar, a janela sai da barra de tarefas e fica só na bandeja." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Minimizar para a bandeja'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Ao minimizar, a janela sai da barra de tarefas e fica só na bandeja.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox x:Name="ConfirmDeleteSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding ConfirmDelete}" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Confirmar antes de excluir" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Pergunta se você tem certeza antes de excluir uma nota ou tarefa. Desligado, a exclusão é imediata (ainda dá para desfazer pelo aviso no rodapé)." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Confirmar antes de excluir'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Pergunta se você tem certeza antes de excluir uma nota ou tarefa. Desligado, a exclusão é imediata (ainda dá para desfazer pelo aviso no rodapé).'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding Reminders}" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Lembretes de tarefas" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Mostra uma notificação quando chega o horário de uma tarefa." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Lembretes de tarefas'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Mostra uma notificação quando chega o horário de uma tarefa.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox x:Name="SoundSwitch" DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding SoundEffects}" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Efeitos sonoros" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Toca um som ao concluir uma tarefa e outro ao concluir a última pendente." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Efeitos sonoros'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Toca um som ao concluir uma tarefa e outro ao concluir a última pendente.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <DockPanel Style="{StaticResource SettingRow}" IsEnabled="{Binding SoundEffects}">
                                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                             <Slider x:Name="SoundVolumeSlider" Style="{StaticResource VolumeSlider}" Width="170" Minimum="0" Maximum="100"
                                                     SmallChange="5" LargeChange="10" TickFrequency="5" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True"
-                                                    Value="{Binding SoundVolume}" AutomationProperties.Name="Volume dos efeitos sonoros"/>
+                                                    Value="{Binding SoundVolume}" AutomationProperties.Name="{local:Tr 'Volume dos efeitos sonoros'}"/>
                                             <TextBlock Text="{Binding SoundVolumeText}" Width="40" TextAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                         </StackPanel>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Volume dos efeitos" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Vale para os dois sons." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Volume dos efeitos'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Vale para os dois sons.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                 </StackPanel>
@@ -690,22 +704,22 @@
 
                             <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="Área de trabalho" Style="{StaticResource H2}"/>
+                                    <TextBlock Text="{local:Tr 'Área de trabalho'}" Style="{StaticResource H2}"/>
                                     <DockPanel Style="{StaticResource SettingRow}">
                                         <CheckBox DockPanel.Dock="Right" Style="{StaticResource Switch}" IsChecked="{Binding TasksWidget, Mode=OneWay}" Click="TasksWidgetToggle_Click" VerticalAlignment="Center"/>
                                         <StackPanel Margin="0,0,16,0">
-                                            <TextBlock Text="Widget de tarefas" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="Lista de tarefas pendentes fixa na área de trabalho, com adição rápida." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Widget de tarefas'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Lista de tarefas pendentes fixa na área de trabalho, com adição rápida.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <WrapPanel Margin="0,16,0,0">
                                         <Button Style="{StaticResource SecondaryButton}" Click="NewSticky_Click" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Widget}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Nova nota na área de trabalho"/>
+                                                <TextBlock Text="{local:Tr 'Nova nota na área de trabalho'}"/>
                                             </StackPanel>
                                         </Button>
-                                        <Button Style="{StaticResource SecondaryButton}" Click="ShowWidgets_Click" Content="Mostrar todos os widgets"/>
+                                        <Button Style="{StaticResource SecondaryButton}" Click="ShowWidgets_Click" Content="{local:Tr 'Mostrar todos os widgets'}"/>
                                     </WrapPanel>
                                 </StackPanel>
                             </Border>
@@ -716,12 +730,12 @@
                                         <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Click="AddLabel_Click">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
-                                                <TextBlock Text="Nova etiqueta"/>
+                                                <TextBlock Text="{local:Tr 'Nova etiqueta'}"/>
                                             </StackPanel>
                                         </Button>
                                         <StackPanel>
-                                            <TextBlock Text="Etiquetas de cor" Style="{StaticResource H2}"/>
-                                            <TextBlock Text="Dê nome às cores usadas para diferenciar notas e tarefas." Style="{StaticResource Muted}" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Etiquetas de cor'}" Style="{StaticResource H2}"/>
+                                            <TextBlock Text="{local:Tr 'Dê nome às cores usadas para diferenciar notas e tarefas.'}" Style="{StaticResource Muted}" Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                     <ItemsControl x:Name="LabelsEditor" Margin="0,14,0,0">
@@ -735,7 +749,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <Ellipse Width="14" Height="14" Fill="{Binding Brush}" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                                                    <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Tag="Nome da etiqueta" VerticalAlignment="Center"/>
+                                                    <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Tag="{local:Tr 'Nome da etiqueta'}" VerticalAlignment="Center"/>
                                                     <ListBox Grid.Column="2" Style="{StaticResource PlainList}" ItemContainerStyle="{StaticResource SwatchItem}"
                                                              ItemsSource="{x:Static local:Palette.LabelColors}" SelectedItem="{Binding Color}"
                                                              Margin="14,6,0,0" VerticalAlignment="Center">
@@ -745,7 +759,7 @@
                                                             </DataTemplate>
                                                         </ListBox.ItemTemplate>
                                                     </ListBox>
-                                                    <Button Grid.Column="3" Style="{StaticResource DangerGhost}" Padding="7" Click="DeleteLabel_Click" ToolTip="Remover etiqueta" VerticalAlignment="Center">
+                                                    <Button Grid.Column="3" Style="{StaticResource DangerGhost}" Padding="7" Click="DeleteLabel_Click" ToolTip="{local:Tr 'Remover etiqueta'}" VerticalAlignment="Center">
                                                         <local:Icon Data="{StaticResource I.Trash}" Width="14" Height="14"/>
                                                     </Button>
                                                 </Grid>
@@ -757,36 +771,53 @@
 
                             <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="Dados" Style="{StaticResource H2}"/>
-                                    <TextBlock Text="Tudo fica salvo automaticamente neste computador:" Style="{StaticResource Muted}" Margin="0,8,0,0"/>
+                                    <TextBlock Text="{local:Tr 'Finanças'}" Style="{StaticResource H2}"/>
+                                    <DockPanel Style="{StaticResource SettingRow}">
+                                        <Border DockPanel.Dock="Right" Style="{StaticResource SegBox}" VerticalAlignment="Center"
+                                                AutomationProperties.Name="{local:Tr 'Moeda'}">
+                                            <!-- one button per Money.Currencies entry, built in MainWindow.BuildCurrencyChoice -->
+                                            <StackPanel x:Name="CurrencyChoice" Orientation="Horizontal"/>
+                                        </Border>
+                                        <StackPanel Margin="0,0,16,0">
+                                            <TextBlock Text="{local:Tr 'Moeda'}" Style="{StaticResource SettingTitle}"/>
+                                            <TextBlock Text="{local:Tr 'Símbolo usado nos valores da aba Finanças. Trocar a moeda não converte os valores já lançados.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <TextBlock Text="{local:Tr 'Dados'}" Style="{StaticResource H2}"/>
+                                    <TextBlock Text="{local:Tr 'Tudo fica salvo automaticamente neste computador:'}" Style="{StaticResource Muted}" Margin="0,8,0,0"/>
                                     <TextBlock x:Name="DataPath" FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{StaticResource Accent}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                     <WrapPanel Margin="0,14,0,0">
                                         <Button Style="{StaticResource SecondaryButton}" Click="OpenDataFolder_Click" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Folder}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Abrir pasta de dados"/>
+                                                <TextBlock Text="{local:Tr 'Abrir pasta de dados'}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button x:Name="ExportBtn" Style="{StaticResource SecondaryButton}" Click="ExportBackup_Click" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Upload}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Exportar backup"/>
+                                                <TextBlock Text="{local:Tr 'Exportar backup'}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button x:Name="ImportBtn" Style="{StaticResource SecondaryButton}" Click="ImportBackup_Click" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Download}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Importar backup"/>
+                                                <TextBlock Text="{local:Tr 'Importar backup'}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button x:Name="ClearCacheBtn" Style="{StaticResource SecondaryButton}" Click="ClearCache_Click">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Trash}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Limpar cache"/>
+                                                <TextBlock Text="{local:Tr 'Limpar cache'}"/>
                                             </StackPanel>
                                         </Button>
                                     </WrapPanel>
-                                    <TextBlock Text="O backup é um arquivo .zip com suas notas, tarefas, etiquetas e configurações. Ao importar, os dados atuais são substituídos (uma cópia de segurança é guardada antes)."
+                                    <TextBlock Text="{local:Tr 'O backup é um arquivo .zip com suas notas, tarefas, etiquetas e configurações. Ao importar, os dados atuais são substituídos (uma cópia de segurança é guardada antes).'}"
                                                Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,10,0,0"/>
                                     <!-- progress of export/import -->
                                     <StackPanel x:Name="BackupStatus" Margin="0,12,0,0" Visibility="Collapsed">
@@ -800,20 +831,20 @@
 
                             <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="Suporte" Style="{StaticResource H2}"/>
-                                    <TextBlock Text="Encontrou um erro? Descreva o que aconteceu e o Helmet Desk monta um relatório com as informações técnicas. Você vê tudo antes de enviar."
+                                    <TextBlock Text="{local:Tr 'Suporte'}" Style="{StaticResource H2}"/>
+                                    <TextBlock Text="{local:Tr 'Encontrou um erro? Descreva o que aconteceu e o Helmet Desk monta um relatório com as informações técnicas. Você vê tudo antes de enviar.'}"
                                                Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                                     <WrapPanel Margin="0,14,0,0">
                                         <Button x:Name="ReportBtn" Style="{StaticResource SecondaryButton}" Click="ReportBug_Click" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Bug}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Reportar problema"/>
+                                                <TextBlock Text="{local:Tr 'Reportar problema'}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Style="{StaticResource SecondaryButton}" Click="OpenLogs_Click">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Folder}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Abrir pasta de logs"/>
+                                                <TextBlock Text="{local:Tr 'Abrir pasta de logs'}"/>
                                             </StackPanel>
                                         </Button>
                                     </WrapPanel>
@@ -822,19 +853,19 @@
 
                             <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="Atualizações" Style="{StaticResource H2}"/>
+                                    <TextBlock Text="{local:Tr 'Atualizações'}" Style="{StaticResource H2}"/>
                                     <TextBlock x:Name="UpdateVersionText" Style="{StaticResource Muted}" Margin="0,8,0,0"/>
                                     <WrapPanel Margin="0,14,0,0">
                                         <Button x:Name="CheckUpdatesBtn" Style="{StaticResource SecondaryButton}" Click="CheckUpdates_Click" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Repeat}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Verificar atualizações"/>
+                                                <TextBlock Text="{local:Tr 'Verificar atualizações'}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button x:Name="ApplyUpdateBtn" Style="{StaticResource PrimaryButton}" Click="ApplyUpdate_Click" Visibility="Collapsed">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Download}" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Reiniciar e atualizar"/>
+                                                <TextBlock Text="{local:Tr 'Reiniciar e atualizar'}"/>
                                             </StackPanel>
                                         </Button>
                                     </WrapPanel>
@@ -859,13 +890,13 @@
                                         <Button Style="{StaticResource PrimaryButton}" Click="DayNewTask_Click">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
-                                                <TextBlock Text="Tarefa"/>
+                                                <TextBlock Text="{local:Tr 'Tarefa'}"/>
                                             </StackPanel>
                                         </Button>
                                         <Button Style="{StaticResource SecondaryButton}" Click="DayNewNote_Click" Margin="8,0,0,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Plus}" Margin="0,0,6,0"/>
-                                                <TextBlock Text="Nota"/>
+                                                <TextBlock Text="{local:Tr 'Nota'}"/>
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>
@@ -873,7 +904,7 @@
                                 <ScrollViewer x:Name="DayScroll" VerticalScrollBarVisibility="Auto">
                                     <StackPanel>
                                         <ItemsControl x:Name="DayItems" ItemTemplate="{StaticResource ItemRow}"/>
-                                        <TextBlock x:Name="DayEmpty" Text="Nada marcado para este dia." Style="{StaticResource MutedItalic}" Margin="0,4,0,0"/>
+                                        <TextBlock x:Name="DayEmpty" Text="{local:Tr 'Nada marcado para este dia.'}" Style="{StaticResource MutedItalic}" Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </ScrollViewer>
                             </DockPanel>
@@ -882,10 +913,10 @@
                             <DockPanel x:Name="Viewer" Background="{StaticResource Surface}" Visibility="Collapsed">
                                 <DockPanel DockPanel.Dock="Top" Margin="24,14,12,0">
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                        <Button Style="{StaticResource IconButton}" Click="EditorPin_Click" ToolTip="Fixar na área de trabalho">
+                                        <Button Style="{StaticResource IconButton}" Click="EditorPin_Click" ToolTip="{local:Tr 'Fixar na área de trabalho'}">
                                             <local:Icon Data="{StaticResource I.Pin}"/>
                                         </Button>
-                                        <Button Style="{StaticResource IconButton}" Click="EditorClose_Click" ToolTip="Fechar (Esc)">
+                                        <Button Style="{StaticResource IconButton}" Click="EditorClose_Click" ToolTip="{local:Tr 'Fechar (Esc)'}">
                                             <local:Icon Data="{StaticResource I.X}"/>
                                         </Button>
                                     </StackPanel>
@@ -902,10 +933,10 @@
                                         <Button x:Name="ViewEditBtn" DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Click="EditMode_Click">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Edit}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Editar"/>
+                                                <TextBlock Text="{local:Tr 'Editar'}"/>
                                             </StackPanel>
                                         </Button>
-                                        <Button Style="{StaticResource DangerGhost}" HorizontalAlignment="Left" Click="EditorDelete_Click" ToolTip="Excluir">
+                                        <Button Style="{StaticResource DangerGhost}" HorizontalAlignment="Left" Click="EditorDelete_Click" ToolTip="{local:Tr 'Excluir'}">
                                             <local:Icon Data="{StaticResource I.Trash}"/>
                                         </Button>
                                     </DockPanel>
@@ -941,7 +972,7 @@
                                             </StackPanel>
                                         </WrapPanel>
 
-                                        <CheckBox Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}" Content="Concluída" Margin="0,14,0,0"
+                                        <CheckBox Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}" Content="{local:Tr 'Concluída'}" Margin="0,14,0,0"
                                                   Visibility="{Binding IsTask, Converter={StaticResource Vis}}"/>
 
                                         <TextBlock local:LinkText.Source="{Binding Body}" TextWrapping="Wrap" FontSize="14" LineHeight="22" Margin="0,20,0,0"
@@ -968,7 +999,7 @@
 
                                         <StackPanel x:Name="ViewAttach" Margin="0,22,0,0"/>
 
-                                        <TextBlock x:Name="ViewEmpty" Text="Nada escrito ainda. Clique em Editar para adicionar conteúdo."
+                                        <TextBlock x:Name="ViewEmpty" Text="{local:Tr 'Nada escrito ainda. Clique em Editar para adicionar conteúdo.'}"
                                                    Style="{StaticResource MutedItalic}" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </ScrollViewer>
@@ -977,7 +1008,7 @@
                             <!-- ===== Editor (edit mode) ===== -->
                             <DockPanel x:Name="Editor" Background="{StaticResource Surface}" Visibility="Collapsed">
                                 <DockPanel DockPanel.Dock="Top" Margin="24,14,12,0">
-                                    <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Click="EditorClose_Click" ToolTip="Fechar (Esc)">
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Click="EditorClose_Click" ToolTip="{local:Tr 'Fechar (Esc)'}">
                                         <local:Icon Data="{StaticResource I.X}"/>
                                     </Button>
                                     <TextBlock x:Name="EditorHeader" Style="{StaticResource Muted}" FontSize="12.5" VerticalAlignment="Center"/>
@@ -988,20 +1019,20 @@
                                         <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Click="ViewMode_Click">
                                             <StackPanel Orientation="Horizontal">
                                                 <local:Icon Data="{StaticResource I.Check}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                <TextBlock Text="Concluir"/>
+                                                <TextBlock Text="{local:Tr 'Concluir'}"/>
                                             </StackPanel>
                                         </Button>
                                         <StackPanel Orientation="Horizontal">
-                                            <Button Style="{StaticResource IconButton}" Click="Duplicate_Click" ToolTip="Duplicar">
+                                            <Button Style="{StaticResource IconButton}" Click="Duplicate_Click" ToolTip="{local:Tr 'Duplicar'}">
                                                 <local:Icon Data="{StaticResource I.Copy}"/>
                                             </Button>
                                             <Button x:Name="ConvertBtn" Style="{StaticResource IconButton}" Click="Convert_Click" Margin="2,0,0,0">
                                                 <local:Icon Data="{StaticResource I.Swap}"/>
                                             </Button>
-                                            <Button Style="{StaticResource IconButton}" Click="EditorPin_Click" ToolTip="Fixar na área de trabalho" Margin="2,0,0,0">
+                                            <Button Style="{StaticResource IconButton}" Click="EditorPin_Click" ToolTip="{local:Tr 'Fixar na área de trabalho'}" Margin="2,0,0,0">
                                                 <local:Icon Data="{StaticResource I.Pin}"/>
                                             </Button>
-                                            <Button Style="{StaticResource DangerGhost}" Padding="6" Click="EditorDelete_Click" ToolTip="Excluir" Margin="2,0,0,0">
+                                            <Button Style="{StaticResource DangerGhost}" Padding="6" Click="EditorDelete_Click" ToolTip="{local:Tr 'Excluir'}" Margin="2,0,0,0">
                                                 <local:Icon Data="{StaticResource I.Trash}"/>
                                             </Button>
                                         </StackPanel>
@@ -1011,14 +1042,14 @@
                                 <ScrollViewer x:Name="EdScroll" VerticalScrollBarVisibility="Auto" Background="Transparent">
                                     <StackPanel Margin="24,10,24,24">
                                         <TextBox x:Name="EdTitle" Style="{StaticResource BareTextBox}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"
-                                                 Tag="Título" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
+                                                 Tag="{local:Tr 'Título'}" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
 
                                         <!-- properties -->
                                         <StackPanel Margin="0,16,0,0" TextElement.FontSize="13">
                                             <DockPanel Style="{StaticResource PropRow}">
                                                 <StackPanel Style="{StaticResource PropLabel}">
                                                     <local:Icon Data="{StaticResource I.Tag}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="Etiqueta"/>
+                                                    <TextBlock Text="{local:Tr 'Etiqueta'}"/>
                                                 </StackPanel>
                                                 <ListBox x:Name="EdLabels" Style="{StaticResource PlainList}" ItemContainerStyle="{StaticResource SwatchItem}"
                                                          SelectedValuePath="Id" SelectedValue="{Binding LabelId}" Margin="2,6,0,0">
@@ -1032,14 +1063,14 @@
                                             <DockPanel Style="{StaticResource PropRow}">
                                                 <StackPanel Style="{StaticResource PropLabel}">
                                                     <local:Icon Data="{StaticResource I.Calendar}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="Data"/>
+                                                    <TextBlock Text="{local:Tr 'Data'}"/>
                                                 </StackPanel>
                                                 <local:DateField SelectedDate="{Binding Date}" Ghost="True" Width="170" HorizontalAlignment="Left"/>
                                             </DockPanel>
                                             <DockPanel Style="{StaticResource PropRow}">
                                                 <StackPanel Style="{StaticResource PropLabel}">
                                                     <local:Icon Data="{StaticResource I.Clock}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="Horário"/>
+                                                    <TextBlock Text="{local:Tr 'Horário'}"/>
                                                 </StackPanel>
                                                 <TextBox Style="{StaticResource GhostTextBox}" Text="{Binding TimeText, UpdateSourceTrigger=LostFocus}"
                                                          Tag="hh:mm" Width="170" HorizontalAlignment="Left" KeyDown="CommitOnEnter"/>
@@ -1047,16 +1078,16 @@
                                             <DockPanel Style="{StaticResource PropRow}" Visibility="{Binding IsTask, Converter={StaticResource Vis}}">
                                                 <StackPanel Style="{StaticResource PropLabel}">
                                                     <local:Icon Data="{StaticResource I.Hourglass}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="Estimativa"/>
+                                                    <TextBlock Text="{local:Tr 'Estimativa'}"/>
                                                 </StackPanel>
                                                 <TextBox Style="{StaticResource GhostTextBox}" Text="{Binding EstimateText, UpdateSourceTrigger=LostFocus}"
-                                                         Tag="ex.: 1h30, 45min" Width="170" HorizontalAlignment="Left" KeyDown="CommitOnEnter"
-                                                         ToolTip="Aceita 1:30, 1h30, 45min, 1,5 ou 2 (horas)"/>
+                                                         Tag="{local:Tr 'ex.: 1h30, 45min'}" Width="170" HorizontalAlignment="Left" KeyDown="CommitOnEnter"
+                                                         ToolTip="{local:Tr 'Aceita 1:30, 1h30, 45min, 1,5 ou 2 (horas)'}"/>
                                             </DockPanel>
                                             <DockPanel Style="{StaticResource PropRow}" Visibility="{Binding IsTask, Converter={StaticResource Vis}}">
                                                 <StackPanel Style="{StaticResource PropLabel}">
                                                     <local:Icon Data="{StaticResource I.Flag}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="Prioridade"/>
+                                                    <TextBlock Text="{local:Tr 'Prioridade'}"/>
                                                 </StackPanel>
                                                 <ListBox Style="{StaticResource PlainList}" ItemContainerStyle="{StaticResource SegItem}" SelectedIndex="{Binding Priority}"
                                                          HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -1065,18 +1096,18 @@
                                                             <StackPanel Orientation="Horizontal"/>
                                                         </ItemsPanelTemplate>
                                                     </ListBox.ItemsPanel>
-                                                    <sys:String>Nenhuma</sys:String>
-                                                    <sys:String>Baixa</sys:String>
-                                                    <sys:String>Média</sys:String>
-                                                    <sys:String>Alta</sys:String>
+                                                    <local:TrExtension Text="Nenhuma"/>
+                                                    <local:TrExtension Text="Baixa"/>
+                                                    <local:TrExtension Text="Média"/>
+                                                    <local:TrExtension Text="Alta"/>
                                                 </ListBox>
                                             </DockPanel>
                                             <DockPanel Style="{StaticResource PropRow}" Visibility="{Binding IsTask, Converter={StaticResource Vis}}">
                                                 <StackPanel Style="{StaticResource PropLabel}">
                                                     <local:Icon Data="{StaticResource I.Check2}" Width="14" Height="14" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="Status"/>
+                                                    <TextBlock Text="{local:Tr 'Status'}"/>
                                                 </StackPanel>
-                                                <CheckBox Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}" Content="Concluída" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                                <CheckBox Style="{StaticResource TaskCheck}" IsChecked="{Binding Done}" Content="{local:Tr 'Concluída'}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                             </DockPanel>
                                         </StackPanel>
 
@@ -1084,7 +1115,7 @@
 
                                         <!-- description: plain text where pasted links become chips (LinkBox) -->
                                         <Grid>
-                                            <TextBlock Text="Escreva aqui…" Foreground="{StaticResource Text2}" Opacity="0.6" FontSize="14"
+                                            <TextBlock Text="{local:Tr 'Escreva aqui…'}" Foreground="{StaticResource Text2}" Opacity="0.6" FontSize="14"
                                                        Margin="2,2,0,0" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
                                                        Visibility="{Binding IsEmpty, ElementName=EdBody, Converter={StaticResource Vis}}"/>
                                             <local:LinkBox x:Name="EdBody" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" FontSize="14" MinHeight="90"/>
@@ -1103,7 +1134,7 @@
                                                         <TextBox x:Name="t" Grid.Column="1" Style="{StaticResource BareTextBox}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                                                                  TextWrapping="Wrap" FontSize="14" Padding="0,3" KeyDown="CheckText_KeyDown"/>
                                                         <Button x:Name="rm" Grid.Column="2" Style="{StaticResource IconButton}" Padding="4" Click="RemoveCheck_Click"
-                                                                ToolTip="Remover item" Visibility="Hidden" VerticalAlignment="Top">
+                                                                ToolTip="{local:Tr 'Remover item'}" Visibility="Hidden" VerticalAlignment="Top">
                                                             <local:Icon Data="{StaticResource I.X}" Width="13" Height="13"/>
                                                         </Button>
                                                     </Grid>
@@ -1120,7 +1151,7 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                         <Grid Margin="0,4,0,0">
-                                            <TextBox x:Name="NewCheck" Style="{StaticResource BareTextBox}" Tag="Adicionar item à checklist" FontSize="14"
+                                            <TextBox x:Name="NewCheck" Style="{StaticResource BareTextBox}" Tag="{local:Tr 'Adicionar item à checklist'}" FontSize="14"
                                                      Padding="28,4,0,4" KeyDown="NewCheck_KeyDown"/>
                                             <local:Icon Data="{StaticResource I.Plus}" Foreground="{StaticResource Text2}" Width="16" Height="16"
                                                         HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0" IsHitTestVisible="False"/>
@@ -1153,7 +1184,7 @@
                         Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="12"
                         Padding="22,20,22,18" RenderTransformOrigin="0.5,0.5"
                         KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Cycle"
-                        AutomationProperties.Name="Confirmar exclusão">
+                        AutomationProperties.Name="{local:Tr 'Confirmar exclusão'}">
                     <StackPanel>
                         <DockPanel>
                             <Border x:Name="DialogIconBg" DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="18" Background="{StaticResource DangerSoft}" Margin="0,0,14,0" VerticalAlignment="Top">
@@ -1165,11 +1196,11 @@
                             </StackPanel>
                         </DockPanel>
                         <CheckBox x:Name="DialogDontAsk" Margin="50,16,0,0">
-                            <TextBlock x:Name="DialogCheckText" Text="Não perguntar novamente" FontSize="12.5" Foreground="{StaticResource Text2}" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="DialogCheckText" Text="{local:Tr 'Não perguntar novamente'}" FontSize="12.5" Foreground="{StaticResource Text2}" TextWrapping="Wrap"/>
                         </CheckBox>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                            <Button x:Name="DialogCancel" Style="{StaticResource SecondaryButton}" Content="Cancelar" Click="DialogCancel_Click"/>
-                            <Button x:Name="DialogConfirm" Style="{StaticResource DangerButton}" Content="Excluir" Margin="8,0,0,0" Click="DialogConfirm_Click"/>
+                            <Button x:Name="DialogCancel" Style="{StaticResource SecondaryButton}" Content="{local:Tr 'Cancelar'}" Click="DialogCancel_Click"/>
+                            <Button x:Name="DialogConfirm" Style="{StaticResource DangerButton}" Content="{local:Tr 'Excluir'}" Margin="8,0,0,0" Click="DialogConfirm_Click"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

@@ -26,7 +26,7 @@ namespace HelmetDesk
         private void SyncUpdateCard()
         {
             var up = UpdateService.Instance;
-            UpdateVersionText.Text = $"Versão atual: {up.CurrentVersion}";
+            UpdateVersionText.Text = TF("Versão atual: {0}", up.CurrentVersion);
             AboutFooter.Text = $"Helmet Desk {up.CurrentVersion} · identidade Violet Terminal";
             var status = up.State == UpdateState.Idle ? "" : up.StatusText;
             UpdateStatusText.Text = status;
@@ -39,7 +39,7 @@ namespace HelmetDesk
         {
             _pendingUpdateNotice = version;
             if (IsVisible) ShowUpdateNotice();
-            else App.Current.Notify($"A versão {version} foi baixada e será instalada quando você fechar o Helmet Desk.", "Atualização pronta");
+            else App.Current.Notify(TF("A versão {0} foi baixada e será instalada quando você fechar o Helmet Desk.", version), T("Atualização pronta"));
         }
 
         private void ShowUpdateNotice()
@@ -47,7 +47,7 @@ namespace HelmetDesk
             var v = _pendingUpdateNotice;
             if (v == null) return;
             _pendingUpdateNotice = null;
-            ShowSnack($"Nova versão {v} pronta", "Reiniciar e atualizar", UpdateService.Instance.ApplyNow, UpdateSnackSeconds);
+            ShowSnack(TF("Nova versão {0} pronta", v), T("Reiniciar e atualizar"), UpdateService.Instance.ApplyNow, UpdateSnackSeconds);
         }
 
         private async void CheckUpdates_Click(object sender, RoutedEventArgs e)

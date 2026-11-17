@@ -7,9 +7,11 @@ using System.Text.RegularExpressions;
 namespace HelmetDesk
 {
     /// <summary>
-    /// Finds natural-language dates inside free text (Todoist-style), in Portuguese:
-    /// "hoje", "amanhã", "depois de amanhã", "semana que vem", "daqui 3 dias", "na sexta",
+    /// Finds natural-language dates inside free text (Todoist-style), in the interface language.
+    /// Portuguese: "hoje", "amanhã", "depois de amanhã", "semana que vem", "daqui 3 dias", "na sexta",
     /// "15/11", "15/11/26", "15 de novembro", "dia 20", "fim do mês"…
+    /// English: "today", "tomorrow", "day after tomorrow", "next week", "in 3 days", "on friday",
+    /// "11/15", "11/15/26", "Nov 15", "15th of November", "the 20th", "end of the month"…
     /// Dates without a year always use the current year (read at parse time, so it follows New Year).
     /// </summary>
     public static class SmartDate
@@ -32,6 +34,15 @@ namespace HelmetDesk
             @"(?:\s+da\s+(?<per>manha|tarde|noite|madrugada))?)" + E,
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
+        // English: "3pm", "3:30 pm", "15:00", "at 9", "around 8", "9 in the morning", "8 at night", "noon", "midnight", "5 o'clock"
+        private static readonly Regex TimeRxEn = new(B +
+            @"(?<p>(?:at|around|by|from|until|till)\s+)?" +
+            @"(?:(?<noon>noon|midday)|(?<midnight>midnight)|" +
+            @"(?<h>\d{1,2})(?:(?<colon>:)(?<m>\d{2}))?(?:\s*(?<ampm>am|pm|a\.m\.|p\.m\.))?(?:\s*(?<oc>o'?clock))?" +
+            @"(?:\s+in\s+the\s+(?<per>morning|afternoon|evening)|\s+at\s+(?<per>night)|\s+(?<per>tonight))?)" +
+            @"(?![\p{L}\d])",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
         /// <summary>Last complete time of day in the text (same "finished" rule as <see cref="Find"/>).</summary>
         /// <remarks>
         /// Short hour forms without "às" ("1h30", "2h") stay text: in the quick-add box they are the task's estimate.
@@ -42,11 +53,12 @@ namespace HelmetDesk
             if (string.IsNullOrEmpty(text)) return null;
             string norm = Normalize(text);
             Hit best = null;
-            for (var m = TimeRx.Match(norm); m.Success; m = m.NextMatch())
+            bool en = L.IsEnglish;
+            for (var m = (en ? TimeRxEn : TimeRx).Match(norm); m.Success; m = m.NextMatch())
             {
                 int end = m.Index + m.Length;
                 if (!finished && (end >= norm.Length || !IsBreak(norm[end]))) continue;
-                var t = EvalTime(m, text);
+                var t = en ? EvalTimeEn(m, text) : EvalTime(m, text);
                 if (t == null) continue;
                 string original = text.Substring(m.Index, m.Length);
                 if (ignore != null && ignore.Contains(Normalize(original).Trim())) continue;
@@ -76,6 +88,34 @@ namespace HelmetDesk
                 string w = m.Groups["per"].Value;
                 if ((w == "tarde" || w == "noite") && h < 12) h += 12;
                 if (w == "manha" && h == 12) h = 0;
+            }
+            if (h > 23 || mi > 59) return null;
+            return new TimeSpan(h, mi, 0);
+        }
+
+        private static TimeSpan? EvalTimeEn(Match m, string original)
+        {
+            if (m.Groups["noon"].Success) return new TimeSpan(12, 0, 0);
+            if (m.Groups["midnight"].Success) return TimeSpan.Zero;
+            if (!m.Groups["h"].Success) return null;
+            string hs = m.Groups["h"].Value;
+            int h = int.Parse(hs), mi = m.Groups["m"].Success ? int.Parse(m.Groups["m"].Value) : 0;
+            bool p = m.Groups["p"].Success, colon = m.Groups["colon"].Success, ampm = m.Groups["ampm"].Success,
+                 oclock = m.Groups["oc"].Success, per = m.Groups["per"].Success;
+            if (!p && !colon && !ampm && !oclock && !per) return null;            // a bare number is not a time
+            if (!p && !ampm && !per && colon && hs.Length < 2 && h < 6) return null; // "1:30" = estimate
+            if (ampm)
+            {
+                if (h < 1 || h > 12) return null;
+                bool pm = m.Groups["ampm"].Value.StartsWith("p");
+                if (pm && h < 12) h += 12;
+                if (!pm && h == 12) h = 0;
+            }
+            else if (per)
+            {
+                string w = m.Groups["per"].Value;
+                if (w != "morning" && h < 12) h += 12;
+                if (w == "morning" && h == 12) h = 0;
             }
             if (h > 23 || mi > 59) return null;
             return new TimeSpan(h, mi, 0);
@@ -119,6 +159,71 @@ namespace HelmetDesk
         private static Regex R(string core) =>
             new Regex(B + Lead + "(?:" + core + ")" + E, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
+        // ---------- English ----------
+        private const string NumEn = @"(\d{1,3}|a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty)";
+        private const string MonthsEn = "january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec";
+        private const string WeekdaysEn = "monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun";
+        private const string Ord = "(?:st|nd|rd|th)?";
+        // little words that belong with the date and go away with it ("by friday", "due tomorrow", "on the 20th")
+        private const string LeadEn = @"(?:(?:on|by|until|till|due|for|from)\s+)?";
+
+        private static readonly (Regex rx, Func<Match, DateTime, DateTime?> eval)[] RulesEn =
+        {
+            // month first, as written in English: 11/15, 11/15/26
+            (REn(@"(\d{1,2})/(\d{1,2})(?:/(\d{4}|\d{2}))?(?![/\d])"), (m, t) => Explicit(m.Groups[2].Value, m.Groups[1].Value, m.Groups[3].Value, t)),
+            (REn(@"(?:the\s+)?(" + MonthsEn + @")\.?\s+(\d{1,2})" + Ord + @"(?:,?\s+(\d{4}))?"), (m, t) => Explicit(m.Groups[2].Value, MonthEn(m.Groups[1].Value), m.Groups[3].Value, t)),
+            (REn(@"(?:the\s+)?(\d{1,2})" + Ord + @"\s+(?:of\s+)?(" + MonthsEn + @")\.?(?:,?\s+(\d{4}))?"), (m, t) => Explicit(m.Groups[1].Value, MonthEn(m.Groups[2].Value), m.Groups[3].Value, t)),
+            (REn(@"the\s+(\d{1,2})(?:st|nd|rd|th)(?![/\d])"), (m, t) => DayOfMonth(int.Parse(m.Groups[1].Value), t)),
+            (REn(@"(?:the\s+)?day\s+after\s+tomorrow"), (m, t) => t.AddDays(2)),
+            (REn(@"tomorrow|tmrw|tmr|the\s+next\s+day"), (m, t) => t.AddDays(1)),
+            (REn(@"today|tonight|tdy"), (m, t) => t),
+            (REn(@"yesterday"), (m, t) => t.AddDays(-1)),
+            (REn(@"in\s+" + NumEn + @"\s+(days?|weeks?|months?|years?)"), (m, t) => OffsetEn(m.Groups[1].Value, m.Groups[2].Value, t)),
+            (REn(@"next\s+week|the\s+following\s+week"), (m, t) => NextWeekday(t, DayOfWeek.Monday)),
+            (REn(@"next\s+month"), (m, t) => t.AddMonths(1)),
+            (REn(@"next\s+year"), (m, t) => t.AddYears(1)),
+            (REn(@"(?:this\s+|the\s+|next\s+)?weekend"), (m, t) => t.DayOfWeek == DayOfWeek.Saturday ? t : NextWeekday(t, DayOfWeek.Saturday)),
+            (REn(@"(?:the\s+)?end\s+of\s+(?:the\s+)?month"), (m, t) => new DateTime(t.Year, t.Month, DateTime.DaysInMonth(t.Year, t.Month))),
+            (new Regex(B + @"((?:on|by|until|till|due|for|this|next|from)\s+)?(?:next\s+)?(" + WeekdaysEn + ")" + E, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+                (m, t) =>
+                {
+                    // "sat", "sun", "wed"… alone are too often other words: short names need a little word before them
+                    var word = m.Groups[2].Value;
+                    if (word.Length <= 5 && !word.EndsWith("day") && !m.Groups[1].Success) return null;
+                    return NextWeekday(t, DayEn(word));
+                }),
+        };
+
+        private static Regex REn(string core) =>
+            new Regex(B + LeadEn + "(?:" + core + ")" + E, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        private static string MonthEn(string name) => (Array.IndexOf(
+            new[] { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" }, name.Substring(0, 3)) + 1).ToString();
+
+        private static DayOfWeek DayEn(string w) => w.Substring(0, 3) switch
+        {
+            "mon" => DayOfWeek.Monday, "tue" => DayOfWeek.Tuesday, "wed" => DayOfWeek.Wednesday,
+            "thu" => DayOfWeek.Thursday, "fri" => DayOfWeek.Friday, "sat" => DayOfWeek.Saturday, _ => DayOfWeek.Sunday
+        };
+
+        private static DateTime? OffsetEn(string n, string unit, DateTime today)
+        {
+            int k = n switch
+            {
+                "a" or "an" or "one" => 1, "two" => 2, "three" => 3, "four" => 4, "five" => 5, "six" => 6, "seven" => 7,
+                "eight" => 8, "nine" => 9, "ten" => 10, "eleven" => 11, "twelve" => 12, "fifteen" => 15, "twenty" => 20,
+                "thirty" => 30, _ => int.Parse(n)
+            };
+            if (k > 400) return null;
+            return unit switch
+            {
+                var u when u.StartsWith("day") => today.AddDays(k),
+                var u when u.StartsWith("week") => today.AddDays(7 * k),
+                var u when u.StartsWith("month") => today.AddMonths(k),
+                _ => today.AddYears(k)
+            };
+        }
+
         /// <summary>
         /// Last complete date phrase in <paramref name="text"/>. With <paramref name="finished"/> = false
         /// a phrase only counts once something (a space, punctuation) follows it, so the user has stopped writing it.
@@ -128,7 +233,7 @@ namespace HelmetDesk
             if (string.IsNullOrEmpty(text)) return null;
             string norm = Normalize(text);
             Hit best = null;
-            foreach (var (rx, eval) in Rules)
+            foreach (var (rx, eval) in L.IsEnglish ? RulesEn : Rules)
             {
                 for (var m = rx.Match(norm); m.Success; m = m.NextMatch())
                 {

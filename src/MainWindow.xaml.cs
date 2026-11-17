@@ -35,6 +35,8 @@ namespace HelmetDesk
             InitializeComponent();
             HookEmptyClicks();
             SyncThemeChoice();
+            SyncLanguageChoice();
+            BuildCurrencyChoice();
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             _refreshTimer.Tick += (s, e) => { _refreshTimer.Stop(); Refresh(); };
             _snackTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
@@ -233,28 +235,28 @@ namespace HelmetDesk
             {
                 case "today":
                     PageTitle.Text = Greeting();
-                    PageSub.Text = Dates.Cap(DateTime.Today.ToString("dddd, d 'de' MMMM 'de' yyyy", Dates.Pt));
+                    PageSub.Text = Dates.Cap(DateTime.Today.ToString(T("dddd, d 'de' MMMM 'de' yyyy"), Dates.Culture));
                     break;
                 case "notes":
-                    PageTitle.Text = "Notas";
-                    PageSub.Text = "Anotações com texto livre e checklists.";
+                    PageTitle.Text = T("Notas");
+                    PageSub.Text = T("Anotações com texto livre e checklists.");
                     break;
                 case "tasks":
-                    PageTitle.Text = "Tarefas";
-                    PageSub.Text = "Sua lista de afazeres, com prazos e tempo estimado.";
+                    PageTitle.Text = T("Tarefas");
+                    PageSub.Text = T("Sua lista de afazeres, com prazos e tempo estimado.");
                     break;
                 case "calendar":
-                    PageTitle.Text = "Calendário";
-                    PageSub.Text = "Tarefas e notas organizadas por data. Clique duas vezes em um dia para criar uma tarefa.";
+                    PageTitle.Text = T("Calendário");
+                    PageSub.Text = T("Tarefas e notas organizadas por data. Clique duas vezes em um dia para criar uma tarefa.");
                     break;
                 case "finance":
-                    PageTitle.Text = "Finanças";
-                    PageSub.Text = "Receitas, despesas e contas, lançadas à mão.";
+                    PageTitle.Text = T("Finanças");
+                    PageSub.Text = T("Receitas, despesas e contas, lançadas à mão.");
                     FinanceView.Activate();
                     break;
                 case "settings":
-                    PageTitle.Text = "Configurações";
-                    PageSub.Text = "Comportamento do app, widgets e etiquetas.";
+                    PageTitle.Text = T("Configurações");
+                    PageSub.Text = T("Comportamento do app, widgets e etiquetas.");
                     break;
             }
             UpdateSidePanel();
@@ -264,7 +266,7 @@ namespace HelmetDesk
         private static string Greeting()
         {
             int h = DateTime.Now.Hour;
-            return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+            return h < 12 ? T("Bom dia") : h < 18 ? T("Boa tarde") : T("Boa noite");
         }
 
         public void RefreshSoon()
@@ -313,9 +315,9 @@ namespace HelmetDesk
             int todayOnly = Tasks.Count(t => !t.Done && t.Date == today);
             int mins = Tasks.Where(t => t.Date == today).Sum(t => t.EstimateMinutes);
             int doneMins = Tasks.Where(t => t.Date == today && t.Done).Sum(t => t.EstimateMinutes);
-            SideTodayText.Text = todayOnly == 0 ? "Nenhuma tarefa pendente" : todayOnly == 1 ? "1 tarefa pendente" : $"{todayOnly} tarefas pendentes";
-            SideTodayHours.Text = mins > 0 ? $"{Hours.Format(doneMins) switch { "" => "0h", var x => x }} de {Hours.Format(mins)} concluídas" : "Sem estimativas para hoje";
-            SideTodayCompact.ToolTip = $"Hoje: {SideTodayText.Text}\n{SideTodayHours.Text}"; // collapsed sidebar: summary on hover
+            SideTodayText.Text = todayOnly == 0 ? T("Nenhuma tarefa pendente") : TN(todayOnly, "{0} tarefa pendente", "{0} tarefas pendentes");
+            SideTodayHours.Text = mins > 0 ? TF("{0} de {1} concluídas", Hours.Format(doneMins) switch { "" => "0h", var x => x }, Hours.Format(mins)) : T("Sem estimativas para hoje");
+            SideTodayCompact.ToolTip = TF("Hoje: {0}", SideTodayText.Text) + "\n" + SideTodayHours.Text; // collapsed sidebar: summary on hover
 
             // Finanças: pending bills overdue or due today (empty when 0, like Hoje/Tarefas)
             var fin = Store.Data.Finance;
@@ -329,9 +331,9 @@ namespace HelmetDesk
             {
                 var billsToday = due.Where(t => t.Kind != HelmetDesk.Core.Finance.TxKind.Income).ToList();
                 int overdue = billsToday.Count(t => t.Date.Date < today);
-                TodayFinanceText.Text = billsToday.Count == 0 ? "Nenhuma conta a pagar hoje"
-                    : $"{(billsToday.Count == 1 ? "1 conta a pagar" : $"{billsToday.Count} contas a pagar")}: {HelmetDesk.Core.Finance.Money.Format(billsToday.Sum(t => t.Amount))}"
-                      + (overdue > 0 ? $" · {overdue} vencida{(overdue == 1 ? "" : "s")}" : "");
+                TodayFinanceText.Text = billsToday.Count == 0 ? T("Nenhuma conta a pagar hoje")
+                    : TN(billsToday.Count, "{0} conta a pagar", "{0} contas a pagar") + ": " + HelmetDesk.Core.Finance.Money.Format(billsToday.Sum(t => t.Amount))
+                      + (overdue > 0 ? " · " + TN(overdue, "{0} vencida", "{0} vencidas") : "");
                 TodayFinanceText.Foreground = overdue > 0 ? Ui.Res("Danger") : Ui.Res("Text");
                 var bal = HelmetDesk.Core.Finance.FinanceService.TotalBalance(fin);
                 TodayFinanceBalance.Text = HelmetDesk.Core.Finance.Money.Format(bal);
@@ -368,10 +370,10 @@ namespace HelmetDesk
                 if (items.Count == 0) return;
                 groups.Add(new ItemGroup { Title = title, Meta = GroupMeta(items), Items = items });
             }
-            Add("Atrasadas", overdue);
-            Add("Hoje", todays.Concat(notesToday).ToList());
-            Add("Próximos 7 dias", next);
-            Add("Sem data", noDate);
+            Add(T("Atrasadas"), overdue);
+            Add(T("Hoje"), todays.Concat(notesToday).ToList());
+            Add(T("Próximos 7 dias"), next);
+            Add(T("Sem data"), noDate);
             TodayGroups.ItemsSource = MarkGroups(groups);
             TodayEmpty.Visibility = groups.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -382,8 +384,8 @@ namespace HelmetDesk
         {
             int n = items.Count;
             int mins = items.Where(i => i.IsTask).Sum(i => i.EstimateMinutes);
-            var s = n == 1 ? "1 item" : $"{n} itens";
-            if (mins > 0) s += $" · {Hours.Format(mins)} estimadas";
+            var s = TN(n, "{0} item", "{0} itens");
+            if (mins > 0) s += " · " + TF("{0} estimadas", Hours.Format(mins));
             return s;
         }
 
@@ -394,7 +396,7 @@ namespace HelmetDesk
         private string _quickDateWords;          // the words the date chip replaced, to give them back
         private readonly HashSet<string> _quickIgnore = new(); // phrases the user un-chipped: leave them as text
         private bool _quickBusy;
-        private static readonly Regex KindPrefix = new(@"(?<![\p{L}\d])(nota|tarefa)\s*:\s?", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        private static readonly Regex KindPrefix = new(@"(?<![\p{L}\d])(nota|tarefa|note|task)\s*:\s?", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         private void QuickAdd_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -420,7 +422,7 @@ namespace HelmetDesk
             var km = KindPrefix.Match(SmartDate.Normalize(text));
             if (km.Success)
             {
-                SetQuickKind(km.Groups[1].Value == "nota" ? ItemKind.Note : ItemKind.Task);
+                SetQuickKind(km.Groups[1].Value is "nota" or "note" ? ItemKind.Note : ItemKind.Task);
                 text = SmartDate.Remove(text, km.Index, km.Length, out caret);
                 if (text.Trim().Length == 0) { text = ""; caret = 0; }
                 changed = true;
@@ -457,7 +459,7 @@ namespace HelmetDesk
             _quickKind = kind;
             if (kind == null) { QuickKindChip.Visibility = Visibility.Collapsed; UpdateQuickHint(); return; }
             bool note = kind == ItemKind.Note;
-            QuickKindText.Text = note ? "Nota" : "Tarefa";
+            QuickKindText.Text = note ? T("Nota") : T("Tarefa");
             QuickKindIcon.Data = Ui.Geo(note ? "I.Note" : "I.Tasks");
             QuickKindChip.Background = note ? Ui.Res("Accent") : Ui.Res("Primary");
             var fg = note ? Ui.Res("OnAccent") : Ui.Res("OnPrimary");
@@ -475,7 +477,7 @@ namespace HelmetDesk
             _quickDateWords = words;
             if (date == null) { QuickDateChip.Visibility = Visibility.Collapsed; UpdateQuickHint(); return; }
             QuickDateText.Text = SmartDate.Label(date.Value);
-            QuickDateChip.ToolTip = $"{Dates.Cap(date.Value.ToString("dddd, d 'de' MMMM 'de' yyyy", Dates.Pt))}\nClique para remover a data";
+            QuickDateChip.ToolTip = Dates.Cap(date.Value.ToString(T("dddd, d 'de' MMMM 'de' yyyy"), Dates.Culture)) + "\n" + T("Clique para remover a data");
             QuickDateChip.Visibility = Visibility.Visible;
             if (!wasShown) Motion.Enter(QuickDateChip, scale: Motion.PopScale, origin: new Point(0.5, 0.5), duration: Motion.Fast);
             UpdateQuickHint();
@@ -498,8 +500,8 @@ namespace HelmetDesk
 
         private void UpdateQuickHint()
         {
-            QuickAdd.Tag = _quickKind == null && _quickDate == null && _quickTime == null ? "Adicionar rápido"
-                : _quickKind == ItemKind.Note ? "Título da nota" : "Título da tarefa";
+            QuickAdd.Tag = _quickKind == null && _quickDate == null && _quickTime == null ? T("Adicionar rápido")
+                : _quickKind == ItemKind.Note ? T("Título da nota") : T("Título da tarefa");
         }
 
         private enum QuickChip { Kind, Date, Time }
@@ -589,9 +591,9 @@ namespace HelmetDesk
             it.EstimateMinutes = minutes;
             if (_quickTime is TimeSpan tm) it.Time = $"{tm.Hours:00}:{tm.Minutes:00}";
             ClearQuick();
-            string when = date == DateTime.Today ? "hoje" : date == DateTime.Today.AddDays(1) ? "amanhã" : SmartDate.Label(date);
-            if (it.Time.Length > 0) when += " às " + it.Time;
-            ShowSnack($"{(kind == ItemKind.Note ? "Nota adicionada" : "Tarefa adicionada")} para {when}", "Abrir", () => OpenItem(it));
+            string when = date == DateTime.Today ? T("hoje") : date == DateTime.Today.AddDays(1) ? T("amanhã") : SmartDate.Label(date);
+            if (it.Time.Length > 0) when += T(" às ") + it.Time;
+            ShowSnack(TF(kind == ItemKind.Note ? "Nota adicionada para {0}" : "Tarefa adicionada para {0}", when), T("Abrir"), () => OpenItem(it));
             return it;
         }
 
@@ -608,7 +610,7 @@ namespace HelmetDesk
         {
             string mode = Store.Data.Settings.GroupMode;
             if (mode == "none")
-                return items.Count == 0 ? new() : new() { new ItemGroup { Title = "Tudo", Meta = GroupMeta(items), Items = items } };
+                return items.Count == 0 ? new() : new() { new ItemGroup { Title = T("Tudo"), Meta = GroupMeta(items), Items = items } };
 
             var dated = items.Where(i => i.GroupDate.HasValue);
             var groups = dated.GroupBy(i => mode == "month"
@@ -622,7 +624,7 @@ namespace HelmetDesk
                 Items = g.ToList()
             }).ToList();
             var noDate = items.Where(i => !i.GroupDate.HasValue).ToList();
-            if (noDate.Count > 0) result.Add(new ItemGroup { Title = "Sem data", Meta = GroupMeta(noDate), Items = noDate });
+            if (noDate.Count > 0) result.Add(new ItemGroup { Title = T("Sem data"), Meta = GroupMeta(noDate), Items = noDate });
             return result;
         }
 
@@ -632,7 +634,7 @@ namespace HelmetDesk
             var groups = Group(items, true);
             NoteGroups.ItemsSource = MarkGroups(groups);
             ShowEmpty(groups.Count == 0, "I.Note",
-                string.IsNullOrWhiteSpace(_search) && _labelFilter == null ? "Nenhuma nota ainda. Crie a primeira com “Nova nota”." : "Nenhuma nota encontrada com esses filtros.");
+                string.IsNullOrWhiteSpace(_search) && _labelFilter == null ? T("Nenhuma nota ainda. Crie a primeira com “Nova nota”.") : T("Nenhuma nota encontrada com esses filtros."));
         }
 
         private void RefreshTasks()
@@ -647,7 +649,7 @@ namespace HelmetDesk
             var groups = Group(items, _taskStatus == 1);
             TaskGroups.ItemsSource = MarkGroups(groups);
             ShowEmpty(groups.Count == 0, "I.Tasks",
-                _taskStatus == 0 && string.IsNullOrWhiteSpace(_search) && _labelFilter == null ? "Nenhuma tarefa pendente." : "Nenhuma tarefa encontrada com esses filtros.");
+                _taskStatus == 0 && string.IsNullOrWhiteSpace(_search) && _labelFilter == null ? T("Nenhuma tarefa pendente.") : T("Nenhuma tarefa encontrada com esses filtros."));
         }
 
         private List<ItemGroup> MarkGroups(List<ItemGroup> groups)
@@ -721,7 +723,7 @@ namespace HelmetDesk
                 return rb;
             }
             if (_labelFilter != null && Store.LabelById(_labelFilter) == null) _labelFilter = null;
-            LabelChips.Children.Add(Chip("Todas as etiquetas", null, null));
+            LabelChips.Children.Add(Chip(T("Todas as etiquetas"), null, null));
             foreach (var l in Store.Data.Labels) LabelChips.Children.Add(Chip(l.Name, l.Id, l.Brush));
         }
 
@@ -784,13 +786,63 @@ namespace HelmetDesk
         {
             var theme = ThemeManager.Normalize((sender as FrameworkElement)?.Tag as string);
             if (theme == ThemeManager.Current) return;
-            OpenDialog($"Trocar para o tema {ThemeManager.DisplayName(theme)}?",
-                "O Helmet Desk vai fechar e abrir de novo com o novo visual. Nada dos seus dados muda.",
-                "Trocar e reiniciar", "Cancelar", DialogKind.Info, false, ok =>
+            OpenDialog(TF("Trocar para o tema {0}?", ThemeManager.DisplayName(theme)),
+                T("O Helmet Desk vai fechar e abrir de novo com o novo visual. Nada dos seus dados muda."),
+                T("Trocar e reiniciar"), T("Cancelar"), DialogKind.Info, false, ok =>
                 {
                     if (ok) ThemeManager.Switch(theme);
                     else SyncThemeChoice();
                 });
+        }
+
+        // ---------- language (Configurações › Geral › Idioma) ----------
+
+        private void SyncLanguageChoice()
+        {
+            LangEnglish.IsChecked = L.IsEnglish;
+            LangPortuguese.IsChecked = !L.IsEnglish;
+        }
+
+        private void Language_Click(object sender, RoutedEventArgs e)
+        {
+            var lang = L.Normalize((sender as FrameworkElement)?.Tag as string);
+            if (lang == L.Lang) return;
+            OpenDialog(TF("Trocar o idioma para {0}?", L.DisplayName(lang)),
+                T("O Helmet Desk vai fechar e abrir de novo no novo idioma. Nada dos seus dados muda."),
+                T("Trocar e reiniciar"), T("Cancelar"), DialogKind.Info, false, ok =>
+                {
+                    if (ok) Store.SwitchLanguage(lang);
+                    else SyncLanguageChoice();
+                });
+        }
+
+        // ---------- currency (Configurações › Finanças › Moeda) ----------
+
+        private void BuildCurrencyChoice()
+        {
+            CurrencyChoice.Children.Clear();
+            foreach (var c in HelmetDesk.Core.Finance.Money.Currencies)
+            {
+                var b = new RadioButton
+                {
+                    Style = Ui.St("SegButton"), GroupName = "currency", Tag = c.Code,
+                    Content = $"{T(c.NamePt)} ({c.Symbol(L.IsEnglish)})",
+                    IsChecked = c == HelmetDesk.Core.Finance.Money.Current,
+                };
+                b.Click += Currency_Click;
+                CurrencyChoice.Children.Add(b);
+            }
+        }
+
+        /// <summary>Applies right away (no restart): only the symbol changes, amounts stay as they are.</summary>
+        private void Currency_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.Tag is not string code || code == HelmetDesk.Core.Finance.Money.Current.Code) return;
+            HelmetDesk.Core.Finance.Money.SetCurrency(code);
+            Store.Data.Settings.Currency = code;
+            FinanceView.CurrencyChanged();
+            UpdateCounts(); // the Hoje card shows money too
+            ShowSnack(TF("Moeda alterada para {0}", T(HelmetDesk.Core.Finance.Money.Current.NamePt)), null, null);
         }
 
         /// <summary>
@@ -807,7 +859,7 @@ namespace HelmetDesk
             DialogText.Text = text;
             DialogDontAsk.IsChecked = false;
             DialogDontAsk.Visibility = dontAsk || checkText != null ? Visibility.Visible : Visibility.Collapsed;
-            DialogCheckText.Text = checkText ?? "Não perguntar novamente";
+            DialogCheckText.Text = checkText ?? T("Não perguntar novamente");
             DialogConfirm.Content = confirm;
             DialogConfirm.Style = Ui.St(kind == DialogKind.Danger ? "DangerButton" : "PrimaryButton");
             DialogCancel.Content = cancel ?? "";
@@ -828,9 +880,9 @@ namespace HelmetDesk
         {
             if (it == null) return;
             if (!Store.Data.Settings.ConfirmDelete) { DeleteItem(it); return; }
-            string kind = it.KindName.ToLower();
-            OpenDialog($"Excluir {kind}?", $"“{it.DisplayTitle}” será excluída. Logo depois, você ainda pode desfazer pelo aviso no rodapé.",
-                "Excluir", "Cancelar", DialogKind.Danger, dontAsk: true, ok =>
+            OpenDialog(it.IsTask ? T("Excluir tarefa?") : T("Excluir nota?"),
+                TF("“{0}” será excluída. Logo depois, você ainda pode desfazer pelo aviso no rodapé.", it.DisplayTitle),
+                T("Excluir"), T("Cancelar"), DialogKind.Danger, dontAsk: true, ok =>
                 {
                     if (!ok) return;
                     if (DialogDontAsk.IsChecked == true) Store.Data.Settings.ConfirmDelete = false;
@@ -886,7 +938,7 @@ namespace HelmetDesk
             Store.Data.Items.Remove(it);
             Store.MarkDirty();
             if (_editing == it) CloseEditor();
-            ShowSnack($"{it.KindName} excluída", "Desfazer", () =>
+            ShowSnack(it.IsTask ? T("Tarefa excluída") : T("Nota excluída"), T("Desfazer"), () =>
             {
                 Store.Data.Items.Insert(Math.Min(index, Store.Data.Items.Count), it);
                 Store.MarkDirty();
@@ -915,8 +967,8 @@ namespace HelmetDesk
             Viewer.DataContext = it;
             Editor.DataContext = it;
             NewCheck.Clear();
-            EditorHeader.Text = $"Editando {it.KindName.ToLower()}";
-            ConvertBtn.ToolTip = it.IsTask ? "Converter em nota" : "Converter em tarefa";
+            EditorHeader.Text = it.IsTask ? T("Editando tarefa") : T("Editando nota");
+            ConvertBtn.ToolTip = it.IsTask ? T("Converter em nota") : T("Converter em tarefa");
             ViewEmpty.Visibility = !it.HasPreview && !it.HasChecklist ? Visibility.Visible : Visibility.Collapsed;
             BindAttachments(it);
             UpdateSidePanel();
@@ -1051,9 +1103,9 @@ namespace HelmetDesk
         {
             if (_editing == null) return;
             _editing.Kind = _editing.IsTask ? ItemKind.Note : ItemKind.Task;
-            ConvertBtn.ToolTip = _editing.IsTask ? "Converter em nota" : "Converter em tarefa";
-            EditorHeader.Text = $"Editando {_editing.KindName.ToLower()}";
-            ShowSnack($"Convertida em {_editing.KindName.ToLower()}", null, null);
+            ConvertBtn.ToolTip = _editing.IsTask ? T("Converter em nota") : T("Converter em tarefa");
+            EditorHeader.Text = _editing.IsTask ? T("Editando tarefa") : T("Editando nota");
+            ShowSnack(_editing.IsTask ? T("Convertida em tarefa") : T("Convertida em nota"), null, null);
         }
 
         private void Duplicate_Click(object sender, RoutedEventArgs e)
@@ -1061,7 +1113,7 @@ namespace HelmetDesk
             if (_editing == null) return;
             var src = _editing;
             var copy = Store.NewItem(src.Kind, src.Date);
-            copy.Title = src.Title + " (cópia)";
+            copy.Title = src.Title + T(" (cópia)");
             copy.Body = src.Body;
             copy.LabelId = src.LabelId;
             copy.Time = src.Time;
@@ -1077,7 +1129,7 @@ namespace HelmetDesk
 
         private void BuildDayNames()
         {
-            foreach (var n in new[] { "Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb" })
+            foreach (var n in new[] { T("Dom"), T("Seg"), T("Ter"), T("Qua"), T("Qui"), T("Sex"), T("Sáb") })
                 CalDow.Children.Add(new TextBlock { Text = n, Style = Ui.St("Muted"), FontWeight = FontWeights.SemiBold, Margin = new Thickness(8, 0, 0, 0) });
         }
 
@@ -1111,7 +1163,8 @@ namespace HelmetDesk
             CalTitle.Text = Dates.MonthTitle(_calMonth);
             var monthItems = Store.Data.Items.Where(i => i.Date.HasValue && i.Date.Value.Year == _calMonth.Year && i.Date.Value.Month == _calMonth.Month).ToList();
             int monthMins = monthItems.Where(i => i.IsTask).Sum(i => i.EstimateMinutes);
-            CalMeta.Text = $"{monthItems.Count(i => i.IsTask)} tarefas · {monthItems.Count(i => i.IsNote)} notas" + (monthMins > 0 ? $" · {Hours.Format(monthMins)} estimadas" : "");
+            CalMeta.Text = TN(monthItems.Count(i => i.IsTask), "{0} tarefa", "{0} tarefas") + " · " + TN(monthItems.Count(i => i.IsNote), "{0} nota", "{0} notas")
+                           + (monthMins > 0 ? " · " + TF("{0} estimadas", Hours.Format(monthMins)) : "");
 
             CalGrid.Children.Clear();
             var start = Dates.StartOfWeek(_calMonth);
@@ -1145,14 +1198,22 @@ namespace HelmetDesk
             };
             var dock = new DockPanel { LastChildFill = true };
 
-            var head = new DockPanel { Margin = new Thickness(0, 0, 0, 4) };
+            // day badge | count and hours (trimmed in narrow cells instead of running under the badge)
+            var head = new Grid { Margin = new Thickness(0, 0, 0, 4) };
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             DockPanel.SetDock(head, Dock.Top);
             int mins = items.Where(x => x.IsTask).Sum(x => x.EstimateMinutes);
             var headText = string.Join(" · ", new[] { items.Count > 2 ? $"+{items.Count - 2}" : null, mins > 0 ? Hours.Format(mins) : null }.Where(x => x != null));
             if (headText.Length > 0)
             {
-                var h = new TextBlock { Text = headText, Style = Ui.St("Muted"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
-                DockPanel.SetDock(h, Dock.Right);
+                var h = new TextBlock
+                {
+                    Text = headText, Style = Ui.St("Muted"), FontSize = 11, VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Right, TextTrimming = TextTrimming.CharacterEllipsis,
+                    Margin = new Thickness(4, 0, 0, 0), ToolTip = headText
+                };
+                Grid.SetColumn(h, 1);
                 head.Children.Add(h);
             }
             var num = new Border
@@ -1226,10 +1287,11 @@ namespace HelmetDesk
         private void RefreshDayPanel()
         {
             var items = ItemsOn(_calDay);
-            DayTitle.Text = Dates.Cap(_calDay.ToString("dddd, d 'de' MMMM", Dates.Pt));
+            DayTitle.Text = Dates.Cap(_calDay.ToString(T("dddd, d 'de' MMMM"), Dates.Culture));
             int mins = items.Where(i => i.IsTask).Sum(i => i.EstimateMinutes);
             int pend = items.Count(i => i.IsTask && !i.Done);
-            DayMeta.Text = (items.Count == 0 ? "Dia livre" : $"{pend} pendente(s) · {items.Count} item(ns)") + (mins > 0 ? $" · {Hours.Format(mins)} estimadas" : "");
+            DayMeta.Text = (items.Count == 0 ? T("Dia livre") : TN(pend, "{0} pendente", "{0} pendentes") + " · " + TN(items.Count, "{0} item", "{0} itens"))
+                           + (mins > 0 ? " · " + TF("{0} estimadas", Hours.Format(mins)) : "");
             Flip.Run(DayScroll, () => DayItems.ItemsSource = items);
             DayEmpty.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -1283,7 +1345,7 @@ namespace HelmetDesk
             SideTop.Margin = c ? new Thickness(0, 0, 0, 22) : new Thickness(4, 0, 0, 22);
             Grid.SetColumn(SideToggle, c ? 0 : 1);
             SideToggle.HorizontalAlignment = c ? HorizontalAlignment.Center : HorizontalAlignment.Right;
-            SideToggle.ToolTip = c ? "Expandir barra lateral (Ctrl+B)" : "Recolher barra lateral (Ctrl+B)";
+            SideToggle.ToolTip = c ? T("Expandir barra lateral (Ctrl+B)") : T("Recolher barra lateral (Ctrl+B)");
             SideSplitter.Visibility = c ? Visibility.Collapsed : Visibility.Visible;
 
             foreach (var el in FindAll<FrameworkElement>(Sidebar))
@@ -1323,21 +1385,21 @@ namespace HelmetDesk
         {
             var used = Store.Data.Labels.Select(l => l.Color).ToHashSet();
             var color = Palette.LabelColors.FirstOrDefault(c => !used.Contains(c)) ?? Palette.LabelColors[Store.Data.Labels.Count % Palette.LabelColors.Length];
-            Store.Data.Labels.Add(new LabelTag { Name = "Nova etiqueta", Color = color });
+            Store.Data.Labels.Add(new LabelTag { Name = T("Nova etiqueta"), Color = color });
             Store.NotifyLabelsChanged();
         }
 
         private void DeleteLabel_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as FrameworkElement)?.DataContext is not LabelTag l) return;
-            if (Store.Data.Labels.Count <= 1) { ShowSnack("É preciso manter pelo menos uma etiqueta", null, null); return; }
+            if (Store.Data.Labels.Count <= 1) { ShowSnack(T("É preciso manter pelo menos uma etiqueta"), null, null); return; }
             int idx = Store.Data.Labels.IndexOf(l);
             var fallback = Store.Data.Labels.First(x => x != l).Id;
             var affected = Store.Data.Items.Where(i => i.LabelId == l.Id).ToList();
             Store.Data.Labels.Remove(l);
             foreach (var i in affected) i.LabelId = fallback;
             Store.NotifyLabelsChanged();
-            ShowSnack($"Etiqueta “{l.Name}” removida", "Desfazer", () =>
+            ShowSnack(TF("Etiqueta “{0}” removida", l.Name), T("Desfazer"), () =>
             {
                 Store.Data.Labels.Insert(Math.Min(idx, Store.Data.Labels.Count), l);
                 foreach (var i in affected) i.LabelId = l.Id;

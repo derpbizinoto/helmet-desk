@@ -17,9 +17,9 @@ namespace HelmetDesk
         public const string Classic = "classic";
 
         /// <summary>The theme loaded in this run.</summary>
-        public static string Current { get; private set; } = Aero;
+        public static string Current { get; private set; } = Classic;
 
-        public static string DisplayName(string theme) => theme == Classic ? "Clássico" : "Frutiger Aero";
+        public static string DisplayName(string theme) => theme == Classic ? T("Clássico") : "Frutiger Aero";
 
         /// <summary>Loads the saved theme. HELMETDESK_THEME=aero|classic overrides it (snapshot/self-test tooling).</summary>
         public static void Apply(string saved)
@@ -35,7 +35,8 @@ namespace HelmetDesk
             Log.Info($"Tema: {DisplayName(Current)}");
         }
 
-        public static string Normalize(string theme) => string.Equals(theme, Classic, StringComparison.OrdinalIgnoreCase) ? Classic : Aero;
+        /// <summary>Classic is the default: anything other than "aero" means classic.</summary>
+        public static string Normalize(string theme) => string.Equals(theme, Aero, StringComparison.OrdinalIgnoreCase) ? Aero : Classic;
 
         /// <summary>Saves the new choice and restarts so every screen is rebuilt with it.</summary>
         public static void Switch(string theme)

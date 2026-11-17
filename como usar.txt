@@ -74,7 +74,7 @@ FINANÇAS (barra lateral, abaixo de Calendário)
   • Topo ........... ‹ › troca o mês. Entradas e Saídas do mês (pagos + pendentes, sem transferências
                      e ajustes), Saldo atual (saldo inicial + lançamentos PAGOS, contas arquivadas fora)
                      e Previsto no fim do mês (saldo atual + pendentes até o último dia, vencidos inclusive).
-  • Novo lançamento (botão ou Ctrl+N no painel): o foco começa no valor; aceita 1234,56 · 1.234,56 · R$ 50.
+  • Novo lançamento (botão ou Ctrl+N no painel): o foco começa no valor; aceita 1234,56 · 1.234,56 · R$ 50 (ou o símbolo da moeda escolhida).
                      Data = hoje, conta = a última usada, Enter salva. Data futura vira "pendente".
                      Ao repetir uma descrição já usada, o app sugere valor, categoria e conta do último igual.
                      Mais opções: Pago/pendente, Parcelas (o valor é o TOTAL; a última parcela leva os
@@ -93,8 +93,19 @@ FINANÇAS (barra lateral, abaixo de Calendário)
   • Categorias ..... criar, editar (nome, tipo, cor, ícone) e excluir; se estiver em uso, você escolhe
                      para qual categoria os lançamentos vão.
   • Gráfico ........ gastos do mês por categoria (barras), ao lado da lista.
+  • Estatísticas ... ganhos, gastos, taxa de economia e barras mês a mês para 1, 3, 6 ou 12 meses
+                     ou o ano.
   • No Hoje, um card mostra as contas a pagar de hoje/vencidas e o saldo atual.
   • Os dados ficam no mesmo data.json (seção "Finance") e entram no backup .zip.
+
+IDIOMA E MOEDA
+  • Configurações > Geral > Idioma: English ou Português (Brasil). Ao trocar, o app reinicia sozinho.
+    Numa instalação nova o app abre em inglês (Settings > General > Language); quem já usava
+    uma versão anterior à 1.0.1 continua em português.
+  • A adição rápida entende datas e horários no idioma do app (em inglês: "tomorrow at 3pm",
+    "next friday", "in 2 weeks", "Nov 15", "11/15").
+  • Configurações > Finanças > Moeda: Real (R$), Dólar (US$) ou Euro (€). Muda só o símbolo dos
+    valores; nada é convertido. Os separadores seguem o idioma (1.234,56 em português).
 
 ÁREA DE TRABALHO (widgets, estilo Sticky Notes)
   • Botão de alfinete numa nota/tarefa → fixa ela na área de trabalho.
@@ -115,8 +126,9 @@ ATALHOS
   Esc     fecha o editor (ou cancela a confirmação de exclusão)
 
 TEMA (Configurações > Geral > Tema)
-  • Frutiger Aero (padrão): vidro claro sobre um fundo roxo com aurora, botões em gel.
-    Clássico: o visual escuro original. Ao trocar, o app reinicia sozinho; nenhum dado muda.
+  • Clássico (padrão): o visual escuro original.
+    Frutiger Aero: vidro sobre um fundo roxo com aurora, botões em gel.
+    Ao trocar, o app reinicia sozinho; nenhum dado muda.
   • O movimento lento da aurora só acontece com "Efeitos de animação" do Windows ligado.
   • Arquivos: src\Themes\FrutigerAero.xaml, src\Themes\Legacy.xaml (clássico), src\Themes\Shared.xaml
     (fontes, ícones, animação). Cópia da UI antiga e como restaurar: _backup\ui-legacy\COMO_RESTAURAR.md
