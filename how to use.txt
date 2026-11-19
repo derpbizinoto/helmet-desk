@@ -15,6 +15,10 @@ UPDATES
 
 WHERE YOUR DATA IS
   %APPDATA%\HelmetDesk\data.json   (saved automatically)
+  %APPDATA%\HelmetDesk\data.bak.YYYYMMDD-HHMM.json
+                                   copy made when the app opens, at most one a day and only if something
+                                   changed; the 5 newest are kept. To undo a mistake: close the app and copy
+                                   one of them over data.json.
   %LOCALAPPDATA%\HelmetDesk.Local\ logs, automatic safety copies and problem reports
                                    (not included in backups)
 

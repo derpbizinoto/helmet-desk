@@ -43,7 +43,8 @@ namespace HelmetDesk
                     Data.Settings.Language ??= L.Portuguese;
                     Data.Settings.Currency ??= Money.Brl.Code;
                     ApplyLanguage();
-                    DataStore.CopyBackup(Dir);
+                    // data.bak.json + a dated copy per day (5 kept): see DataStore.BackupOnStartup
+                    if (DataStore.BackupOnStartup(Dir, DateTime.Now) is string dated) Log.Info("Cópia de segurança diária: " + Path.GetFileName(dated));
                     // attachment files nobody points to any more (removed, or their note was deleted): only after a good load
                     var snapshot = Data.Items.ToList();
                     var loadedAt = DateTime.Now;

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -160,20 +162,87 @@ namespace HelmetDesk.Core
 
         // ---------- writing ----------
 
-        /// <summary>Writes data.json through a temporary file, so a failed write never leaves a half-written data.json.</summary>
+        /// <summary>
+        /// Writes data.json through a temporary file that is forced to disk (Flush(true)) before it replaces data.json,
+        /// so neither a failed write nor a power cut right after it leaves data.json half-written or empty.
+        /// </summary>
         public static void Write(string dir, string json)
         {
             Directory.CreateDirectory(dir);
             var path = FilePath(dir);
             var tmp = path + ".tmp";
-            File.WriteAllText(tmp, json);
+            var bytes = new UTF8Encoding(false).GetBytes(json); // same bytes File.WriteAllText wrote (UTF-8, no BOM)
+            using (var fs = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                fs.Write(bytes, 0, bytes.Length);
+                fs.Flush(flushToDisk: true);
+            }
             File.Move(tmp, path, true);
         }
 
-        /// <summary>Copies data.json to data.bak.json (after a good load). Errors are ignored.</summary>
-        public static void CopyBackup(string dir)
+        // ---------- startup copies ----------
+
+        /// <summary>Copy of data.json as it was at the last good start (kept from 1.0; overwritten on every start).</summary>
+        public const string LastStartBackupName = "data.bak.json";
+
+        /// <summary>How many dated copies (data.bak.&lt;yyyyMMdd-HHmm&gt;.json) are kept.</summary>
+        public const int KeepDatedBackups = 5;
+
+        private const string DatedPrefix = "data.bak.", DatedFormat = "yyyyMMdd-HHmm", DatedSuffix = ".json";
+
+        /// <summary>
+        /// After a good load: refreshes data.bak.json and makes a dated copy (data.bak.20261119-0105.json) at most once a day,
+        /// and only when data.json changed since the newest dated copy. Only the newest <paramref name="keep"/> dated copies stay,
+        /// so a mistake (something deleted, then the app reopened) can still be undone from an earlier day.
+        /// Returns the dated copy made, or null. Errors are ignored: a missing copy never stops the app.
+        /// </summary>
+        public static string BackupOnStartup(string dir, DateTime now, int keep = KeepDatedBackups)
         {
-            try { File.Copy(FilePath(dir), Path.Combine(dir, "data.bak.json"), true); } catch { }
+            var source = FilePath(dir);
+            if (!File.Exists(source)) return null;
+            try { File.Copy(source, Path.Combine(dir, LastStartBackupName), true); } catch { }
+
+            string made = null;
+            try
+            {
+                var dated = DatedBackups(dir);
+                var newest = dated.Count > 0 ? dated[^1] : default;
+                bool today = dated.Exists(b => b.When.Date == now.Date);
+                if (!today && (newest.Path == null || !SameContent(source, newest.Path)))
+                {
+                    var copy = Path.Combine(dir, DatedPrefix + now.ToString(DatedFormat, CultureInfo.InvariantCulture) + DatedSuffix);
+                    File.Copy(source, copy, true);
+                    made = copy;
+                    dated.Add((made, now));
+                }
+                // oldest first: everything but the newest `keep` goes
+                foreach (var old in dated.OrderBy(b => b.When).SkipLast(keep))
+                    try { File.Delete(old.Path); } catch { }
+            }
+            catch { }
+            return made;
+        }
+
+        /// <summary>The dated copies in <paramref name="dir"/>, oldest first. data.bak.json and other names are left out.</summary>
+        public static List<(string Path, DateTime When)> DatedBackups(string dir)
+        {
+            var list = new List<(string, DateTime)>();
+            foreach (var f in Directory.EnumerateFiles(dir, DatedPrefix + "*" + DatedSuffix))
+            {
+                var name = Path.GetFileName(f);
+                if (name.Length <= DatedPrefix.Length + DatedSuffix.Length) continue; // data.bak.json itself
+                var stamp = name.Substring(DatedPrefix.Length, name.Length - DatedPrefix.Length - DatedSuffix.Length);
+                if (DateTime.TryParseExact(stamp, DatedFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var when))
+                    list.Add((f, when));
+            }
+            return list.OrderBy(b => b.Item2).ToList();
+        }
+
+        private static bool SameContent(string a, string b)
+        {
+            var fa = new FileInfo(a);
+            var fb = new FileInfo(b);
+            return fa.Length == fb.Length && File.ReadAllBytes(a).AsSpan().SequenceEqual(File.ReadAllBytes(b));
         }
 
         /// <summary>

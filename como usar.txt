@@ -15,6 +15,10 @@ ATUALIZAÇÕES
 
 ONDE FICAM OS DADOS
   %APPDATA%\HelmetDesk\data.json   (salvo automaticamente)
+  %APPDATA%\HelmetDesk\data.bak.AAAAMMDD-HHMM.json
+                                   cópia ao abrir o app, no máximo uma por dia e só se algo mudou; ficam as
+                                   5 mais recentes. Para desfazer um engano: feche o app e copie uma delas
+                                   por cima do data.json.
   %LOCALAPPDATA%\HelmetDesk.Local\ logs, cópias de segurança automáticas e relatórios de problema
                                    (fica fora dos backups)
 
