@@ -20,7 +20,7 @@ namespace HelmetDesk
             DataFolders = new[] { "attachments" }, // note attachments (pictures, files): restoring a backup brings them back
             AppVersion = App.AppVersion,
             CurrentSchema = Store.CurrentSchema,
-            Migrate = Store.Migrate,
+            Migrate = DataStore.Migrate,
         }, Store.Gate);
 
         internal static BugReportService ReportService { get; } = new(new BugReportOptions
