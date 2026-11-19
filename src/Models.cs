@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
+using HelmetDesk.Core;
 
 namespace HelmetDesk
 {
@@ -540,9 +541,9 @@ namespace HelmetDesk
             return d.Date.AddDays(-diff);
         }
 
-        public static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0], Culture) + s.Substring(1);
+        public static string Cap(string s) => DateText.Cap(s);
 
-        public static string MonthTitle(DateTime d) => Cap(d.ToString(T("MMMM 'de' yyyy"), Culture));
+        public static string MonthTitle(DateTime d) => DateText.MonthTitle(d);
 
         public static string WeekTitle(DateTime start)
         {
