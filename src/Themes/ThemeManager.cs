@@ -7,9 +7,10 @@ using System.Windows.Media.Animation;
 namespace HelmetDesk
 {
     /// <summary>
-    /// Picks the visual theme. Both themes (Themes/Legacy.xaml and Themes/FrutigerAero.xaml) define the same keys,
-    /// so the screens never know which one is loaded. The theme is applied once at startup, before any window
-    /// exists; changing it in Configurações saves the choice and restarts the app (screens use StaticResource).
+    /// Picks the visual theme. Both themes (Themes/Legacy.xaml and Themes/FrutigerAero.xaml) define the same keys
+    /// (styles equal in both live in Themes/Common.xaml), so the screens never know which one is loaded.
+    /// The theme is applied once at startup, before any window exists; changing it in Configurações saves the choice
+    /// and restarts the app (screens use StaticResource).
     /// </summary>
     public static class ThemeManager
     {
@@ -30,8 +31,9 @@ namespace HelmetDesk
             var dicts = Application.Current.Resources.MergedDictionaries;
             foreach (var old in dicts.Where(d => d.Source != null && d.Source.OriginalString.Contains("/Themes/")).ToList()) dicts.Remove(old);
             dicts.Insert(0, new ResourceDictionary { Source = new Uri($"/HelmetDesk;component/Themes/{file}.xaml", UriKind.Relative) });
-            // layout styles shared by the screens; they point at theme keys, so they load right after the theme
-            dicts.Insert(1, new ResourceDictionary { Source = new Uri("/HelmetDesk;component/Themes/Screens.xaml", UriKind.Relative) });
+            // styles equal in both themes, then layout styles shared by the screens; they point at theme keys, so they load right after the theme
+            dicts.Insert(1, new ResourceDictionary { Source = new Uri("/HelmetDesk;component/Themes/Common.xaml", UriKind.Relative) });
+            dicts.Insert(2, new ResourceDictionary { Source = new Uri("/HelmetDesk;component/Themes/Screens.xaml", UriKind.Relative) });
             Log.Info($"Tema: {DisplayName(Current)}");
         }
 

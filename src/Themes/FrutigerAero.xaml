@@ -8,7 +8,7 @@
     </ResourceDictionary.MergedDictionaries>
 
     <!--
-        Frutiger Aero, night edition. Same keys as Legacy.xaml. The Helmet Desk purple (#8950D9) stays the main color;
+        Frutiger Aero, night edition. Same keys as Legacy.xaml (styles equal in both live in Common.xaml). The Helmet Desk purple (#8950D9) stays the main color;
         the Aero part is the material: smoked glass, glossy capsules, gel, aurora, bokeh and light. Dark panels carry
         light text (#F3EEFB); the glass edges catch the light (bright rim on top), and active things glow purple.
         Performance: blur and shadows only on big, static layers (backdrop, the two panels), cached as bitmaps;
@@ -647,14 +647,6 @@
         <Setter Property="local:Ui.Radius" Value="7"/>
     </Style>
 
-    <Style x:Key="DangerGhost" TargetType="Button" BasedOn="{StaticResource GhostButton}">
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Foreground" Value="{StaticResource Danger}"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
     <Style x:Key="ToggleIcon" TargetType="ToggleButton" BasedOn="{StaticResource IconButton}">
         <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">
@@ -844,43 +836,6 @@
         </Setter>
     </Style>
 
-    <!-- Borderless until hovered/focused: used in the edit panel -->
-    <Style x:Key="GhostTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="Transparent"/>
-        <Setter Property="Padding" Value="8,6"/>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <Style x:Key="BareTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="0,2"/>
-        <!-- text starts at the top (next to the placeholder) and grows downward -->
-        <Setter Property="VerticalContentAlignment" Value="Top"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TextBox">
-                    <Grid Background="Transparent">
-                        <TextBlock x:Name="ph" Text="{TemplateBinding Tag}" Foreground="{StaticResource Text2}" Opacity="0.6"
-                                   Visibility="Collapsed" IsHitTestVisible="False" Margin="{TemplateBinding Padding}" Padding="2,0,0,0" VerticalAlignment="Top"/>
-                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
-                                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"/>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="Text" Value="">
-                            <Setter TargetName="ph" Property="Visibility" Value="Visible"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <!-- ===== CheckBox ===== -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
@@ -921,54 +876,6 @@
         </Setter>
     </Style>
 
-    <!-- Task completion check: round, drawn with the exact ring/check outlines of the
-         "tarefa-concluida" animation (512x512 space) so the static state matches its last frame. -->
-
-    <Style x:Key="TaskCheck" TargetType="CheckBox">
-        <Setter Property="local:TaskCheckFx.Enabled" Value="True"/>
-        <Setter Property="Foreground" Value="{StaticResource Text}"/>
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="CheckBox">
-                    <Grid Background="Transparent">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Viewbox x:Name="art" Width="24" Height="24" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                            <Canvas Width="512" Height="512">
-                                <Path x:Name="ring" Data="{StaticResource G.TaskRing}" local:Motion.Fill="{StaticResource Text2}"/>
-                                <Path x:Name="mark" Data="{StaticResource G.TaskCheck}" Fill="{StaticResource Text}" Visibility="Collapsed"/>
-                            </Canvas>
-                        </Viewbox>
-                        <!-- "press" segment of the animation, played on user click (TaskCheckFx); its last frame equals the checked art -->
-                        <local:LottieView x:Name="fx" Source="tarefa-concluida" StartFrame="14" EndFrame="20" Size="24"
-                                          AutoPlay="False" ClearOnComplete="True" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        <ContentPresenter x:Name="cp" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="HasContent" Value="False">
-                            <Setter TargetName="cp" Property="Margin" Value="0"/>
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ring" Property="local:Motion.Fill" Value="{StaticResource Accent}"/>
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="ring" Property="local:Motion.Fill" Value="{StaticResource Primary}"/>
-                            <Setter TargetName="mark" Property="Visibility" Value="Visible"/>
-                        </Trigger>
-                        <Trigger SourceName="fx" Property="IsAnimating" Value="True">
-                            <Setter TargetName="art" Property="Opacity" Value="0"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <!-- Toggle switch -->
     <Style x:Key="Switch" TargetType="CheckBox">
         <Setter Property="Cursor" Value="Hand"/>
@@ -996,90 +903,7 @@
         </Setter>
     </Style>
 
-    <!-- ===== Selection lists (swatches / segments) ===== -->
-    <Style x:Key="PlainList" TargetType="ListBox">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="0"/>
-        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
-        <Setter Property="ItemsPanel">
-            <Setter.Value>
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ListBox">
-                    <ItemsPresenter/>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style x:Key="SwatchItem" TargetType="ListBoxItem">
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="Margin" Value="0,0,6,6"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="ring" Width="28" Height="28" CornerRadius="14" BorderThickness="2" local:Motion.BorderBrush="Transparent" Padding="3">
-                        <ContentPresenter/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ring" Property="local:Motion.BorderBrush" Value="{StaticResource Line}"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="ring" Property="local:Motion.BorderBrush" Value="{StaticResource Text}"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style x:Key="SegItem" TargetType="ListBoxItem">
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="Foreground" Value="{StaticResource Text2}"/>
-        <Setter Property="FontWeight" Value="Medium"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="b" CornerRadius="6" Padding="10,5" local:Motion.Background="Transparent">
-                        <ContentPresenter/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource Text}"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="b" Property="local:Motion.Background" Value="{StaticResource Line}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Text}"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <!-- ===== ScrollBar ===== -->
-    <Style x:Key="ScrollPage" TargetType="RepeatButton">
-        <Setter Property="Focusable" Value="False"/>
-        <Setter Property="IsTabStop" Value="False"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="RepeatButton">
-                    <Border Background="Transparent"/>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
 
     <Style x:Key="ScrollThumb" TargetType="Thumb">
         <Setter Property="IsTabStop" Value="False"/>
@@ -1095,53 +919,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
-
-    <Style TargetType="ScrollBar">
-        <Setter Property="Width" Value="10"/>
-        <Setter Property="MinWidth" Value="10"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ScrollBar">
-                    <Track x:Name="PART_Track" IsDirectionReversed="True" Focusable="False">
-                        <Track.DecreaseRepeatButton>
-                            <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource ScrollPage}"/>
-                        </Track.DecreaseRepeatButton>
-                        <Track.Thumb>
-                            <Thumb Style="{StaticResource ScrollThumb}"/>
-                        </Track.Thumb>
-                        <Track.IncreaseRepeatButton>
-                            <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource ScrollPage}"/>
-                        </Track.IncreaseRepeatButton>
-                    </Track>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Style.Triggers>
-            <Trigger Property="Orientation" Value="Horizontal">
-                <Setter Property="Width" Value="Auto"/>
-                <Setter Property="MinWidth" Value="0"/>
-                <Setter Property="Height" Value="10"/>
-                <Setter Property="MinHeight" Value="10"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ScrollBar">
-                            <Track x:Name="PART_Track" Focusable="False">
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource ScrollPage}"/>
-                                </Track.DecreaseRepeatButton>
-                                <Track.Thumb>
-                                    <Thumb Style="{StaticResource ScrollThumb}"/>
-                                </Track.Thumb>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource ScrollPage}"/>
-                                </Track.IncreaseRepeatButton>
-                            </Track>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <!-- ===== ToolTip ===== -->
@@ -1225,29 +1002,6 @@
         </Setter>
     </Style>
 
-    <Style TargetType="ComboBoxItem">
-        <Setter Property="Foreground" Value="{StaticResource Text}"/>
-        <Setter Property="Padding" Value="10,7"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ComboBoxItem">
-                    <Border x:Name="bd" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Line}"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <!-- ===== Text helpers ===== -->
     <!-- big titles: Roboto Light, with a soft white glow on the glass -->
     <Style x:Key="H1" TargetType="TextBlock">
@@ -1268,22 +1022,6 @@
     </Style>
     <Style x:Key="Muted" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Foreground" Value="{StaticResource Text2}"/>
-    </Style>
-    <!-- Empty states and page subtitles: Roboto italic -->
-    <Style x:Key="MutedItalic" TargetType="TextBlock" BasedOn="{StaticResource Muted}">
-        <Setter Property="FontStyle" Value="Italic"/>
-    </Style>
-    <!-- Big numbers: Roboto Light with aligned (tabular) digits -->
-    <Style x:Key="BigNumber" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="28"/>
-        <Setter Property="FontWeight" Value="Light"/>
-        <Setter Property="Typography.NumeralAlignment" Value="Tabular"/>
-    </Style>
-    <!-- Small section caps ("HOJE"): Roboto Bold -->
-    <Style x:Key="Overline" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11"/>
-        <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{StaticResource Text2}"/>
     </Style>
 
