@@ -398,6 +398,70 @@ namespace HelmetDesk
             w.Close();
         }
 
+        /// <summary>
+        /// Every Finanças form, filter and confirmation the screenshots above don't show, so a change to FinanceView
+        /// can be compared picture by picture (nothing is saved: dialogs are cancelled, forms closed).
+        /// </summary>
+        private async Task FinanceFormShots(Func<string, Task> Shot, HelmetDesk.Core.Finance.FinanceData D, HelmetDesk.Core.Finance.Account bank)
+        {
+            var fv = FinanceView;
+            fv.ShowTab("tx");
+            fv.FilterKind.SelectedIndex = 1;   // Despesas
+            fv.FilterStatus.SelectedIndex = 2; // Pendentes
+            await Shot("19n-filtro");
+            fv.FilterKind.SelectedIndex = 2;   // Receitas
+            fv.FilterStatus.SelectedIndex = 3; // Vencidos
+            await Shot("19o-filtro-vazio");
+            fv.FilterKind.SelectedIndex = 0;
+            fv.FilterStatus.SelectedIndex = 0;
+            fv.NewTransaction();
+            fv.TxAmount.Text = "";
+            fv.SaveTx();
+            await Shot("19p-erro-lancamento");
+            fv.ClosePanel();
+            fv.NewTransaction();
+            fv.KindTransfer.IsChecked = true;
+            fv.TxAmount.Text = "500,00";
+            await Shot("19q-transferencia");
+            fv.ClosePanel();
+            fv.OpenTxForm(D.Transactions.First(t => t.Description == "Aluguel"));
+            await Shot("19q2-editar-recorrente");
+            fv.ClosePanel();
+            fv.PrevMonth_Click(this, new RoutedEventArgs());
+            await Shot("19r-mes-anterior");
+            fv.ThisMonth_Click(this, new RoutedEventArgs());
+
+            fv.ShowTab("acc");
+            fv.OpenAccForm(null);
+            await Shot("19s-nova-conta");
+            fv.ClosePanel();
+            fv.OpenAccForm(bank);
+            await Shot("19t-editar-conta");
+            fv.ClosePanel();
+            fv.ShowArchived.IsChecked = true;
+            await Shot("19u-contas-arquivadas");
+            fv.ShowArchived.IsChecked = false;
+
+            fv.ShowTab("rec");
+            fv.RequestEndRecurrence(D.Recurrences[0]);
+            await Shot("19v-encerrar-recorrencia");
+            CloseDialog(false);
+            fv.RequestDeleteRecurrence(D.Recurrences[0]);
+            await Shot("19w-excluir-recorrencia");
+            CloseDialog(false);
+
+            fv.ShowTab("cat");
+            fv.OpenCatForm(null);
+            await Shot("19x-nova-categoria");
+            fv.ClosePanel();
+            fv.OpenCatForm(D.Categories.First(c => c.Name == T("Moradia")));
+            await Shot("19y-editar-categoria");
+            fv.CatDelete_Click(this, new RoutedEventArgs());
+            await Shot("19z-excluir-categoria");
+            if (DialogOpen) CloseDialog(false);
+            fv.ClosePanel();
+        }
+
         /// <summary>Finanças screenshots with a sample month (restored afterwards).</summary>
         private async Task FinanceShots(Func<string, Task> Shot)
         {
@@ -462,6 +526,7 @@ namespace HelmetDesk
                 await Shot("19f-recorrentes");
                 FinanceView.ShowTab("cat");
                 await Shot("19g-categorias");
+                await FinanceFormShots(Shot, D, bank);
                 // five past months, so the statistics have some history
                 var mm = m;
                 for (int k = 1; k <= 5; k++)
