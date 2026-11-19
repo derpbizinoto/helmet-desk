@@ -5,7 +5,7 @@ using System.Linq;
 namespace HelmetDesk.Core.Finance
 {
     public readonly record struct MonthSummary(decimal Income, decimal Expense, decimal CurrentBalance, decimal ProjectedBalance);
-    public readonly record struct CategoryTotal(string CategoryId, decimal Total);
+    public readonly record struct CategoryTotal(string? CategoryId, decimal Total);
     public readonly record struct MonthTotals(DateTime Month, decimal Income, decimal Expense);
     public readonly record struct PeriodTotals(decimal Income, decimal Expense)
     {
@@ -13,7 +13,7 @@ namespace HelmetDesk.Core.Finance
         /// <summary>Share of income left after expenses (null when there was no income).</summary>
         public double? SavingsRate => Income > 0 ? (double)((Income - Expense) / Income) : null;
     }
-    public readonly record struct Suggestion(decimal Amount, TxKind Kind, string CategoryId, string AccountId);
+    public readonly record struct Suggestion(decimal Amount, TxKind Kind, string? CategoryId, string? AccountId);
 
     /// <summary>
     /// All the money rules of the Finanças panel, with no UI: balances, month summary, installments,
@@ -150,7 +150,7 @@ namespace HelmetDesk.Core.Finance
         }
 
         /// <summary>Largest transactions of one kind in the period; with <paramref name="byCategory"/>, only that category (null id = no category).</summary>
-        public static List<FinanceTransaction> Largest(FinanceData d, TxKind kind, DateTime from, int months, int max = 6, bool byCategory = false, string categoryId = null) =>
+        public static List<FinanceTransaction> Largest(FinanceData d, TxKind kind, DateTime from, int months, int max = 6, bool byCategory = false, string? categoryId = null) =>
             InPeriod(d, from, months).Where(t => t.Kind == kind && (!byCategory || t.CategoryId == categoryId))
                 .OrderByDescending(t => t.Amount).ThenByDescending(t => t.Date).Take(max).ToList();
 
@@ -335,7 +335,7 @@ namespace HelmetDesk.Core.Finance
         // ================= adjustment =================
 
         /// <summary>"Conferir saldo": creates a paid adjustment with the difference to <paramref name="realBalance"/>; null if it already matches.</summary>
-        public static FinanceTransaction Adjust(FinanceData d, Account a, decimal realBalance, DateTime date)
+        public static FinanceTransaction? Adjust(FinanceData d, Account a, decimal realBalance, DateTime date)
         {
             var diff = realBalance - Balance(d, a);
             if (diff == 0) return null;
@@ -383,7 +383,9 @@ namespace HelmetDesk.Core.Finance
             if (t.IsInstallment)
                 return d.Transactions.Where(x => x.InstallmentGroupId == t.InstallmentGroupId && x.InstallmentNumber >= t.InstallmentNumber)
                     .OrderBy(x => x.InstallmentNumber).ToList();
-            if (t.IsRecurring)
+            // the app always sets RecurrenceId and RecurrenceMonth together; without the month (a hand-edited data.json)
+            // every month would compare as "following", so such a transaction is treated as a single one
+            if (t.IsRecurring && t.RecurrenceMonth != null)
                 return d.Transactions.Where(x => x.RecurrenceId == t.RecurrenceId && string.CompareOrdinal(x.RecurrenceMonth, t.RecurrenceMonth) >= 0)
                     .OrderBy(x => x.RecurrenceMonth).ToList();
             return new() { t };
@@ -396,15 +398,16 @@ namespace HelmetDesk.Core.Finance
         public static int Delete(FinanceData d, FinanceTransaction t, bool following)
         {
             var list = Series(d, t, following);
-            if (t.IsRecurring && d.Recurrences.FirstOrDefault(r => r.Id == t.RecurrenceId) is { } rec)
+            // no month (hand-edited data.json, see Series): nothing to skip or end, only this transaction goes
+            if (t.IsRecurring && t.RecurrenceMonth is { } key && d.Recurrences.FirstOrDefault(r => r.Id == t.RecurrenceId) is { } rec)
             {
                 if (following)
                 {
-                    var month = DateTime.ParseExact(t.RecurrenceMonth, "yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
+                    var month = DateTime.ParseExact(key, "yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
                     if (MonthStart(month) <= MonthStart(rec.StartMonth)) d.Recurrences.Remove(rec);
                     else rec.EndMonth = month.AddMonths(-1);
                 }
-                else if (!rec.SkippedMonths.Contains(t.RecurrenceMonth)) rec.SkippedMonths.Add(t.RecurrenceMonth);
+                else if (!rec.SkippedMonths.Contains(key)) rec.SkippedMonths.Add(key);
             }
             foreach (var x in list) d.Transactions.Remove(x);
             return list.Count;
@@ -451,12 +454,16 @@ namespace HelmetDesk.Core.Finance
             d.Transactions.Count(t => t.CategoryId == c.Id) + d.Recurrences.Count(r => r.CategoryId == c.Id);
 
         /// <summary>Deletes a category, moving its transactions and recurrences to <paramref name="moveTo"/> (may be null when unused).</summary>
-        public static void DeleteCategory(FinanceData d, Category c, Category moveTo)
+        public static void DeleteCategory(FinanceData d, Category c, Category? moveTo)
         {
             if (moveTo == c) throw new ArgumentException(T("A categoria de destino é a mesma que será excluída."));
             if (moveTo == null && UsageCount(d, c) > 0) throw new InvalidOperationException(T("Escolha para qual categoria mover os lançamentos."));
-            foreach (var t in d.Transactions.Where(t => t.CategoryId == c.Id)) t.CategoryId = moveTo.Id;
-            foreach (var r in d.Recurrences.Where(r => r.CategoryId == c.Id)) r.CategoryId = moveTo.Id;
+            // moveTo is null only when the category is unused (checked above), and then there is nothing to move
+            if (moveTo != null)
+            {
+                foreach (var t in d.Transactions.Where(t => t.CategoryId == c.Id)) t.CategoryId = moveTo.Id;
+                foreach (var r in d.Recurrences.Where(r => r.CategoryId == c.Id)) r.CategoryId = moveTo.Id;
+            }
             d.Categories.Remove(c);
         }
 

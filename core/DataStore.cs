@@ -15,7 +15,7 @@ namespace HelmetDesk.Core
         /// <summary>Schema written in the file ("Version"); 1 when the file has none.</summary>
         public int Schema { get; init; }
         /// <summary>The file after <see cref="DataStore.Migrate"/> and <see cref="DataStore.FillMissing"/>, ready to deserialize.</summary>
-        public string Json { get; init; }
+        public required string Json { get; init; }
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ namespace HelmetDesk.Core
         /// Null when there is no file (first run). Throws when the file can't be read or isn't a JSON object;
         /// the file itself is never changed here (see <see cref="KeepCorruptCopy"/>).
         /// </summary>
-        public static DataFileContent Read(string dir, Action<string> info = null, Action<string> warn = null)
+        public static DataFileContent? Read(string dir, Action<string>? info = null, Action<string>? warn = null)
         {
             var path = FilePath(dir);
             if (!File.Exists(path)) return null;
@@ -196,19 +196,19 @@ namespace HelmetDesk.Core
         /// so a mistake (something deleted, then the app reopened) can still be undone from an earlier day.
         /// Returns the dated copy made, or null. Errors are ignored: a missing copy never stops the app.
         /// </summary>
-        public static string BackupOnStartup(string dir, DateTime now, int keep = KeepDatedBackups)
+        public static string? BackupOnStartup(string dir, DateTime now, int keep = KeepDatedBackups)
         {
             var source = FilePath(dir);
             if (!File.Exists(source)) return null;
             try { File.Copy(source, Path.Combine(dir, LastStartBackupName), true); } catch { }
 
-            string made = null;
+            string? made = null;
             try
             {
                 var dated = DatedBackups(dir);
-                var newest = dated.Count > 0 ? dated[^1] : default;
+                string? newest = dated.Count > 0 ? dated[^1].Path : null;
                 bool today = dated.Exists(b => b.When.Date == now.Date);
-                if (!today && (newest.Path == null || !SameContent(source, newest.Path)))
+                if (!today && (newest == null || !SameContent(source, newest)))
                 {
                     var copy = Path.Combine(dir, DatedPrefix + now.ToString(DatedFormat, CultureInfo.InvariantCulture) + DatedSuffix);
                     File.Copy(source, copy, true);
@@ -249,7 +249,7 @@ namespace HelmetDesk.Core
         /// Keeps an unreadable data.json aside as data.corrompido.&lt;time&gt;.json before the app starts over with empty data.
         /// data.json itself is not touched. Returns the copy's path, or null when it couldn't be made.
         /// </summary>
-        public static string KeepCorruptCopy(string dir, DateTime now)
+        public static string? KeepCorruptCopy(string dir, DateTime now)
         {
             var copy = Path.Combine(dir, $"data.corrompido.{now:yyyyMMddHHmmss}.json");
             try { File.Copy(FilePath(dir), copy, true); return copy; } catch { return null; }

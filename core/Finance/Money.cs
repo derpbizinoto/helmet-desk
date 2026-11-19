@@ -43,14 +43,14 @@ namespace HelmetDesk.Core.Finance
         /// <summary>Currency of this run (Configurações → Finanças → Moeda).</summary>
         public static CurrencyInfo Current { get; private set; } = Brl;
 
-        public static CurrencyInfo Find(string code) =>
+        public static CurrencyInfo? Find(string? code) =>
             Currencies.FirstOrDefault(c => string.Equals(c.Code, code, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>Sets the currency by code ("BRL", "USD", "EUR"); unknown codes fall back to the real.</summary>
-        public static void SetCurrency(string code) => Current = Find(code) ?? Brl;
+        public static void SetCurrency(string? code) => Current = Find(code) ?? Brl;
 
         /// <summary>Default for a new install: dollar in English, real in pt-BR.</summary>
-        public static string DefaultFor(string lang) => L.Normalize(lang) == L.English ? Usd.Code : Brl.Code;
+        public static string DefaultFor(string? lang) => L.Normalize(lang) == L.English ? Usd.Code : Brl.Code;
 
         /// <summary>The symbol of the current currency in the current language ("$", "US$", "R$", "€").</summary>
         public static string Symbol => Current.Symbol(L.IsEnglish);

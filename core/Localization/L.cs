@@ -26,15 +26,15 @@ namespace HelmetDesk.Core
         public static CultureInfo Culture => IsEnglish ? EnCulture : PtCulture;
 
         /// <summary>Called with each text that has no English entry (the app logs it).</summary>
-        public static Action<string> Missing;
+        public static Action<string>? Missing;
         private static readonly HashSet<string> _reported = new();
 
-        public static string Normalize(string lang) =>
+        public static string Normalize(string? lang) =>
             lang != null && lang.StartsWith("pt", StringComparison.OrdinalIgnoreCase) ? Portuguese : English;
 
-        public static void Set(string lang) => Lang = Normalize(lang);
+        public static void Set(string? lang) => Lang = Normalize(lang);
 
-        public static string DisplayName(string lang) => Normalize(lang) == Portuguese ? "Português (Brasil)" : "English";
+        public static string DisplayName(string? lang) => Normalize(lang) == Portuguese ? "Português (Brasil)" : "English";
 
         /// <summary>The text in the current language (<paramref name="pt"/> is the Portuguese original).</summary>
         public static string T(string pt)
@@ -46,7 +46,7 @@ namespace HelmetDesk.Core
         }
 
         /// <summary><see cref="T"/> then string.Format with the current culture: TF("{0} tarefas", n).</summary>
-        public static string TF(string pt, params object[] args) => string.Format(Culture, T(pt), args);
+        public static string TF(string pt, params object?[] args) => string.Format(Culture, T(pt), args);
 
         /// <summary>Singular or plural by <paramref name="n"/>: TN(n, "{0} tarefa", "{0} tarefas").</summary>
         public static string TN(long n, string one, string many) => TF(n == 1 ? one : many, n);

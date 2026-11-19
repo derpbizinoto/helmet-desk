@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -20,17 +21,17 @@ namespace HelmetDesk.Core
         /// <summary>Off unless the user ticks it: notes and tasks are private.</summary>
         public bool IncludeUserData { get; set; }
         /// <summary>Filled when the form is opened after a crash.</summary>
-        public string Exception { get; set; }
+        public string? Exception { get; set; }
     }
 
     /// <summary>Everything that will leave the app, built once so the preview shows exactly what is sent.</summary>
     public sealed class BugReportPackage
     {
-        public string Id { get; init; }
-        public string ReportText { get; init; }
-        public string ReportJson { get; init; }
+        public required string Id { get; init; }
+        public required string ReportText { get; init; }
+        public required string ReportJson { get; init; }
         /// <summary>Extra files attached (name inside the zip → full path on disk). Only the user's data, and only if allowed.</summary>
-        public IReadOnlyDictionary<string, string> Attachments { get; init; }
+        public required IReadOnlyDictionary<string, string> Attachments { get; init; }
 
         /// <summary>The preview: the report itself, plus the list of what goes in the package.</summary>
         public string PreviewText
@@ -53,9 +54,9 @@ namespace HelmetDesk.Core
     public sealed class BugReportResult
     {
         public ReportOutcome Outcome { get; init; }
-        public string Message { get; init; }
+        public required string Message { get; init; }
         /// <summary>The .zip saved to disk (offline fallback).</summary>
-        public string ZipPath { get; init; }
+        public string? ZipPath { get; init; }
         public TimeSpan RetryAfter { get; init; }
     }
 
@@ -68,10 +69,10 @@ namespace HelmetDesk.Core
     public sealed class BugReportOptions
     {
         public string AppVersion { get; set; } = "0.0.0";
-        public string LogDir { get; set; }
+        public required string LogDir { get; set; }
         public int LogLines { get; set; } = 200;
         /// <summary>Folder where the offline .zip packages go.</summary>
-        public string OutputDir { get; set; }
+        public required string OutputDir { get; set; }
         /// <summary>The user's data files, attached only when <see cref="BugReportInput.IncludeUserData"/> is set.</summary>
         public IReadOnlyList<string> UserDataFiles { get; set; } = Array.Empty<string>();
         public TimeSpan MinInterval { get; set; } = TimeSpan.FromMinutes(1);
@@ -82,20 +83,20 @@ namespace HelmetDesk.Core
 
     public interface IBugReportService
     {
-        string Validate(BugReportInput input);
+        string? Validate(BugReportInput? input);
         BugReportPackage Build(BugReportInput input);
-        Task<BugReportResult> SubmitAsync(BugReportPackage package, IProgress<OperationProgress> progress = null, CancellationToken ct = default);
+        Task<BugReportResult> SubmitAsync(BugReportPackage package, IProgress<OperationProgress>? progress = null, CancellationToken ct = default);
     }
 
     public sealed class BugReportService : IBugReportService
     {
         private readonly BugReportOptions _o;
         private readonly IClock _clock;
-        private readonly IReportTransport _online;
+        private readonly IReportTransport? _online;
         private DateTimeOffset? _last;
         private readonly object _gate = new();
 
-        public BugReportService(BugReportOptions options, IClock clock = null, IReportTransport online = null)
+        public BugReportService(BugReportOptions options, IClock? clock = null, IReportTransport? online = null)
         {
             _o = options ?? throw new ArgumentNullException(nameof(options));
             _clock = clock ?? SystemClock.Instance;
@@ -103,7 +104,7 @@ namespace HelmetDesk.Core
         }
 
         /// <summary>Null when the form is fine, otherwise the message to show.</summary>
-        public string Validate(BugReportInput input)
+        public string? Validate(BugReportInput? input)
         {
             if (string.IsNullOrWhiteSpace(input?.Title)) return T("Dê um título ao problema.");
             if (string.IsNullOrWhiteSpace(input.Description)) return T("Descreva o que aconteceu.");
@@ -116,7 +117,7 @@ namespace HelmetDesk.Core
         public BugReportPackage Build(BugReportInput input)
         {
             var info = SystemInfo.Collect(_o.AppVersion, _clock);
-            var logs = input.IncludeLogs ? LogTail.Read(_o.LogDir, _o.LogLines).Select(Redact).ToList() : new List<string>();
+            var logs = input.IncludeLogs ? LogTail.Read(_o.LogDir, _o.LogLines).Select(line => Redact(line)).ToList() : new List<string>();
             input = new BugReportInput
             {
                 Title = input.Title ?? "", Description = input.Description ?? "", Email = input.Email,
@@ -171,7 +172,8 @@ namespace HelmetDesk.Core
             return new BugReportPackage { Id = id, ReportText = sb.ToString(), ReportJson = json, Attachments = attachments };
         }
 
-        private string Redact(string s)
+        [return: NotNullIfNotNull(nameof(s))]
+        private string? Redact(string? s)
         {
             if (string.IsNullOrEmpty(s)) return s;
             foreach (var (k, v) in _o.Redactions.Where(r => !string.IsNullOrEmpty(r.Key)).OrderByDescending(r => r.Key.Length))
@@ -179,7 +181,7 @@ namespace HelmetDesk.Core
             return s;
         }
 
-        public Task<BugReportResult> SubmitAsync(BugReportPackage package, IProgress<OperationProgress> progress = null, CancellationToken ct = default)
+        public Task<BugReportResult> SubmitAsync(BugReportPackage package, IProgress<OperationProgress>? progress = null, CancellationToken ct = default)
         {
             lock (_gate)
             {
@@ -199,9 +201,9 @@ namespace HelmetDesk.Core
             return SubmitCore(package, progress, ct);
         }
 
-        private async Task<BugReportResult> SubmitCore(BugReportPackage package, IProgress<OperationProgress> progress, CancellationToken ct)
+        private async Task<BugReportResult> SubmitCore(BugReportPackage package, IProgress<OperationProgress>? progress, CancellationToken ct)
         {
-            string onlineError = null;
+            string? onlineError = null;
             if (_online != null)
             {
                 progress?.Report(new(20, T("Enviando…")));

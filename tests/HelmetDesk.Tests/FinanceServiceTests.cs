@@ -178,6 +178,54 @@ namespace HelmetDesk.Tests
             Assert.Single(FinanceService.GenerateRecurring(d, new DateTime(2026, 5, 1)));
         }
 
+        /// <summary>A recurrence with Jan–Apr generated, Jan and Feb paid, and one more transaction linked to it but with no
+        /// month (only a hand-edited data.json has that: the app always sets RecurrenceId and RecurrenceMonth together).</summary>
+        private static (FinanceData d, Recurrence r, FinanceTransaction broken) RecurrenceWithBrokenMonth()
+        {
+            var (d, a, _, _, _) = Setup();
+            var r = new Recurrence { Kind = TxKind.Expense, Amount = 10m, AccountId = a.Id, DayOfMonth = 10, StartMonth = new DateTime(2026, 1, 1) };
+            d.Recurrences.Add(r);
+            var made = FinanceService.GenerateUpTo(d, new DateTime(2026, 4, 20));
+            made[0].Paid = made[1].Paid = true;
+            var broken = Tx(d, TxKind.Expense, 10m, new DateTime(2026, 3, 15), false, a.Id);
+            broken.RecurrenceId = r.Id;
+            return (d, r, broken);
+        }
+
+        [Fact]
+        public void Transaction_with_recurrence_but_no_month_is_its_own_series()
+        {
+            var (d, _, broken) = RecurrenceWithBrokenMonth();
+            Assert.Equal(new[] { broken }, FinanceService.Series(d, broken, following: true));
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Deleting_a_transaction_with_no_month_removes_only_it(bool following)
+        {
+            var (d, r, broken) = RecurrenceWithBrokenMonth();
+
+            Assert.Equal(1, FinanceService.Delete(d, broken, following));
+
+            Assert.DoesNotContain(broken, d.Transactions);
+            Assert.Equal(4, d.Transactions.Count(t => t.RecurrenceId == r.Id)); // the 4 generated months, paid ones included
+            Assert.Contains(r, d.Recurrences);
+            Assert.Null(r.EndMonth);
+            Assert.Empty(r.SkippedMonths);
+        }
+
+        [Fact]
+        public void Apply_to_following_from_a_transaction_with_no_month_changes_no_other_month()
+        {
+            var (d, r, broken) = RecurrenceWithBrokenMonth();
+            broken.Amount = 99m;
+
+            FinanceService.ApplyToFollowing(d, broken);
+
+            Assert.All(d.Transactions.Where(t => t != broken && t.RecurrenceId == r.Id), t => Assert.Equal(10m, t.Amount));
+        }
+
         [Fact]
         public void GenerateUpTo_fills_months_the_app_was_closed_but_not_the_future()
         {

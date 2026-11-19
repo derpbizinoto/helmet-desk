@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -13,9 +14,9 @@ namespace HelmetDesk.Core
 {
     public sealed class BackupFileEntry
     {
-        [JsonPropertyName("path")] public string Path { get; set; }
+        [JsonPropertyName("path")] public string? Path { get; set; }
         [JsonPropertyName("size")] public long Size { get; set; }
-        [JsonPropertyName("sha256")] public string Sha256 { get; set; }
+        [JsonPropertyName("sha256")] public string? Sha256 { get; set; }
     }
 
     public sealed class BackupManifest
@@ -23,8 +24,8 @@ namespace HelmetDesk.Core
         public const string FileName = "manifest.json";
         public const string AppName = "Helmet Desk";
 
-        [JsonPropertyName("app")] public string App { get; set; }
-        [JsonPropertyName("appVersion")] public string AppVersion { get; set; }
+        [JsonPropertyName("app")] public string? App { get; set; }
+        [JsonPropertyName("appVersion")] public string? AppVersion { get; set; }
         [JsonPropertyName("schemaVersion")] public int SchemaVersion { get; set; }
         [JsonPropertyName("exportedAtUtc")] public DateTime ExportedAtUtc { get; set; }
         [JsonPropertyName("files")] public List<BackupFileEntry> Files { get; set; } = new();
@@ -36,7 +37,7 @@ namespace HelmetDesk.Core
     public sealed class BackupException : Exception
     {
         public BackupError Kind { get; }
-        public BackupException(BackupError kind, string message, Exception inner = null) : base(message, inner) => Kind = kind;
+        public BackupException(BackupError kind, string message, Exception? inner = null) : base(message, inner) => Kind = kind;
     }
 
     /// <summary>Points in the import where a test can make it fail on purpose.</summary>
@@ -45,9 +46,9 @@ namespace HelmetDesk.Core
     public sealed class BackupOptions
     {
         /// <summary>The folder with the user's data (it is swapped as a whole on import).</summary>
-        public string DataDir { get; set; }
+        public required string DataDir { get; set; }
         /// <summary>Where the automatic "pre-import" copies go. Must be outside <see cref="DataDir"/>.</summary>
-        public string SafetyBackupDir { get; set; }
+        public required string SafetyBackupDir { get; set; }
         /// <summary>Files (relative to DataDir) that make up the user's data.</summary>
         public IReadOnlyList<string> DataFiles { get; set; } = new[] { "data.json" };
         /// <summary>Folders (relative to DataDir) copied whole, e.g. "attachments" (note media: can be big, streamed from disk).</summary>
@@ -65,19 +66,19 @@ namespace HelmetDesk.Core
         public long MaxSafetyBytes { get; set; } = 2L * 1024 * 1024 * 1024;
         public int KeepSafetyBackups { get; set; } = 5;
         /// <summary>Brings an older backup (already extracted to the given folder) up to the current schema.</summary>
-        public Action<string, int> Migrate { get; set; }
+        public Action<string, int>? Migrate { get; set; }
         /// <summary>Test hook: called at each stage of the import; throwing simulates a failure there.</summary>
-        public Action<ImportStage> FaultInjector { get; set; }
+        public Action<ImportStage>? FaultInjector { get; set; }
     }
 
     public interface IBackupService
     {
         string SuggestedFileName(DateTimeOffset now);
-        Task<BackupManifest> ExportAsync(string zipPath, IProgress<OperationProgress> progress = null, CancellationToken ct = default);
+        Task<BackupManifest> ExportAsync(string zipPath, IProgress<OperationProgress>? progress = null, CancellationToken ct = default);
         /// <summary>Checks a backup without touching the current data. Throws <see cref="BackupException"/>.</summary>
-        Task<BackupManifest> InspectAsync(string zipPath, IProgress<OperationProgress> progress = null, CancellationToken ct = default);
-        /// <summary>Replaces the current data with the backup. Returns the path of the safety copy made first.</summary>
-        Task<string> ImportAsync(string zipPath, IProgress<OperationProgress> progress = null, CancellationToken ct = default);
+        Task<BackupManifest> InspectAsync(string zipPath, IProgress<OperationProgress>? progress = null, CancellationToken ct = default);
+        /// <summary>Replaces the current data with the backup. Returns the path of the safety copy made first (null when there was no data to copy).</summary>
+        Task<string?> ImportAsync(string zipPath, IProgress<OperationProgress>? progress = null, CancellationToken ct = default);
     }
 
     public sealed class BackupService : IBackupService
@@ -87,7 +88,7 @@ namespace HelmetDesk.Core
         private readonly IClock _clock;
         private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
 
-        public BackupService(BackupOptions options, IDataGate gate = null, IClock clock = null)
+        public BackupService(BackupOptions options, IDataGate? gate = null, IClock? clock = null)
         {
             _o = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(_o.DataDir)) throw new ArgumentException("DataDir");
@@ -99,10 +100,10 @@ namespace HelmetDesk.Core
 
         // ======================= export =======================
 
-        public Task<BackupManifest> ExportAsync(string zipPath, IProgress<OperationProgress> progress = null, CancellationToken ct = default) =>
+        public Task<BackupManifest> ExportAsync(string zipPath, IProgress<OperationProgress>? progress = null, CancellationToken ct = default) =>
             Task.Run(() => Export(zipPath, progress, ct), ct);
 
-        private BackupManifest Export(string zipPath, IProgress<OperationProgress> progress, CancellationToken ct)
+        private BackupManifest Export(string zipPath, IProgress<OperationProgress>? progress, CancellationToken ct)
         {
             progress?.Report(new(5, T("Lendo os dados…")));
             // a consistent snapshot: copy the files into memory while the app is not writing them
@@ -138,7 +139,8 @@ namespace HelmetDesk.Core
             long folderTotal = Math.Max(1, folderFiles.Sum(f => f.size)), folderDone = 0;
 
             progress?.Report(new(40, T("Compactando…")));
-            var dir = Path.GetDirectoryName(Path.GetFullPath(zipPath));
+            // null only for a drive root ("C:\"), which is not a file name (the save dialog never returns one)
+            var dir = Path.GetDirectoryName(Path.GetFullPath(zipPath)) ?? throw new BackupException(BackupError.UnsafePath, TF("Caminho recusado: {0}", zipPath));
             Directory.CreateDirectory(dir);
             // write next to the target and move into place: a cancelled/failed export never leaves half a zip
             var tmp = Path.Combine(dir, "." + Path.GetFileName(zipPath) + ".tmp");
@@ -187,10 +189,10 @@ namespace HelmetDesk.Core
 
         // ======================= validation =======================
 
-        public Task<BackupManifest> InspectAsync(string zipPath, IProgress<OperationProgress> progress = null, CancellationToken ct = default) =>
+        public Task<BackupManifest> InspectAsync(string zipPath, IProgress<OperationProgress>? progress = null, CancellationToken ct = default) =>
             Task.Run(() => Validate(zipPath, progress, ct), ct);
 
-        private BackupManifest Validate(string zipPath, IProgress<OperationProgress> progress, CancellationToken ct)
+        private BackupManifest Validate(string zipPath, IProgress<OperationProgress>? progress, CancellationToken ct)
         {
             progress?.Report(new(5, T("Verificando o backup…")));
             ZipArchive zip;
@@ -228,7 +230,7 @@ namespace HelmetDesk.Core
                 // ---- manifest ----
                 var me = zip.GetEntry(BackupManifest.FileName)
                     ?? throw new BackupException(BackupError.NotHelmetDesk, T("Este .zip não é um backup do Helmet Desk (falta o manifest.json)."));
-                BackupManifest manifest;
+                BackupManifest? manifest;
                 try
                 {
                     using var s = me.Open();
@@ -243,7 +245,8 @@ namespace HelmetDesk.Core
                 if (manifest.SchemaVersion > _o.CurrentSchema)
                     throw new BackupException(BackupError.NewerSchema,
                         TF("Este backup foi criado por uma versão mais nova do Helmet Desk ({0}). Atualize o Helmet Desk para importá-lo.", manifest.AppVersion));
-                if (manifest.SchemaVersion < 1 || manifest.Files == null || manifest.Files.Count == 0)
+                // "files": [null] deserializes to a null entry (the JSON comes from the zip, not from this app)
+                if (manifest.SchemaVersion < 1 || manifest.Files == null || manifest.Files.Count == 0 || manifest.Files.Any(f => f is null))
                     throw new BackupException(BackupError.Corrupt, T("O manifest.json do backup está incompleto."));
 
                 // ---- every listed file is there, nothing else is, and the hashes match ----
@@ -266,7 +269,7 @@ namespace HelmetDesk.Core
                 {
                     ct.ThrowIfCancellationRequested();
                     progress?.Report(new(10 + 60 * i++ / manifest.Files.Count, T("Conferindo a integridade…")));
-                    var e = zip.GetEntry(Normalize(f.Path))
+                    var e = zip.GetEntry(Normalize(PathOf(f)))
                         ?? throw new BackupException(BackupError.HashMismatch, TF("Falta no backup o arquivo {0}.", f.Path));
                     string h;
                     try { using var s = e.Open(); h = Hash(s, f.Size); }
@@ -279,8 +282,15 @@ namespace HelmetDesk.Core
             }
         }
 
+        /// <summary>
+        /// A manifest entry's path. <see cref="Validate"/> already refused a null/empty one (<see cref="CheckSafePath"/>),
+        /// so after it this never throws; it only states that to the compiler without a "!".
+        /// </summary>
+        private static string PathOf(BackupFileEntry f) =>
+            f.Path ?? throw new BackupException(BackupError.UnsafePath, T("O backup tem um nome de arquivo inválido."));
+
         /// <summary>Zip-slip guard: relative, no "..", and resolving inside a destination folder.</summary>
-        internal static void CheckSafePath(string name)
+        internal static void CheckSafePath([NotNull] string? name)
         {
             if (string.IsNullOrWhiteSpace(name) || name.Contains('\0'))
                 throw new BackupException(BackupError.UnsafePath, T("O backup tem um nome de arquivo inválido."));
@@ -294,10 +304,10 @@ namespace HelmetDesk.Core
 
         // ======================= import =======================
 
-        public Task<string> ImportAsync(string zipPath, IProgress<OperationProgress> progress = null, CancellationToken ct = default) =>
+        public Task<string?> ImportAsync(string zipPath, IProgress<OperationProgress>? progress = null, CancellationToken ct = default) =>
             Task.Run(() => Import(zipPath, progress, ct), ct);
 
-        private string Import(string zipPath, IProgress<OperationProgress> progress, CancellationToken ct)
+        private string? Import(string zipPath, IProgress<OperationProgress>? progress, CancellationToken ct)
         {
             var manifest = Validate(zipPath, progress, ct);   // nothing has been touched yet
 
@@ -314,7 +324,7 @@ namespace HelmetDesk.Core
 
             // 1. safety copy of what is there now
             progress?.Report(new(72, T("Guardando uma cópia dos dados atuais…")));
-            string safety = null;
+            string? safety = null;
             if (_o.DataFiles.Any(f => File.Exists(Path.Combine(dataDir, f))))
             {
                 Directory.CreateDirectory(_o.SafetyBackupDir);
@@ -335,11 +345,15 @@ namespace HelmetDesk.Core
                 {
                     foreach (var f in manifest.Files)
                     {
-                        var target = Path.GetFullPath(Path.Combine(tmp, Normalize(f.Path)));
+                        var target = Path.GetFullPath(Path.Combine(tmp, Normalize(PathOf(f))));
                         if (!target.StartsWith(tmpRoot, StringComparison.OrdinalIgnoreCase))
                             throw new BackupException(BackupError.UnsafePath, TF("Caminho recusado: {0}", f.Path));
-                        Directory.CreateDirectory(Path.GetDirectoryName(target));
-                        using (var src = zip.GetEntry(Normalize(f.Path)).Open())
+                        // target is inside tmp (checked above), so it always has a parent folder
+                        Directory.CreateDirectory(Path.GetDirectoryName(target) ?? tmp);
+                        // Validate found it, but the .zip is opened again here: it may have been replaced in between
+                        var entry = zip.GetEntry(Normalize(PathOf(f)))
+                            ?? throw new BackupException(BackupError.HashMismatch, TF("Falta no backup o arquivo {0}.", f.Path));
+                        using (var src = entry.Open())
                         using (var dst = new FileStream(target, FileMode.CreateNew, FileAccess.Write))
                             CopyLimited(src, dst, f.Size);
                         // validate what actually landed on disk
@@ -358,7 +372,7 @@ namespace HelmetDesk.Core
                 if (Directory.Exists(dataDir))
                 {
                     // data files and data folders come from the backup only; everything else in the folder is kept
-                    var dataNames = new HashSet<string>(manifest.Files.Select(f => Normalize(f.Path).Split('/')[0]).Concat(_o.DataFiles.Select(Normalize))
+                    var dataNames = new HashSet<string>(manifest.Files.Select(f => Normalize(PathOf(f)).Split('/')[0]).Concat(_o.DataFiles.Select(Normalize))
                         .Concat(_o.DataFolders.Select(Normalize)), StringComparer.OrdinalIgnoreCase);
                     foreach (var path in Directory.EnumerateFileSystemEntries(dataDir))
                     {
@@ -464,7 +478,8 @@ namespace HelmetDesk.Core
 
         private static long FreeSpace(string dir)
         {
-            try { return new DriveInfo(Path.GetPathRoot(Path.GetFullPath(dir))).AvailableFreeSpace; }
+            // GetPathRoot is null only for a null path; new DriveInfo(null) used to throw and land in the catch below
+            try { return Path.GetPathRoot(Path.GetFullPath(dir)) is { } root ? new DriveInfo(root).AvailableFreeSpace : -1; }
             catch { return -1; } // unknown (network path…): don't block
         }
 

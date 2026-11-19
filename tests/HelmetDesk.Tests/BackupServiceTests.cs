@@ -368,5 +368,77 @@ namespace HelmetDesk.Tests
             var left = Directory.GetFiles(_s.SafetyDir, "pre-import-*.zip").Select(Path.GetFileName).ToList();
             Assert.Equal(new[] { "pre-import-2026-11-12-153300.zip" }, left);
         }
+
+        // ---------- null values in the manifest (found when Nullable was turned on in core/) ----------
+
+        /// <summary>A .zip with a hand-written manifest.json (the JSON a broken or crafted backup could have).</summary>
+        private string ZipWithManifest(string name, string manifestJson, params (string path, string content)[] files)
+        {
+            var path = Path.Combine(_s.OutDir, name);
+            using var zip = ZipFile.Open(path, ZipArchiveMode.Create);
+            foreach (var (p, content) in files)
+                using (var s = zip.CreateEntry(p).Open()) s.Write(Encoding.UTF8.GetBytes(content));
+            using (var s = zip.CreateEntry(BackupManifest.FileName).Open()) s.Write(Encoding.UTF8.GetBytes(manifestJson));
+            return path;
+        }
+
+        [Theory]
+        [InlineData("""{ "app": "Helmet Desk", "schemaVersion": 1, "files": [ null ] }""")]
+        [InlineData("""{ "app": "Helmet Desk", "schemaVersion": 1, "files": [ { "path": "data.json", "size": 2, "sha256": "x" }, null ] }""")]
+        public async Task Null_entry_in_the_manifest_is_reported_as_incomplete(string manifest)
+        {
+            File.WriteAllText(_s.DataFile, Original);
+            var zip = ZipWithManifest("null-entry.zip", manifest, ("data.json", "{}"));
+
+            var ex = await Assert.ThrowsAsync<BackupException>(() => _s.Service().InspectAsync(zip));
+
+            Assert.Equal(BackupError.Corrupt, ex.Kind);
+            Assert.Equal("O manifest.json do backup está incompleto.", ex.Message);
+            Assert.Equal(Original, File.ReadAllText(_s.DataFile));
+        }
+
+        [Theory]
+        [InlineData("""{ "app": "Helmet Desk", "schemaVersion": 1, "files": [ { "size": 2 } ] }""")]
+        [InlineData("""{ "app": "Helmet Desk", "schemaVersion": 1, "files": [ { "path": null, "size": 2 } ] }""")]
+        public async Task Entry_without_a_path_is_refused(string manifest)
+        {
+            var zip = ZipWithManifest("no-path.zip", manifest, ("data.json", "{}"));
+            var ex = await Assert.ThrowsAsync<BackupException>(() => _s.Service().InspectAsync(zip));
+            Assert.Equal(BackupError.UnsafePath, ex.Kind);
+        }
+
+        [Fact]
+        public async Task Entry_without_a_hash_is_a_mismatch()
+        {
+            var zip = ZipWithManifest("no-hash.zip", """{ "app": "Helmet Desk", "schemaVersion": 1, "files": [ { "path": "data.json", "size": 2 } ] }""", ("data.json", "{}"));
+            var ex = await Assert.ThrowsAsync<BackupException>(() => _s.Service().InspectAsync(zip));
+            Assert.Equal(BackupError.HashMismatch, ex.Kind);
+        }
+
+        /// <summary>Runs an action the moment the import reports a given percentage (synchronously, unlike Progress&lt;T&gt;).</summary>
+        private sealed class OnPercent : IProgress<OperationProgress>
+        {
+            private readonly int _at; private readonly Action _do;
+            public OnPercent(int at, Action action) { _at = at; _do = action; }
+            public void Report(OperationProgress p) { if (p.Percent == _at) _do(); }
+        }
+
+        [Fact]
+        public async Task Zip_replaced_after_the_check_is_refused_and_data_kept()
+        {
+            File.WriteAllText(_s.DataFile, Original);
+            var zip = MakeZip("swap.zip", files: ("data.json", "{\"Version\":1,\"Items\":[\"novo\"]}", null));
+            var other = MakeZip("other.zip", files: ("outro.json", "{}", null));
+            // 80% = "Extraindo…": the zip was already checked and is about to be opened again
+            var swap = new OnPercent(80, () => File.Copy(other, zip, true));
+
+            var ex = await Assert.ThrowsAsync<BackupException>(() => _s.Service().ImportAsync(zip, swap));
+
+            Assert.Equal(BackupError.HashMismatch, ex.Kind);
+            Assert.Equal("Falta no backup o arquivo data.json.", ex.Message);
+            Assert.Equal(Original, File.ReadAllText(_s.DataFile));
+            Assert.False(Directory.Exists(_s.DataDir + ".old"));
+            Assert.False(Directory.Exists(_s.DataDir + ".import-tmp"));
+        }
     }
 }

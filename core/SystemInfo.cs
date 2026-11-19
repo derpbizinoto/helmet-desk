@@ -11,18 +11,18 @@ namespace HelmetDesk.Core
     /// <summary>Technical details that go into a bug report.</summary>
     public sealed class SystemInfo
     {
-        public string AppVersion { get; init; }
-        public string WindowsName { get; init; }
-        public string OsVersion { get; init; }
-        public string OsDescription { get; init; }
-        public string Architecture { get; init; }
-        public string ProcessArchitecture { get; init; }
-        public string Framework { get; init; }
-        public string Culture { get; init; }
-        public string UiCulture { get; init; }
+        public required string AppVersion { get; init; }
+        public required string WindowsName { get; init; }
+        public required string OsVersion { get; init; }
+        public required string OsDescription { get; init; }
+        public required string Architecture { get; init; }
+        public required string ProcessArchitecture { get; init; }
+        public required string Framework { get; init; }
+        public required string Culture { get; init; }
+        public required string UiCulture { get; init; }
         public DateTimeOffset Timestamp { get; init; }
 
-        public static SystemInfo Collect(string appVersion, IClock clock = null)
+        public static SystemInfo Collect(string appVersion, IClock? clock = null)
         {
             var v = Environment.OSVersion.Version;
             return new SystemInfo
@@ -41,7 +41,7 @@ namespace HelmetDesk.Core
         }
 
         /// <summary>Windows 11 still reports itself as 10.0; the build number (22000+) tells them apart.</summary>
-        public static string WindowsNameFor(Version v)
+        public static string WindowsNameFor(Version? v)
         {
             if (v == null) return T("Desconhecido");
             if (v.Major == 10 && v.Build >= 22000) return "Windows 11";
@@ -86,7 +86,7 @@ namespace HelmetDesk.Core
                     using var fs = new FileStream(f.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                     using var r = new StreamReader(fs, Encoding.UTF8);
                     lines = new List<string>();
-                    string line;
+                    string? line;
                     while ((line = r.ReadLine()) != null) lines.Add(line);
                 }
                 catch (IOException) { continue; }

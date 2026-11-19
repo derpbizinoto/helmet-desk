@@ -23,7 +23,7 @@ namespace HelmetDesk.Core
         public const string AppFolder = "HelmetDesk";
         public const string LocalFolder = "HelmetDesk.Local";
 
-        private static readonly string Override = Environment.GetEnvironmentVariable("HELMETDESK_DATA") is { Length: > 0 } v ? v : null;
+        private static readonly string? Override = Environment.GetEnvironmentVariable("HELMETDESK_DATA") is { Length: > 0 } v ? v : null;
 
         public static readonly string DataDir = Override
             ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppFolder);
@@ -33,7 +33,7 @@ namespace HelmetDesk.Core
             : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), LocalFolder);
 
         /// <summary>Where LocalDir was before 1.0 (now the install folder). Null when HELMETDESK_DATA is set.</summary>
-        public static readonly string LegacyLocalDir = Override != null
+        public static readonly string? LegacyLocalDir = Override != null
             ? null
             : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppFolder);
 
@@ -59,13 +59,13 @@ namespace HelmetDesk.Core
         }
 
         /// <summary>One-time copy of the old local folder into the new one. Returns what happened (for the log), or null if nothing to do.</summary>
-        public static string MigrateLocal() => LegacyLocalDir == null ? null : MigrateLocal(LegacyLocalDir, LocalDir);
+        public static string? MigrateLocal() => LegacyLocalDir == null ? null : MigrateLocal(LegacyLocalDir, LocalDir);
 
         /// <summary>
         /// Copies the known entries from <paramref name="oldDir"/> to <paramref name="newDir"/> when the old one has any of them
         /// and the new one is empty or missing. Never deletes or overwrites anything. Returns a log line, or null if nothing was done.
         /// </summary>
-        public static string MigrateLocal(string oldDir, string newDir)
+        public static string? MigrateLocal(string oldDir, string newDir)
         {
             if (!Directory.Exists(oldDir)) return null;
             var present = LocalEntries.Where(e => File.Exists(Path.Combine(oldDir, e)) || Directory.Exists(Path.Combine(oldDir, e))).ToList();

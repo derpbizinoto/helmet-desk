@@ -35,7 +35,7 @@ namespace HelmetDesk.Core
 
         private sealed class Releaser : IDisposable
         {
-            private SemaphoreSlim _s;
+            private SemaphoreSlim? _s;
             public Releaser(SemaphoreSlim s) => _s = s;
             public void Dispose() { Interlocked.Exchange(ref _s, null)?.Release(); }
         }
