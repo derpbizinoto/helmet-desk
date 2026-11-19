@@ -104,6 +104,9 @@ A test fails if any text is missing an English entry.
 
 The screenshots above are made with `HelmetDesk.exe --readme-shots <folder>`, run on an empty data folder (`HELMETDESK_DATA`) with `HELMETDESK_LANG` (`en` / `pt-BR`) and `HELMETDESK_THEME` (`classic` / `aero`).
 
+The developer modes (`--readme-shots`, `--snapshot <folder>`, `--selftest <file>`, `--selftest-restart <file>`) only exist in Debug builds (`dotnet build`, exe in `src/bin/Debug/`).
+Release builds leave them out; add `-p:DevTools=true` to compile them into another configuration. `build-release.ps1` refuses a package that contains them.
+
 ### Publishing a version
 
 The installer and updates use [Velopack](https://velopack.io). One-time setup:

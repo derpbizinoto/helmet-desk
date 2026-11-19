@@ -65,9 +65,11 @@ namespace HelmetDesk
             if (pathError != null) Log.Warn(pathError);
             HookUnhandledErrors();
 
+#if DEVTOOLS
             // the self-test and the screenshots look for Portuguese texts and seed names: pt-BR unless HELMETDESK_LANG says otherwise
             if ((e.Args.Contains("--selftest") || e.Args.Contains("--snapshot")) && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HELMETDESK_LANG")))
                 Environment.SetEnvironmentVariable("HELMETDESK_LANG", L.Portuguese);
+#endif
 
             Store.Load();
             SoundService.Preload(); // decodes the two sounds in the background
@@ -84,6 +86,7 @@ namespace HelmetDesk
             foreach (var it in Store.Data.Items.Where(i => i.WidgetOpen).ToList()) OpenWidget(it, false);
             if (Store.Data.Settings.TasksWidget) ShowTasksWidget(true);
 
+#if DEVTOOLS
             if (ArgValue(e.Args, "--selftest") is string outFile)
             {
                 MainWin.Show();
@@ -121,11 +124,13 @@ namespace HelmetDesk
                     ExitApp();
                 }), DispatcherPriority.ApplicationIdle);
             }
+#endif
 
             _clock = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
             _clock.Tick += (s, ev) => Tick();
             _clock.Start();
 
+#if DEVTOOLS
             // test of Restart(): 1st run restarts, the restarted instance records it and exits
             if (ArgValue(e.Args, "--selftest-restart") is string f)
             {
@@ -137,6 +142,7 @@ namespace HelmetDesk
                     else Restart(extraArgs: $"--selftest-restart \"{f}\"");
                 }), DispatcherPriority.ApplicationIdle);
             }
+#endif
 
             if (IsAutomation) return; // no crash report offer, no update check
 
@@ -148,8 +154,9 @@ namespace HelmetDesk
             UpdateService.Instance.StartBackgroundCheck();
         }
 
-        // ---------- automated runs (self-test, screenshots) ----------
+        // ---------- automated runs (self-test, screenshots): only in DevTools builds (see HelmetDesk.csproj) ----------
 
+#if DEVTOOLS
         private static readonly string[] AutomationArgs = { "--selftest", "--snapshot", "--readme-shots", "--selftest-restart" };
 
         /// <summary>Started by a tool, not a person: no dialogs on screen, no crash report offer, no update check.</summary>
@@ -161,6 +168,10 @@ namespace HelmetDesk
             int i = Array.IndexOf(args, name);
             return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
         }
+#else
+        /// <summary>Release builds have no automated runs.</summary>
+        public static bool IsAutomation => false;
+#endif
 
         // ---------- errors, crash report, restart ----------
 

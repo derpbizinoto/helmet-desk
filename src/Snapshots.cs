@@ -974,22 +974,6 @@ namespace HelmetDesk
             Refresh(animate: false);
         }
 
-        private static System.Collections.Generic.List<T> FindAll<T>(DependencyObject root) where T : DependencyObject
-        {
-            var list = new System.Collections.Generic.List<T>();
-            void Walk(DependencyObject d)
-            {
-                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(d); i++)
-                {
-                    var c = VisualTreeHelper.GetChild(d, i);
-                    if (c is T t) list.Add(t);
-                    Walk(c);
-                }
-            }
-            Walk(root);
-            return list;
-        }
-
         public async Task Snapshot(string dir)
         {
             async Task Shot(string name)

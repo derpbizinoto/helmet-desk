@@ -62,6 +62,14 @@ $suspect = Get-ChildItem $PublishDir -Recurse -File | Where-Object {
 }
 if ($suspect) { Fail ("Arquivos de dados encontrados no publish (não devem ir no instalador):`n" + ($suspect.FullName -join "`n")) }
 
+# ---------- 1c. nada das ferramentas de desenvolvedor no pacote ----------
+# --selftest, --snapshot e --readme-shots só são compilados com DevTools (padrão em Debug; ver src\HelmetDesk.csproj).
+# Os textos ficam no .dll em UTF-16, alinhados em byte par ou ímpar: procura nas duas leituras.
+$bytes = [IO.File]::ReadAllBytes((Join-Path $PublishDir 'HelmetDesk.dll'))
+$utf16 = [Text.Encoding]::Unicode.GetString($bytes) + [Text.Encoding]::Unicode.GetString($bytes, 1, $bytes.Length - 1)
+$devArgs = '--selftest', '--snapshot', '--readme-shots' | Where-Object { $utf16.Contains($_) }
+if ($devArgs) { Fail ("O publish contém as ferramentas de desenvolvedor ($($devArgs -join ', ')). Publique sem -p:DevTools=true.") }
+
 # ---------- 2. releases anteriores (para gerar o delta) ----------
 Step 'Baixando a release anterior do GitHub (para o pacote delta)'
 # sempre do zero: builds locais antigos (testes sem -Upload) fariam o vpk recusar a versão ou gerar delta contra

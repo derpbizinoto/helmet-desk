@@ -743,6 +743,22 @@ namespace HelmetDesk
             return null;
         }
 
+        private static List<T> FindAll<T>(DependencyObject root) where T : DependencyObject
+        {
+            var list = new List<T>();
+            void Walk(DependencyObject d)
+            {
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(d); i++)
+                {
+                    var c = VisualTreeHelper.GetChild(d, i);
+                    if (c is T t) list.Add(t);
+                    Walk(c);
+                }
+            }
+            Walk(root);
+            return list;
+        }
+
         private void PinWidget_Click(object sender, RoutedEventArgs e)
         {
             if (ItemOf(sender) is Item it) App.Current.OpenWidget(it);
@@ -990,7 +1006,7 @@ namespace HelmetDesk
         private UIElement _returnFocus;
         private Item _returnItem;
         /// <summary>Test hook: pretend the last input came from the keyboard (true) or mouse (false).</summary>
-        internal static bool? KeyboardOverride;
+        internal static bool? KeyboardOverride { get; set; }
         private static bool ViaKeyboard => KeyboardOverride ?? InputManager.Current.MostRecentInputDevice is KeyboardDevice;
 
         /// <summary>Close requested by the user (X button or Esc): focus goes back to what opened the panel.</summary>

@@ -104,6 +104,9 @@ Um teste falha se algum texto ficar sem tradução para o inglês.
 
 As capturas acima são feitas com `HelmetDesk.exe --readme-shots <pasta>`, numa pasta de dados vazia (`HELMETDESK_DATA`), com `HELMETDESK_LANG` (`en` / `pt-BR`) e `HELMETDESK_THEME` (`classic` / `aero`).
 
+Os modos de desenvolvedor (`--readme-shots`, `--snapshot <pasta>`, `--selftest <arquivo>`, `--selftest-restart <arquivo>`) só existem no build Debug (`dotnet build`, exe em `src/bin/Debug/`).
+O build Release os deixa de fora; para compilá-los em outra configuração, acrescente `-p:DevTools=true`. O `build-release.ps1` recusa um pacote que os contenha.
+
 ### Publicar uma versão
 
 O instalador e as atualizações usam o [Velopack](https://velopack.io). Uma vez só:

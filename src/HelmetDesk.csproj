@@ -23,6 +23,17 @@
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
   </PropertyGroup>
 
+  <!-- Developer tooling (the selftest, selftest-restart, snapshot and readme-shots command-line modes; Snapshots*.cs,
+       ReadmeShots.cs): compiled only when DevTools is true, which is the default in Debug. Release leaves it out;
+       -p:DevTools=true turns it on in any configuration. build-release.ps1 refuses a package that still contains it. -->
+  <PropertyGroup>
+    <DevTools Condition="'$(DevTools)' == '' and '$(Configuration)' == 'Debug'">true</DevTools>
+    <DefineConstants Condition="'$(DevTools)' == 'true'">$(DefineConstants);DEVTOOLS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(DevTools)' != 'true'">
+    <Compile Remove="Snapshots.cs;Snapshots.*.cs;ReadmeShots.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Resource Include="Assets\icon.ico" />
     <Resource Include="Assets\logo.png" />
