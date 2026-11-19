@@ -12,25 +12,12 @@ namespace HelmetDesk
     /// <summary>
     /// "Estatísticas" tab: summary of a period ending at the selected month (with the change against the previous
     /// period), a ring chart per category (expenses or income, click a slice for its largest transactions) and the
-    /// month-by-month bars. All numbers come from <see cref="FinanceService"/>; this file only draws them.
+    /// month-by-month bars. The period, the selection and the numbers come from <see cref="FinancePanelViewModel"/> and
+    /// <see cref="FinanceService"/>; this file only draws them.
     /// </summary>
     public partial class FinanceView
     {
-        private int _period = 1;                 // months; 0 = year to date
-        private TxKind _pieKind = TxKind.Expense;
-        private List<CategoryTotal> _pieData = new();
-        private int _pieSel = -1;
         private bool _statsBusy;
-
-        /// <summary>First month and length of the selected period (it always ends at the selected month).</summary>
-        private (DateTime from, int months) StatsPeriod() =>
-            _period == 0 ? (new DateTime(_month.Year, 1, 1), _month.Month) : (_month.AddMonths(1 - _period), _period);
-
-        private (DateTime from, int months) PreviousPeriod()
-        {
-            var (from, months) = StatsPeriod();
-            return _period == 0 ? (from.AddYears(-1), months) : (from.AddMonths(-months), months);
-        }
 
         private static string Mon(DateTime m, bool year = false) =>
             Dates.Cap(m.ToString(year ? "MMM/yy" : "MMM", Dates.Culture).Replace(".", ""));
@@ -38,15 +25,15 @@ namespace HelmetDesk
         private void Period_Checked(object sender, RoutedEventArgs e)
         {
             if (!IsInitialized || StatsTab == null) return;
-            _period = int.Parse((string)((FrameworkElement)sender).Tag);
-            if (_tab == "stats" && !_statsBusy) BuildStats();
+            Vm.Period = int.Parse((string)((FrameworkElement)sender).Tag);
+            if (Vm.Tab == "stats" && !_statsBusy) BuildStats();
         }
 
         private void PieKind_Checked(object sender, RoutedEventArgs e)
         {
             if (!IsInitialized || StatsTab == null) return;
-            _pieKind = sender == PieIncome ? TxKind.Income : TxKind.Expense;
-            if (_tab == "stats" && !_statsBusy) BuildStats();
+            Vm.PieKind = sender == PieIncome ? TxKind.Income : TxKind.Expense;
+            if (Vm.Tab == "stats" && !_statsBusy) BuildStats();
         }
 
         /// <summary>For the self-test and snapshots: 1, 3, 6, 12 or 0 (year).</summary>
@@ -55,8 +42,8 @@ namespace HelmetDesk
             _statsBusy = true;
             (months switch { 3 => Period3, 6 => Period6, 12 => Period12, 0 => PeriodYear, _ => Period1 }).IsChecked = true;
             _statsBusy = false;
-            _period = months;
-            if (_tab == "stats") BuildStats();
+            Vm.Period = months;
+            if (Vm.Tab == "stats") BuildStats();
         }
 
         internal void SetPieKind(TxKind kind)
@@ -64,8 +51,8 @@ namespace HelmetDesk
             _statsBusy = true;
             (kind == TxKind.Income ? PieIncome : PieExpense).IsChecked = true;
             _statsBusy = false;
-            _pieKind = kind;
-            if (_tab == "stats") BuildStats();
+            Vm.PieKind = kind;
+            if (Vm.Tab == "stats") BuildStats();
         }
 
         internal void SelectPieSlice(int index)
@@ -74,20 +61,20 @@ namespace HelmetDesk
             OnPieSelected(index);
         }
 
-        internal int PieSliceCount => _pieData.Count;
+        internal int PieSliceCount => Vm.PieData.Count;
 
         // ================= build =================
 
         private void BuildStats()
         {
-            var (from, months) = StatsPeriod();
-            var prev = PreviousPeriod();
+            var (from, months) = Vm.StatsPeriod();
+            var prev = Vm.PreviousPeriod();
             var now = FinanceService.Totals(D, from, months);
             var before = FinanceService.Totals(D, prev.from, prev.months);
             var last = from.AddMonths(months - 1);
 
-            string vs = _period == 1 ? TF("vs {0}", Dates.MonthTitle(prev.from).ToLower(Dates.Culture))
-                      : _period == 0 ? TF("vs mesmo período de {0}", prev.from.Year)
+            string vs = Vm.Period == 1 ? TF("vs {0}", Dates.MonthTitle(prev.from).ToLower(Dates.Culture))
+                      : Vm.Period == 0 ? TF("vs mesmo período de {0}", prev.from.Year)
                       : TF("vs {0} meses anteriores", months);
             StatsRange.Text = months == 1 ? Dates.MonthTitle(from)
                 : (from.Year == last.Year ? TF("{0} – {1} de {2}", Mon(from), Mon(last), last.Year) : $"{Mon(from, true)} – {Mon(last, true)}")
@@ -115,7 +102,7 @@ namespace HelmetDesk
                 StRateDelta.Foreground = Ui.Res("Text2");
             }
 
-            BuildPie(from, months);
+            BuildPie();
             BuildBars();
         }
 
@@ -141,17 +128,17 @@ namespace HelmetDesk
 
         // ================= ring chart =================
 
-        private void BuildPie(DateTime from, int months)
+        private void BuildPie()
         {
-            bool income = _pieKind == TxKind.Income;
+            bool income = Vm.PieKind == TxKind.Income;
             PieTitle.Text = income ? T("Ganhos por categoria") : T("Gastos por categoria");
-            _pieData = FinanceService.ByCategory(D, _pieKind, from, months);
-            _pieSel = -1;
-            decimal total = _pieData.Sum(c => c.Total);
+            Vm.LoadPie();
+            var data = Vm.PieData;
+            decimal total = data.Sum(c => c.Total);
 
             Pie.SliceClicked -= OnPieSelected;
             Pie.SliceClicked += OnPieSelected;
-            Pie.SetSlices(_pieData.Select(c =>
+            Pie.SetSlices(data.Select(c =>
             {
                 var cat = CategoryOf(c.CategoryId);
                 double pct = total > 0 ? (double)(c.Total / total) : 0;
@@ -160,13 +147,13 @@ namespace HelmetDesk
             }), animate: true);
 
             PieLegend.Children.Clear();
-            if (_pieData.Count == 0)
+            if (data.Count == 0)
                 PieLegend.Children.Add(new TextBlock
                 {
                     Text = income ? T("Nenhum ganho neste período.") : T("Nenhum gasto neste período."),
                     Style = Ui.St("MutedItalic"), Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.Wrap,
                 });
-            for (int i = 0; i < _pieData.Count; i++)
+            for (int i = 0; i < data.Count; i++)
                 PieLegend.Children.Add(LegendRow(i, total));
 
             UpdatePieCenter();
@@ -175,7 +162,7 @@ namespace HelmetDesk
 
         private Border LegendRow(int index, decimal total)
         {
-            var ct = _pieData[index];
+            var ct = Vm.PieData[index];
             var cat = CategoryOf(ct.CategoryId);
             double pct = total > 0 ? (double)(ct.Total / total) : 0;
             var row = new DockPanel();
@@ -193,11 +180,11 @@ namespace HelmetDesk
             row.Children.Add(new TextBlock { Text = cat?.Name ?? T("Sem categoria"), FontSize = 12.5, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center });
 
             var b = new Border { Child = row, Padding = new Thickness(8, 6, 8, 6), CornerRadius = new CornerRadius(6), Background = Brushes.Transparent, Cursor = Cursors.Hand, Tag = index };
-            b.MouseEnter += (s, e) => { if (_pieSel != index) b.Background = Ui.Res("AccentSoft"); };
-            b.MouseLeave += (s, e) => { if (_pieSel != index) b.Background = Brushes.Transparent; };
+            b.MouseEnter += (s, e) => { if (Vm.PieSelected != index) b.Background = Ui.Res("AccentSoft"); };
+            b.MouseLeave += (s, e) => { if (Vm.PieSelected != index) b.Background = Brushes.Transparent; };
             b.MouseLeftButtonUp += (s, e) =>
             {
-                int sel = _pieSel == index ? -1 : index;
+                int sel = Vm.PieSelected == index ? -1 : index;
                 Pie.Selected = sel;
                 OnPieSelected(sel);
             };
@@ -206,7 +193,7 @@ namespace HelmetDesk
 
         private void OnPieSelected(int index)
         {
-            _pieSel = index;
+            Vm.PieSelected = index;
             foreach (Border b in PieLegend.Children.OfType<Border>())
             {
                 bool on = (int)b.Tag == index;
@@ -221,10 +208,11 @@ namespace HelmetDesk
 
         private void UpdatePieCenter()
         {
-            decimal total = _pieData.Sum(c => c.Total);
-            if (_pieSel >= 0 && _pieSel < _pieData.Count)
+            var data = Vm.PieData;
+            decimal total = data.Sum(c => c.Total);
+            if (Vm.HasPieSelection)
             {
-                var ct = _pieData[_pieSel];
+                var ct = data[Vm.PieSelected];
                 PieCenterLabel.Text = CategoryOf(ct.CategoryId)?.Name ?? T("Sem categoria");
                 PieCenterValue.Text = Money.Format(ct.Total);
                 PieCenterPct.Text = total > 0 ? ((double)(ct.Total / total)).ToString("P0", Dates.Culture) + T(" do total") : "";
@@ -233,7 +221,7 @@ namespace HelmetDesk
             {
                 PieCenterLabel.Text = T("Total");
                 PieCenterValue.Text = Money.Format(total);
-                PieCenterPct.Text = _pieData.Count switch { 0 => "", var n => TN(n, "{0} categoria", "{0} categorias") };
+                PieCenterPct.Text = data.Count switch { 0 => "", var n => TN(n, "{0} categoria", "{0} categorias") };
             }
         }
 
@@ -241,11 +229,10 @@ namespace HelmetDesk
 
         private void BuildTopList()
         {
-            var (from, months) = StatsPeriod();
-            bool income = _pieKind == TxKind.Income;
-            bool byCat = _pieSel >= 0 && _pieSel < _pieData.Count;
-            string catId = byCat ? _pieData[_pieSel].CategoryId : null;
-            var list = FinanceService.Largest(D, _pieKind, from, months, 6, byCat, catId);
+            bool income = Vm.PieKind == TxKind.Income;
+            bool byCat = Vm.HasPieSelection;
+            string catId = Vm.SelectedPieCategoryId;
+            var list = Vm.TopTransactions();
 
             TopTitle.Text = income ? T("Maiores ganhos") : T("Maiores gastos");
             TopMeta.Text = byCat ? CategoryOf(catId)?.Name ?? T("Sem categoria") : T("Todas as categorias");
@@ -295,10 +282,9 @@ namespace HelmetDesk
 
         private void BuildBars()
         {
-            var (from, months) = StatsPeriod();
-            int n = Math.Max(months, 6); // short periods still get some history to compare with
-            var start = _month.AddMonths(1 - n);
-            bool years = start.Year != _month.Year;
+            var months = Vm.StatsPeriod().months;
+            var (start, n) = Vm.BarsRange(); // short periods still get some history to compare with
+            bool years = start.Year != Vm.Month.Year;
             BarsMeta.Text = n == months ? T("Ganhos, gastos e saldo de cada mês do período") : TF("Ganhos, gastos e saldo · últimos {0} meses", n);
             Bars.SetData(FinanceService.Monthly(D, start, n).Select(m => new MonthBarChart.Month(
                 Mon(m.Month, years), m.Income, m.Expense,

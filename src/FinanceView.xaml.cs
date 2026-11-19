@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -15,38 +14,32 @@ namespace HelmetDesk
 {
     /// <summary>
     /// Finanças panel: month summary, transactions (by day, with filters), accounts, recurrences, categories and the
-    /// expenses-by-category chart. Code-behind like the rest of the app; the money rules are in <see cref="FinanceService"/>.
+    /// expenses-by-category chart. The state and rules of the panel and its forms are in the view models
+    /// (<see cref="FinancePanelViewModel"/> and its forms, in core); the money rules are in <see cref="FinanceService"/>.
+    /// This class draws the rows, moves values between the controls and the view models, and answers
+    /// <see cref="IFinanceHost"/> (saving, the side form, dialogs, the undo bar).
     /// </summary>
-    public partial class FinanceView : UserControl
+    public partial class FinanceView : UserControl, IFinanceHost
     {
         private static FinanceData D => Store.Data.Finance;
 
-        private DateTime _month = FinanceService.MonthStart(DateTime.Today);
-        private string _tab = "tx";
+        private readonly FinancePanelViewModel Vm;
+        private TransactionFormViewModel TxVm => Vm.Transaction;
+
         private bool _filling;
-
-        // transaction form
-        private FinanceTransaction _editing;   // null = new
-        private bool _paidTouched;
         private bool _descBusy;
-
-        // other forms
-        private Account _editingAcc;
-        private string _accColor;
-        private Account _checking;
-        private Category _editingCat;
-        private string _catColor, _catIcon;
+        /// <summary>Values are being copied from a view model into the controls: their change events are ignored.</summary>
+        private bool _sync;
 
         /// <summary>Raised after any change, so the window can update the sidebar counter and the Hoje card.</summary>
         public event Action Changed;
 
-        private static readonly string[] Colors =
-            { "#8950D9", "#C8A8F5", "#78B7FF", "#5CC8C8", "#64D6A2", "#F2C36B", "#F2A65A", "#FF8FB1", "#FF6F91", "#9A93A8" };
-        private static readonly string[] CategoryIcons =
-            { "food", "home", "car", "repeat", "fun", "health", "cart", "book", "gift", "salary", "laptop", "coin", "dots" };
+        private static IReadOnlyList<string> Colors => FinancePanelViewModel.Colors;
+        private static IReadOnlyList<string> CategoryIcons => FinancePanelViewModel.CategoryIcons;
 
         public FinanceView()
         {
+            Vm = new FinancePanelViewModel(() => Store.Data.Finance, this);
             InitializeComponent();
             FillStaticCombos();
             DependencyPropertyDescriptor.FromProperty(DateField.SelectedDateProperty, typeof(DateField))
@@ -60,7 +53,7 @@ namespace HelmetDesk
         /// <summary>The panel was opened: generate this month's recurring bills and redraw.</summary>
         public void Activate()
         {
-            GenerateMonth();
+            Vm.GenerateMonth();
             Refresh();
         }
 
@@ -76,7 +69,7 @@ namespace HelmetDesk
             if (!PanelOpen) return;
             _panelWanted = false; // before Exit: with motion off its callback runs right away
             Motion.Exit(Panel, dx: Motion.ShiftPanel, done: () => { if (!_panelWanted) Panel.Visibility = Visibility.Collapsed; });
-            _editing = null; _editingAcc = null; _checking = null; _editingCat = null;
+            Vm.FormsClosed();
         }
 
         private bool _panelWanted;
@@ -101,24 +94,25 @@ namespace HelmetDesk
         public void Refresh()
         {
             UpdateAmountSymbol();
-            ThisMonthBtn.Visibility = _month == FinanceService.MonthStart(DateTime.Today) ? Visibility.Collapsed : Visibility.Visible;
-            MonthTitle.Text = Dates.MonthTitle(_month);
-            var s = FinanceService.Summary(D, _month);
+            ThisMonthBtn.Visibility = Vm.IsThisMonth ? Visibility.Collapsed : Visibility.Visible;
+            MonthTitle.Text = Dates.MonthTitle(Vm.Month);
+            var s = Vm.Summary;
             SumIncome.Text = Money.Format(s.Income);
             SumExpense.Text = Money.Format(s.Expense);
             SumBalance.Text = Money.Format(s.CurrentBalance);
             SumBalance.Foreground = s.CurrentBalance < 0 ? Ui.Res("Danger") : Ui.Res("Text");
             SumProjected.Text = Money.Format(s.ProjectedBalance);
             SumProjected.Foreground = s.ProjectedBalance < 0 ? Ui.Res("Danger") : Ui.Res("Text");
-            SumProjectedLabel.Text = TF("Previsto em {0}", FinanceService.MonthEnd(_month).ToString(T("dd/MM"), Dates.Culture));
+            SumProjectedLabel.Text = TF("Previsto em {0}", Vm.MonthEnd.ToString(T("dd/MM"), Dates.Culture));
 
-            TxTab.Visibility = _tab == "tx" ? Visibility.Visible : Visibility.Collapsed;
-            AccTab.Visibility = _tab == "acc" ? Visibility.Visible : Visibility.Collapsed;
-            RecTab.Visibility = _tab == "rec" ? Visibility.Visible : Visibility.Collapsed;
-            CatTab.Visibility = _tab == "cat" ? Visibility.Visible : Visibility.Collapsed;
-            StatsTab.Visibility = _tab == "stats" ? Visibility.Visible : Visibility.Collapsed;
-            SumGrid.Visibility = _tab == "stats" ? Visibility.Collapsed : Visibility.Visible; // the tab has its own period summary
-            switch (_tab)
+            var tab = Vm.Tab;
+            TxTab.Visibility = tab == "tx" ? Visibility.Visible : Visibility.Collapsed;
+            AccTab.Visibility = tab == "acc" ? Visibility.Visible : Visibility.Collapsed;
+            RecTab.Visibility = tab == "rec" ? Visibility.Visible : Visibility.Collapsed;
+            CatTab.Visibility = tab == "cat" ? Visibility.Visible : Visibility.Collapsed;
+            StatsTab.Visibility = tab == "stats" ? Visibility.Visible : Visibility.Collapsed;
+            SumGrid.Visibility = tab == "stats" ? Visibility.Collapsed : Visibility.Visible; // the tab has its own period summary
+            switch (tab)
             {
                 case "tx": FillFilters(); BuildTransactions(); BuildChart(); break;
                 case "acc": BuildAccounts(); break;
@@ -136,10 +130,23 @@ namespace HelmetDesk
             Refresh();
         }
 
-        private void GenerateMonth()
+        // ================= IFinanceHost (what the view models ask of this screen) =================
+
+        void IFinanceHost.Commit() => Commit();
+
+        void IFinanceHost.Changed()
         {
-            if (FinanceService.GenerateRecurring(D, _month).Count > 0) { Store.MarkDirty(); Changed?.Invoke(); }
+            Store.MarkDirty();
+            Changed?.Invoke();
         }
+
+        void IFinanceHost.ReplaceData(FinanceData data) => Store.Data.Finance = data;
+
+        void IFinanceHost.Confirm(string title, string text, string confirm, bool danger, string checkText, Action<bool> onConfirm) =>
+            Host?.OpenDialog(title, text, confirm, T("Cancelar"), danger ? MainWindow.DialogKind.Danger : MainWindow.DialogKind.Info, false,
+                ok => { if (ok) onConfirm(Host?.DialogChecked == true); }, checkText);
+
+        void IFinanceHost.Snack(string text, string action, Action onAction) => Host?.ShowSnack(text, action, onAction);
 
         // ================= layout =================
 
@@ -161,21 +168,14 @@ namespace HelmetDesk
 
         // ================= month / tabs =================
 
-        private void SetMonth(DateTime m)
-        {
-            _month = FinanceService.MonthStart(m);
-            GenerateMonth();
-            Refresh();
-        }
-
-        internal void PrevMonth_Click(object sender, RoutedEventArgs e) => SetMonth(_month.AddMonths(-1));
-        internal void NextMonth_Click(object sender, RoutedEventArgs e) => SetMonth(_month.AddMonths(1));
-        internal void ThisMonth_Click(object sender, RoutedEventArgs e) => SetMonth(DateTime.Today);
+        internal void PrevMonth_Click(object sender, RoutedEventArgs e) { Vm.PrevMonth(); Refresh(); }
+        internal void NextMonth_Click(object sender, RoutedEventArgs e) { Vm.NextMonth(); Refresh(); }
+        internal void ThisMonth_Click(object sender, RoutedEventArgs e) { Vm.ThisMonth(); Refresh(); }
 
         private void Tab_Checked(object sender, RoutedEventArgs e)
         {
             if (!IsInitialized) return;
-            _tab = (string)((FrameworkElement)sender).Tag;
+            Vm.Tab = (string)((FrameworkElement)sender).Tag;
             if (TxTab == null) return;
             Refresh();
         }
@@ -184,16 +184,16 @@ namespace HelmetDesk
         internal void ShowTab(string tab)
         {
             (tab switch { "acc" => TabAcc, "rec" => TabRec, "cat" => TabCat, "stats" => TabStats, _ => TabTx }).IsChecked = true;
-            _tab = tab;
+            Vm.Tab = tab;
             Refresh();
         }
 
-        internal DateTime Month => _month;
+        internal DateTime Month => Vm.Month;
 
         // ================= helpers =================
 
-        private static Category CategoryOf(string id) => id == null ? null : D.Categories.FirstOrDefault(c => c.Id == id);
-        private static Account AccountOf(string id) => id == null ? null : D.Accounts.FirstOrDefault(a => a.Id == id);
+        private Category CategoryOf(string id) => Vm.CategoryOf(id);
+        private Account AccountOf(string id) => Vm.AccountOf(id);
 
         private static Geometry CatGeo(string icon) =>
             Application.Current.TryFindResource("F." + (string.IsNullOrEmpty(icon) ? "dots" : icon)) as Geometry ?? Ui.Geo("F.dots");
@@ -281,36 +281,51 @@ namespace HelmetDesk
 
         private static string Sel(ComboBox cb) => (cb.SelectedItem as ComboBoxItem)?.Tag as string;
 
-        private static string Snapshot() => JsonSerializer.Serialize(D);
-        private static void Restore(string json) => Store.Data.Finance = JsonSerializer.Deserialize<FinanceData>(json);
+        /// <summary>Selects the item with this tag (none when it is not there), without refilling the combo.</summary>
+        private static void SelectTag(ComboBox cb, string tag) =>
+            cb.SelectedItem = cb.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == tag);
+
+        private static void SetText(TextBox tb, string text)
+        {
+            if (tb.Text != text) tb.Text = text;
+        }
 
         // ================= transactions list =================
 
         private void FillStaticCombos()
         {
             _filling = true;
-            Fill(FilterKind, new[] { ("", T("Todos os tipos")), ("0", T("Despesas")), ("1", T("Receitas")), ("2", T("Transferências")) }, "");
-            Fill(FilterStatus, new[] { ("", T("Todos")), ("paid", T("Pagos")), ("pending", T("Pendentes")), ("overdue", T("Vencidos")) }, "");
+            Fill(FilterKind, FinancePanelViewModel.KindFilterOptions(), "");
+            Fill(FilterStatus, FinancePanelViewModel.StatusFilterOptions(), "");
             Fill(AccType, Enum.GetValues<AccountType>().Select(t => (((int)t).ToString(), TypeName(t))), "0");
             _filling = false;
+        }
+
+        /// <summary>Copies the four filter combos into the view model (they can also be set from code, as the snapshots do).</summary>
+        private void SyncFilters()
+        {
+            Vm.FilterAccount = Sel(FilterAccount);
+            Vm.FilterCategory = Sel(FilterCategory);
+            Vm.FilterKind = Sel(FilterKind);
+            Vm.FilterStatus = Sel(FilterStatus);
         }
 
         private void FillFilters()
         {
             _filling = true;
-            var acc = Sel(FilterAccount) ?? "";
-            var cat = Sel(FilterCategory) ?? "";
-            Fill(FilterAccount, new[] { ("", T("Todas as contas")) }.Concat(D.Accounts.Where(a => !a.Archived || a.Id == acc).Select(a => (a.Id, a.Name))), acc);
-            Fill(FilterCategory, new[] { ("", T("Todas as categorias")) }
-                .Concat(D.Categories.OrderBy(c => c.Kind).ThenBy(c => c.Name).Select(c => (c.Id, c.Name + (c.Kind == CategoryKind.Income ? T(" (receita)") : "")))), cat);
+            SyncFilters();
+            Fill(FilterAccount, Vm.AccountFilterOptions(), Vm.FilterAccount);
+            Fill(FilterCategory, Vm.CategoryFilterOptions(), Vm.FilterCategory);
             _filling = false;
-            ClearFiltersBtn.Visibility = (Sel(FilterAccount) + Sel(FilterCategory) + Sel(FilterKind) + Sel(FilterStatus)).Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+            SyncFilters();
+            ClearFiltersBtn.Visibility = Vm.HasFilters ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void Filter_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (_filling || !IsInitialized || TxList == null) return;
-            ClearFiltersBtn.Visibility = (Sel(FilterAccount) + Sel(FilterCategory) + Sel(FilterKind) + Sel(FilterStatus)).Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+            SyncFilters();
+            ClearFiltersBtn.Visibility = Vm.HasFilters ? Visibility.Visible : Visibility.Collapsed;
             BuildTransactions();
         }
 
@@ -319,45 +334,35 @@ namespace HelmetDesk
             _filling = true;
             foreach (var cb in new[] { FilterAccount, FilterCategory, FilterKind, FilterStatus }) cb.SelectedIndex = 0;
             _filling = false;
+            Vm.ClearFilters();
             ClearFiltersBtn.Visibility = Visibility.Collapsed;
             BuildTransactions();
         }
 
         internal List<FinanceTransaction> VisibleTransactions()
         {
-            var today = DateTime.Today;
-            string acc = Sel(FilterAccount), cat = Sel(FilterCategory), kind = Sel(FilterKind), status = Sel(FilterStatus);
-            return FinanceService.InMonth(D, _month)
-                .Where(t => string.IsNullOrEmpty(acc) || t.AccountId == acc || t.ToAccountId == acc)
-                .Where(t => string.IsNullOrEmpty(cat) || t.CategoryId == cat)
-                .Where(t => string.IsNullOrEmpty(kind) || ((int)t.Kind).ToString() == kind)
-                .Where(t => status switch
-                {
-                    "paid" => t.Paid,
-                    "pending" => !t.Paid,
-                    "overdue" => FinanceService.IsOverdue(t, today),
-                    _ => true
-                })
-                .OrderByDescending(t => t.Date).ThenByDescending(t => t.CreatedAt).ToList();
+            SyncFilters();
+            return Vm.VisibleTransactions();
         }
 
         private void BuildTransactions()
         {
             TxList.Children.Clear();
-            var list = VisibleTransactions();
-            foreach (var day in list.GroupBy(t => t.Date.Date))
+            SyncFilters();
+            var days = Vm.DayGroups();
+            foreach (var day in days)
             {
-                var net = day.Where(t => !t.IsAdjustment).Sum(t => t.Kind == TxKind.Income ? t.Amount : t.Kind == TxKind.Expense ? -t.Amount : 0);
+                var net = day.Net;
                 var head = new DockPanel { Margin = new Thickness(0, TxList.Children.Count == 0 ? 0 : 12, 0, 8) };
                 var total = new TextBlock { Text = net == 0 ? "" : Money.Signed(net), Style = Ui.St("Muted"), VerticalAlignment = VerticalAlignment.Center };
                 DockPanel.SetDock(total, Dock.Right);
                 head.Children.Add(total);
-                head.Children.Add(new TextBlock { Text = DayTitle(day.Key), FontSize = 14, FontWeight = FontWeights.SemiBold });
+                head.Children.Add(new TextBlock { Text = DayTitle(day.Day), FontSize = 14, FontWeight = FontWeights.SemiBold });
                 TxList.Children.Add(head);
-                foreach (var t in day) TxList.Children.Add(TxRow(t));
+                foreach (var t in day.Items) TxList.Children.Add(TxRow(t));
             }
             bool filtered = ClearFiltersBtn.Visibility == Visibility.Visible;
-            TxEmpty.Visibility = list.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            TxEmpty.Visibility = days.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             TxEmptyText.Text = filtered ? T("Nenhum lançamento com esses filtros.") : T("Nenhum lançamento neste mês.\nUse “Novo lançamento” ou Ctrl+N.");
         }
 
@@ -453,26 +458,21 @@ namespace HelmetDesk
         /// <summary>Row click: opens the transaction's panel, or closes it if that same transaction is already open.</summary>
         private void ToggleTx(FinanceTransaction t)
         {
-            if (PanelOpen && TxForm.Visibility == Visibility.Visible && _editing == t) ClosePanel();
+            if (PanelOpen && TxForm.Visibility == Visibility.Visible && TxVm.Editing == t) ClosePanel();
             else OpenTxForm(t);
         }
 
         private static void AutomationPropertiesName(DependencyObject o, string name) =>
             System.Windows.Automation.AutomationProperties.SetName(o, name);
 
-        internal void TogglePaid(FinanceTransaction t)
-        {
-            t.Paid = !t.Paid;
-            t.UpdatedAt = DateTime.Now;
-            Commit();
-        }
+        internal void TogglePaid(FinanceTransaction t) => Vm.TogglePaid(t);
 
         // ================= chart =================
 
         private void BuildChart()
         {
             Chart.Children.Clear();
-            var list = FinanceService.ExpensesByCategory(D, _month);
+            var list = FinanceService.ExpensesByCategory(D, Vm.Month);
             var total = list.Sum(c => c.Total);
             ChartMeta.Text = total > 0 ? TF("Total {0} · pagos e pendentes", Money.Format(total)) : T("Nenhum gasto neste mês.");
             foreach (var ct in list)
@@ -522,65 +522,73 @@ namespace HelmetDesk
         /// <summary>Opens the form for <paramref name="t"/> (edit) or a new transaction (null). <paramref name="prefill"/>: values for a new one (Duplicar).</summary>
         internal void OpenTxForm(FinanceTransaction t, FinanceTransaction prefill = null)
         {
-            _editing = t;
-            var src = t ?? prefill;
-            _paidTouched = t != null || prefill != null;
-            TxFormTitle.Text = t == null ? T("Novo lançamento") : T("Editar lançamento");
-            TxEditActions.Visibility = t == null ? Visibility.Collapsed : Visibility.Visible;
+            TxVm.CategoryId = Sel(TxCategory); // a new transaction keeps the category chosen last time when it fits
+            TxVm.Open(t, prefill);
+            ShowTxForm();
+        }
+
+        /// <summary>Shows the transaction form with the view model's values.</summary>
+        private void ShowTxForm()
+        {
+            var f = TxVm;
+            TxFormTitle.Text = f.Title;
+            TxEditActions.Visibility = f.IsNew ? Visibility.Collapsed : Visibility.Visible;
             TxError.Visibility = Visibility.Collapsed;
 
-            var kind = src?.Kind ?? TxKind.Expense;
-            (kind switch { TxKind.Income => KindIncome, TxKind.Transfer => KindTransfer, _ => KindExpense }).IsChecked = true;
+            _sync = true;
             _descBusy = true;
-            TxAmount.Text = src == null ? "" : Money.Plain(src.Amount);
-            TxDesc.Text = src?.Description ?? "";
+            KindRadio(f.Kind).IsChecked = true;
+            SetText(TxAmount, f.AmountText);
+            SetText(TxDesc, f.Description);
+            Fill(TxCategory, f.CategoryOptions, f.CategoryId);
+            Fill(TxAccount, f.AccountOptions, f.AccountId);
+            Fill(TxToAccount, f.AccountOptions, f.ToAccountId);
+            TxDate.SelectedDate = f.Date;
+            TxPaid.IsChecked = f.Paid;
+            SetText(TxNote, f.Note);
+            SetText(TxInstallments, f.InstallmentsText);
+            TxRepeat.IsChecked = f.Repeat;
             _descBusy = false;
-            FillCategoryCombo(kind, src?.CategoryId);
-            var accounts = D.Accounts.Where(a => !a.Archived || a.Id == src?.AccountId || a.Id == src?.ToAccountId).Select(a => (a.Id, a.Name)).ToList();
-            Fill(TxAccount, accounts, src?.AccountId ?? D.LastAccountId);
-            Fill(TxToAccount, accounts, src?.ToAccountId ?? accounts.FirstOrDefault(a => a.Id != Sel(TxAccount)).Id);
-            TxDate.SelectedDate = t?.Date ?? DateTime.Today;
-            TxPaid.IsChecked = src?.Paid ?? true;
-            TxNote.Text = src?.Note ?? "";
-            TxInstallments.Text = "";
-            TxRepeat.IsChecked = false;
-            InstallmentField.Visibility = t == null ? Visibility.Visible : Visibility.Collapsed;
-            RepeatField.Visibility = t == null ? Visibility.Visible : Visibility.Collapsed;
-            UpdateKindFields();
+            _sync = false;
 
-            TxSeriesInfo.Visibility = Visibility.Collapsed;
-            if (t != null && t.IsInstallment)
-            {
-                TxSeriesInfo.Text = TF("Parcela {0} de {1}. Ao salvar, você pode aplicar a mudança às parcelas seguintes.", t.InstallmentNumber, t.InstallmentCount);
-                TxSeriesInfo.Visibility = Visibility.Visible;
-            }
-            else if (t != null && t.IsRecurring)
-            {
-                var r = D.Recurrences.FirstOrDefault(x => x.Id == t.RecurrenceId);
-                TxSeriesInfo.Text = r == null ? T("Gerado por uma recorrência que não existe mais.") : TF("Recorrente: todo dia {0}. Ao salvar, você pode aplicar a mudança aos meses seguintes.", r.DayOfMonth);
-                TxSeriesInfo.Visibility = Visibility.Visible;
-            }
-            bool showMore = t != null && (!t.Paid || !string.IsNullOrWhiteSpace(t.Note));
-            SetMore(showMore);
+            InstallmentField.Visibility = f.ShowInstallments ? Visibility.Visible : Visibility.Collapsed;
+            RepeatField.Visibility = f.ShowRepeat ? Visibility.Visible : Visibility.Collapsed;
+            UpdateKindFields();
+            TxSeriesInfo.Text = f.SeriesInfo ?? "";
+            TxSeriesInfo.Visibility = f.SeriesInfo == null ? Visibility.Collapsed : Visibility.Visible;
+            SetMore(f.StartWithMore);
 
             ShowPanel(TxForm);
             Dispatcher.BeginInvoke(new Action(() => { TxAmount.Focus(); TxAmount.SelectAll(); }), DispatcherPriority.Input);
         }
 
-        private void FillCategoryCombo(TxKind kind, string select)
-        {
-            var ck = kind == TxKind.Income ? CategoryKind.Income : CategoryKind.Expense;
-            var cats = D.Categories.Where(c => c.Kind == ck).Select(c => (c.Id, c.Name)).ToList();
-            var keep = select ?? Sel(TxCategory);
-            Fill(TxCategory, new[] { ("", T("Sem categoria")) }.Concat(cats), cats.Any(c => c.Id == keep) ? keep : cats.FirstOrDefault().Id ?? "");
-        }
+        private RadioButton KindRadio(TxKind kind) => kind switch { TxKind.Income => KindIncome, TxKind.Transfer => KindTransfer, _ => KindExpense };
 
         private TxKind FormKind => KindIncome.IsChecked == true ? TxKind.Income : KindTransfer.IsChecked == true ? TxKind.Transfer : TxKind.Expense;
 
+        /// <summary>Copies every control of the transaction form into the view model (tests and snapshots also set them from code).</summary>
+        private void PullTxForm()
+        {
+            var f = TxVm;
+            f.Kind = FormKind;
+            f.AmountText = TxAmount.Text;
+            f.Description = TxDesc.Text;
+            f.CategoryId = Sel(TxCategory);
+            f.AccountId = Sel(TxAccount);
+            f.ToAccountId = Sel(TxToAccount);
+            f.Date = TxDate.SelectedDate;
+            f.Paid = TxPaid.IsChecked == true;
+            f.Note = TxNote.Text;
+            f.InstallmentsText = TxInstallments.Text;
+            f.Repeat = TxRepeat.IsChecked == true;
+        }
+
         private void Kind_Checked(object sender, RoutedEventArgs e)
         {
-            if (TxCategory == null) return;
-            FillCategoryCombo(FormKind, null);
+            if (TxCategory == null || _sync) return;
+            TxVm.CategoryId = Sel(TxCategory);
+            TxVm.ChangeKind(FormKind);
+            Fill(TxCategory, TxVm.CategoryOptions, TxVm.CategoryId);
             UpdateKindFields();
         }
 
@@ -590,7 +598,7 @@ namespace HelmetDesk
             CatField.Visibility = transfer ? Visibility.Collapsed : Visibility.Visible;
             ToField.Visibility = transfer ? Visibility.Visible : Visibility.Collapsed;
             AccountLabel.Text = transfer ? T("Da conta") : T("Conta");
-            if (_editing == null) InstallmentField.Visibility = transfer ? Visibility.Collapsed : Visibility.Visible;
+            if (TxVm.IsNew) InstallmentField.Visibility = transfer ? Visibility.Collapsed : Visibility.Visible;
             UpdateInstallmentHint();
         }
 
@@ -604,34 +612,42 @@ namespace HelmetDesk
 
         private void OnTxDateChanged()
         {
+            if (_sync) return;
             // new transaction: dated in the future → pending, today/past → paid (until the user flips the switch)
-            if (_editing == null && !_paidTouched && TxDate.SelectedDate is DateTime d) TxPaid.IsChecked = d.Date <= DateTime.Today;
+            TxVm.Paid = TxPaid.IsChecked == true;
+            TxVm.ChangeDate(TxDate.SelectedDate);
+            TxPaid.IsChecked = TxVm.Paid;
         }
 
-        private void TxPaid_Click(object sender, RoutedEventArgs e) => _paidTouched = true;
+        private void TxPaid_Click(object sender, RoutedEventArgs e) => TxVm.ChangePaid(TxPaid.IsChecked == true);
 
         private void TxRepeat_Click(object sender, RoutedEventArgs e)
         {
-            if (TxRepeat.IsChecked == true) TxInstallments.Text = "";
+            TxVm.InstallmentsText = TxInstallments.Text;
+            TxVm.ChangeRepeat(TxRepeat.IsChecked == true);
+            SetText(TxInstallments, TxVm.InstallmentsText);
         }
 
         private void TxAmount_Changed(object sender, TextChangedEventArgs e) { TxError.Visibility = Visibility.Collapsed; UpdateInstallmentHint(); }
+
         private void TxInstallments_Changed(object sender, TextChangedEventArgs e)
         {
-            if (int.TryParse(TxInstallments.Text, out var n) && n > 1) TxRepeat.IsChecked = false;
+            if (!_sync && TxRepeat != null)
+            {
+                TxVm.Repeat = TxRepeat.IsChecked == true;
+                TxVm.ChangeInstallments(TxInstallments.Text);
+                TxRepeat.IsChecked = TxVm.Repeat;
+            }
             UpdateInstallmentHint();
         }
 
         private void UpdateInstallmentHint()
         {
-            if (InstallmentHint == null) return;
-            if (int.TryParse(TxInstallments.Text, out var n) && n > 1 && n <= 360 && Money.TryParse(TxAmount.Text, out var v) && v > 0)
-            {
-                var parts = FinanceService.SplitInstallments(v, n);
-                InstallmentHint.Text = parts[0] == parts[^1] ? TF("{0}× de {1}", n, Money.Format(parts[0]))
-                    : TF("{0}× de {1}", n - 1, Money.Format(parts[0])) + " + " + TF("{0}× de {1}", 1, Money.Format(parts[^1]));
-            }
-            else InstallmentHint.Text = T("O valor acima é o total da compra.");
+            // while a view model is being copied into the controls they are half updated: the hint is redone right after
+            if (_sync || InstallmentHint == null || TxAmount == null || TxInstallments == null) return;
+            TxVm.AmountText = TxAmount.Text;
+            TxVm.InstallmentsText = TxInstallments.Text;
+            InstallmentHint.Text = TxVm.InstallmentHint;
         }
 
         private void Form_KeyDown(object sender, KeyEventArgs e)
@@ -658,15 +674,14 @@ namespace HelmetDesk
 
         private void TxDesc_Changed(object sender, TextChangedEventArgs e)
         {
-            if (_descBusy || _editing != null) return;
-            var list = FinanceService.Descriptions(D, TxDesc.Text)
-                .Where(s => !string.Equals(s, TxDesc.Text.Trim(), StringComparison.CurrentCultureIgnoreCase)).ToList();
+            if (_descBusy || !TxVm.IsNew) return;
+            TxVm.Description = TxDesc.Text;
+            var list = TxVm.Suggestions();
             SuggestList.Children.Clear();
-            foreach (var s in list)
+            foreach (var (s, amount) in list)
             {
-                var sug = FinanceService.Suggest(D, s);
                 var content = new DockPanel();
-                var v = new TextBlock { Text = sug.HasValue ? Money.Format(sug.Value.Amount) : "", Style = Ui.St("Muted"), Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                var v = new TextBlock { Text = amount is decimal m ? Money.Format(m) : "", Style = Ui.St("Muted"), Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 DockPanel.SetDock(v, Dock.Right);
                 content.Children.Add(v);
                 content.Children.Add(new TextBlock { Text = s, VerticalAlignment = VerticalAlignment.Center });
@@ -703,7 +718,7 @@ namespace HelmetDesk
 
         private void TxDesc_LostFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            if (_editing == null && !SuggestPopup.IsKeyboardFocusWithin && !(e.NewFocus is DependencyObject n && IsInSuggest(n))) ApplySuggestion();
+            if (TxVm.IsNew && !SuggestPopup.IsKeyboardFocusWithin && !(e.NewFocus is DependencyObject n && IsInSuggest(n))) ApplySuggestion();
         }
 
         private bool IsInSuggest(DependencyObject o)
@@ -715,12 +730,15 @@ namespace HelmetDesk
         /// <summary>Same description as an earlier transaction: fills value (if empty), type, category and account from the latest one.</summary>
         internal void ApplySuggestion()
         {
-            if (_editing != null || !(FinanceService.Suggest(D, TxDesc.Text) is Suggestion s)) return;
-            if (!Money.TryParse(TxAmount.Text, out var typed) || typed == 0) TxAmount.Text = Money.Plain(s.Amount);
-            (s.Kind switch { TxKind.Income => KindIncome, TxKind.Transfer => KindTransfer, _ => KindExpense }).IsChecked = true;
-            FillCategoryCombo(s.Kind, s.CategoryId ?? "");
-            if (s.AccountId != null && D.Accounts.Any(a => a.Id == s.AccountId && !a.Archived))
-                TxAccount.SelectedItem = TxAccount.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == s.AccountId);
+            PullTxForm();
+            if (!TxVm.ApplySuggestion()) return;
+            SetText(TxAmount, TxVm.AmountText);
+            _sync = true;
+            KindRadio(TxVm.Kind).IsChecked = true;
+            _sync = false;
+            Fill(TxCategory, TxVm.CategoryOptions, TxVm.CategoryId);
+            UpdateKindFields();
+            if (TxVm.AccountId != Sel(TxAccount)) SelectTag(TxAccount, TxVm.AccountId);
         }
 
         // ----- save -----
@@ -737,109 +755,35 @@ namespace HelmetDesk
         /// <summary>Validates and saves the form. Returns false when something is missing (the message is shown in the form).</summary>
         internal bool SaveTx()
         {
-            if (!Money.TryParse(TxAmount.Text, out var amount) || amount <= 0) { ShowTxError(T("Informe um valor maior que zero (ex.: 1.234,56)."), TxAmount); return false; }
-            var kind = FormKind;
-            string acc = Sel(TxAccount), to = kind == TxKind.Transfer ? Sel(TxToAccount) : null;
-            if (string.IsNullOrEmpty(acc)) { ShowTxError(T("Escolha uma conta (crie uma na aba Contas)."), TxAccount); return false; }
-            if (kind == TxKind.Transfer && (string.IsNullOrEmpty(to) || to == acc)) { ShowTxError(T("Escolha uma conta de destino diferente da de origem."), TxToAccount); return false; }
-            int installments = 1;
-            if (_editing == null && kind != TxKind.Transfer && TxInstallments.Text.Trim().Length > 0
-                && (!int.TryParse(TxInstallments.Text.Trim(), out installments) || installments < 1 || installments > 360))
-            { ShowTxError(T("Parcelas: um número de 1 a 360."), TxInstallments); SetMore(true); return false; }
-            bool repeat = _editing == null && TxRepeat.IsChecked == true;
-            if (repeat && installments > 1) { ShowTxError(T("Escolha parcelas ou repetição, não os dois."), TxInstallments); return false; }
-
-            string cat = kind == TxKind.Transfer ? null : (Sel(TxCategory) is { Length: > 0 } c ? c : null);
-            string desc = TxDesc.Text.Trim();
-            if (desc.Length == 0) desc = kind == TxKind.Transfer ? T("Transferência") : CategoryOf(cat)?.Name ?? (kind == TxKind.Income ? T("Receita") : T("Despesa"));
-            var date = (TxDate.SelectedDate ?? DateTime.Today).Date;
-            bool paid = TxPaid.IsChecked == true;
-            string note = TxNote.Text.Trim();
-
-            if (_editing == null)
+            PullTxForm();
+            if (TxVm.Save()) return true;
+            ShowTxError(TxVm.Error, TxVm.ErrorField switch
             {
-                var t = new FinanceTransaction
-                {
-                    Kind = kind, Amount = amount, Date = date, Description = desc, CategoryId = cat, AccountId = acc,
-                    ToAccountId = to, Paid = paid, Note = note,
-                };
-                D.LastAccountId = acc;
-                if (installments > 1) FinanceService.AddInstallments(D, t, installments);
-                else
-                {
-                    D.Transactions.Add(t);
-                    if (repeat) FinanceService.StartRecurrence(D, t);
-                }
-                _month = FinanceService.MonthStart(date); // show the month the new transaction landed in
-                GenerateMonth();
-                ClosePanel();
-                Commit();
-                return true;
-            }
-
-            var e0 = _editing;
-            bool seriesFields = e0.Amount != amount || e0.Kind != kind || e0.CategoryId != cat || e0.AccountId != acc
-                                || e0.ToAccountId != to || e0.Description != desc || (e0.Note ?? "") != note;
-            int following = FinanceService.Series(D, e0, true).Count - 1;
-            void Apply(bool toFollowing)
-            {
-                e0.Amount = amount; e0.Kind = kind; e0.CategoryId = cat; e0.AccountId = acc; e0.ToAccountId = to;
-                e0.Description = desc; e0.Date = date; e0.Paid = paid; e0.Note = note; e0.UpdatedAt = DateTime.Now;
-                if (toFollowing) FinanceService.ApplyToFollowing(D, e0);
-                ClosePanel();
-                Commit();
-            }
-            if (seriesFields && (e0.IsRecurring || (e0.IsInstallment && following > 0)))
-            {
-                string check = e0.IsInstallment
-                    ? TN(following, "Aplicar também à parcela seguinte", "Aplicar também às {0} parcelas seguintes")
-                    : T("Aplicar também aos meses seguintes (atualiza a recorrência)");
-                Host?.OpenDialog(T("Salvar alteração?"), TF(e0.IsInstallment ? "“{0}” faz parte de um parcelamento." : "“{0}” faz parte de uma recorrência.", e0.Description),
-                    T("Salvar"), T("Cancelar"), MainWindow.DialogKind.Info, false, ok => { if (ok) Apply(Host.DialogChecked); }, check);
-                return true;
-            }
-            Apply(false);
-            return true;
+                TxField.Amount => TxAmount,
+                TxField.Account => TxAccount,
+                TxField.ToAccount => TxToAccount,
+                TxField.Installments => TxInstallments,
+                _ => null
+            });
+            if (TxVm.ErrorOpensMore) SetMore(true);
+            return false;
         }
 
         // ----- duplicate / delete -----
 
         private void DuplicateTx(FinanceTransaction t)
         {
-            var copy = FinanceService.Duplicate(D, t);
-            D.Transactions.Remove(copy); // only a prefill: nothing is saved until "Salvar"
-            copy.Date = DateTime.Today;
-            copy.Paid = true;
-            OpenTxForm(null, copy);
-            TxDate.SelectedDate = DateTime.Today;
+            TxVm.CategoryId = Sel(TxCategory);
+            TxVm.Duplicate(t);
+            ShowTxForm();
         }
 
-        private void TxDuplicateForm_Click(object sender, RoutedEventArgs e) { if (_editing != null) DuplicateTx(_editing); }
-        private void TxDeleteForm_Click(object sender, RoutedEventArgs e) { if (_editing != null) RequestDeleteTx(_editing); }
+        private void TxDuplicateForm_Click(object sender, RoutedEventArgs e) { if (TxVm.Editing != null) DuplicateTx(TxVm.Editing); }
+        private void TxDeleteForm_Click(object sender, RoutedEventArgs e) { if (TxVm.Editing != null) RequestDeleteTx(TxVm.Editing); }
 
-        internal void RequestDeleteTx(FinanceTransaction t)
-        {
-            int following = FinanceService.Series(D, t, true).Count - 1;
-            string check = t.IsInstallment && following > 0
-                ? TN(following, "Excluir também a parcela seguinte", "Excluir também as {0} parcelas seguintes")
-                : t.IsRecurring ? T("Excluir também os meses seguintes e encerrar a recorrência") : null;
-            Host?.OpenDialog(T("Excluir lançamento?"),
-                TF("“{0}” ({1}) será excluído. Logo depois, você ainda pode desfazer pelo aviso no rodapé.", t.Description, Money.Format(t.Amount)),
-                T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
-                {
-                    if (!ok) return;
-                    DeleteTx(t, Host.DialogChecked);
-                }, check);
-        }
+        internal void RequestDeleteTx(FinanceTransaction t) => Vm.RequestDeleteTx(t);
 
-        internal void DeleteTx(FinanceTransaction t, bool following)
-        {
-            var before = Snapshot();
-            int n = FinanceService.Delete(D, t, following);
-            if (_editing == t) ClosePanel();
-            Commit();
-            Host?.ShowSnack(TN(n, "Lançamento excluído", "{0} lançamentos excluídos"), T("Desfazer"), () => { Restore(before); Commit(); });
-        }
+        internal void DeleteTx(FinanceTransaction t, bool following) => Vm.DeleteTx(t, following);
 
         // ================= accounts =================
 
@@ -848,8 +792,9 @@ namespace HelmetDesk
         private void BuildAccounts()
         {
             AccList.Children.Clear();
-            var end = FinanceService.MonthEnd(_month);
-            foreach (var a in D.Accounts.Where(a => ShowArchived.IsChecked == true || !a.Archived).OrderBy(a => a.Archived).ThenBy(a => a.CreatedAt))
+            var end = Vm.MonthEnd;
+            Vm.ShowArchived = ShowArchived.IsChecked == true;
+            foreach (var a in Vm.AccountsToShow())
             {
                 var bal = FinanceService.Balance(D, a);
                 var proj = FinanceService.ProjectedBalance(D, a, end);
@@ -890,31 +835,23 @@ namespace HelmetDesk
                 AccList.Children.Add(new TextBlock { Text = T("Nenhuma conta. Crie uma em “Nova conta”."), Style = Ui.St("MutedItalic"), FontSize = 13, Margin = new Thickness(0, 12, 0, 0) });
         }
 
-        private void ToggleArchive(Account a)
-        {
-            a.Archived = !a.Archived;
-            if (a.Archived && D.LastAccountId == a.Id) D.LastAccountId = D.Accounts.FirstOrDefault(x => !x.Archived)?.Id;
-            Commit();
-            Host?.ShowSnack(TF(a.Archived ? "“{0}” arquivada" : "“{0}” desarquivada", a.Name), a.Archived ? T("Desfazer") : null,
-                a.Archived ? () => { a.Archived = false; Commit(); } : null);
-        }
+        private void ToggleArchive(Account a) => Vm.ToggleArchive(a);
 
         private void NewAccount_Click(object sender, RoutedEventArgs e) => OpenAccForm(null);
 
         internal void OpenAccForm(Account a)
         {
-            _editingAcc = a;
-            AccFormTitle.Text = a == null ? T("Nova conta") : T("Editar conta");
-            AccName.Text = a?.Name ?? "";
-            Fill(AccType, Enum.GetValues<AccountType>().Select(t => (((int)t).ToString(), TypeName(t))), ((int)(a?.Type ?? AccountType.Checking)).ToString());
-            AccInitial.Text = a == null ? "" : Money.Plain(a.InitialBalance);
-            AccArchived.IsChecked = a?.Archived ?? false;
-            AccArchiveRow.Visibility = a == null ? Visibility.Collapsed : Visibility.Visible;
-            AccDeleteBtn.Visibility = a != null && !FinanceService.HasTransactions(D, a) && D.Recurrences.All(r => r.AccountId != a.Id && r.ToAccountId != a.Id)
-                ? Visibility.Visible : Visibility.Collapsed;
+            var f = Vm.Account;
+            f.Open(a);
+            AccFormTitle.Text = f.Title;
+            AccName.Text = f.Name;
+            Fill(AccType, Enum.GetValues<AccountType>().Select(t => (((int)t).ToString(), TypeName(t))), ((int)f.Type).ToString());
+            AccInitial.Text = f.InitialText;
+            AccArchived.IsChecked = f.Archived;
+            AccArchiveRow.Visibility = f.ShowArchive ? Visibility.Visible : Visibility.Collapsed;
+            AccDeleteBtn.Visibility = f.CanDelete ? Visibility.Visible : Visibility.Collapsed;
             AccError.Visibility = Visibility.Collapsed;
-            _accColor = a?.Color ?? Colors[D.Accounts.Count % Colors.Length];
-            BuildSwatches(AccColors, () => _accColor, c => _accColor = c);
+            BuildSwatches(AccColors, () => f.Color, c => f.Color = c);
             ShowPanel(AccForm);
             Dispatcher.BeginInvoke(new Action(() => AccName.Focus()), DispatcherPriority.Input);
         }
@@ -926,44 +863,26 @@ namespace HelmetDesk
 
         private void AccSave_Click(object sender, RoutedEventArgs e)
         {
-            var name = AccName.Text.Trim();
-            if (name.Length == 0) { AccError.Text = T("Dê um nome à conta."); AccError.Visibility = Visibility.Visible; AccName.Focus(); return; }
-            decimal initial = 0;
-            if (AccInitial.Text.Trim().Length > 0 && !Money.TryParse(AccInitial.Text, out initial))
-            { AccError.Text = T("Saldo inicial inválido (ex.: 1.234,56 ou -200)."); AccError.Visibility = Visibility.Visible; AccInitial.Focus(); return; }
-            var a = _editingAcc ?? new Account();
-            a.Name = name;
-            a.Type = (AccountType)int.Parse(Sel(AccType) ?? "0");
-            a.InitialBalance = initial;
-            a.Color = _accColor;
-            a.Icon = a.Type.ToString();
-            if (_editingAcc == null) { D.Accounts.Add(a); D.LastAccountId ??= a.Id; }
-            else a.Archived = AccArchived.IsChecked == true;
-            ClosePanel();
-            Commit();
+            var f = Vm.Account;
+            f.Name = AccName.Text;
+            f.InitialText = AccInitial.Text;
+            f.Type = (AccountType)int.Parse(Sel(AccType) ?? "0");
+            f.Archived = AccArchived.IsChecked == true;
+            if (f.Save()) return;
+            AccError.Text = f.Error;
+            AccError.Visibility = Visibility.Visible;
+            (f.ErrorField == AccountField.Initial ? AccInitial : AccName).Focus();
         }
 
-        private void AccDelete_Click(object sender, RoutedEventArgs e)
-        {
-            var a = _editingAcc;
-            if (a == null) return;
-            Host?.OpenDialog(T("Excluir conta?"), TF("“{0}” não tem lançamentos e será excluída.", a.Name), T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
-            {
-                if (!ok) return;
-                D.Accounts.Remove(a);
-                if (D.LastAccountId == a.Id) D.LastAccountId = D.Accounts.FirstOrDefault(x => !x.Archived)?.Id;
-                ClosePanel();
-                Commit();
-            });
-        }
+        private void AccDelete_Click(object sender, RoutedEventArgs e) => Vm.Account.RequestDelete();
 
         // ----- check balance -----
 
         internal void OpenCheckForm(Account a)
         {
-            _checking = a;
+            Vm.Check.Open(a);
             CheckAccount.Text = a.Name;
-            CheckCurrent.Text = T("Saldo no Helmet Desk: ") + Money.Format(FinanceService.Balance(D, a));
+            CheckCurrent.Text = Vm.Check.CurrentText;
             CheckReal.Text = "";
             CheckReal_Changed(null, null);
             ShowPanel(CheckForm);
@@ -972,12 +891,10 @@ namespace HelmetDesk
 
         private void CheckReal_Changed(object sender, TextChangedEventArgs e)
         {
-            if (_checking == null || CheckDiff == null) return;
-            if (!Money.TryParse(CheckReal.Text, out var real)) { CheckDiff.Text = T("Digite o saldo que aparece no banco ou na carteira."); CheckSaveBtn.IsEnabled = false; return; }
-            var diff = real - FinanceService.Balance(D, _checking);
-            CheckSaveBtn.IsEnabled = diff != 0;
-            CheckDiff.Text = diff == 0 ? T("O saldo já confere. Nada a ajustar.")
-                : TF("Será criado um ajuste de {0} com a data de hoje. Ele muda o saldo, mas não entra em Entradas/Saídas nem no gráfico.", Money.Signed(diff));
+            if (Vm.Check.Account == null || CheckDiff == null) return;
+            Vm.Check.RealText = CheckReal.Text;
+            CheckDiff.Text = Vm.Check.DiffText;
+            CheckSaveBtn.IsEnabled = Vm.Check.CanSave;
         }
 
         private void CheckForm_KeyDown(object sender, KeyEventArgs e)
@@ -987,10 +904,8 @@ namespace HelmetDesk
 
         internal void CheckSave_Click(object sender, RoutedEventArgs e)
         {
-            if (_checking == null || !Money.TryParse(CheckReal.Text, out var real)) return;
-            var t = FinanceService.Adjust(D, _checking, real, DateTime.Today);
-            ClosePanel();
-            if (t != null) { Commit(); Host?.ShowSnack(T("Ajuste criado: ") + Money.Signed(t.Kind == TxKind.Income ? t.Amount : -t.Amount), null, null); }
+            if (Vm.Check.Account != null) Vm.Check.RealText = CheckReal.Text;
+            Vm.Check.Save();
         }
 
         // ================= recurrences =================
@@ -998,12 +913,10 @@ namespace HelmetDesk
         private void BuildRecurrences()
         {
             RecList.Children.Clear();
-            var thisMonth = FinanceService.MonthStart(DateTime.Today);
-            bool Ended(Recurrence r) => r.EndMonth.HasValue && FinanceService.MonthStart(r.EndMonth.Value) < thisMonth;
-            foreach (var r in D.Recurrences.OrderBy(Ended).ThenBy(r => r.Paused).ThenBy(r => r.DayOfMonth))
+            foreach (var r in Vm.RecurrencesInOrder())
             {
                 var cat = CategoryOf(r.CategoryId);
-                bool ended = Ended(r);
+                bool ended = Vm.IsEnded(r);
                 var grid = new Grid();
                 foreach (var w in new[] { GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto })
                     grid.ColumnDefinitions.Add(new ColumnDefinition { Width = w });
@@ -1042,7 +955,7 @@ namespace HelmetDesk
                 var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 if (!ended)
                 {
-                    actions.Children.Add(IconBtn(r.Paused ? "I.Play" : "I.Pause", r.Paused ? T("Retomar") : T("Pausar"), (s, e) => { r.Paused = !r.Paused; if (!r.Paused) GenerateMonth(); Commit(); }));
+                    actions.Children.Add(IconBtn(r.Paused ? "I.Play" : "I.Pause", r.Paused ? T("Retomar") : T("Pausar"), (s, e) => Vm.TogglePause(r)));
                     actions.Children.Add(IconBtn("I.Stop", T("Encerrar"), (s, e) => RequestEndRecurrence(r), danger: true));
                 }
                 actions.Children.Add(IconBtn("I.Trash", T("Excluir recorrência"), (s, e) => RequestDeleteRecurrence(r), danger: true));
@@ -1060,54 +973,14 @@ namespace HelmetDesk
         /// "Encerrar": after this month by default; with the box ticked, already this month (its pending entry is removed,
         /// a paid one stays).
         /// </summary>
-        internal void RequestEndRecurrence(Recurrence r)
-        {
-            var month = DateTime.Today;
-            var monthName = Dates.MonthTitle(month).ToLower(Dates.Culture);
-            bool activeNow = FinanceService.IsActiveIn(r, month);
-            Host?.OpenDialog(T("Encerrar recorrência?"),
-                TF("“{0}” não vai gerar lançamentos depois de {1}. Pendentes de meses seguintes que já existirem são removidos; os já pagos ficam.", r.Description, monthName),
-                T("Encerrar"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
-                {
-                    if (!ok) return;
-                    bool includeThis = activeNow && Host?.DialogChecked == true;
-                    EndRecurrence(r, includeThis);
-                },
-                checkText: activeNow ? TF("Encerrar já em {0} (remove o lançamento pendente deste mês)", monthName) : null);
-        }
+        internal void RequestEndRecurrence(Recurrence r) => Vm.RequestEndRecurrence(r);
 
-        internal void EndRecurrence(Recurrence r, bool includeThisMonth)
-        {
-            var before = Snapshot();
-            var month = DateTime.Today;
-            FinanceService.EndRecurrence(D, r, includeThisMonth ? month.AddMonths(-1) : month);
-            Commit();
-            Host?.ShowSnack(T("Recorrência encerrada"), T("Desfazer"), () => { Restore(before); Commit(); });
-        }
+        internal void EndRecurrence(Recurrence r, bool includeThisMonth) => Vm.EndRecurrence(r, includeThisMonth);
 
         /// <summary>"Excluir recorrência": the model and its pending entries go; paid ones stay unless the box is ticked.</summary>
-        internal void RequestDeleteRecurrence(Recurrence r)
-        {
-            int paid = D.Transactions.Count(t => t.RecurrenceId == r.Id && t.Paid);
-            int pending = D.Transactions.Count(t => t.RecurrenceId == r.Id && !t.Paid);
-            var text = TF("“{0}” deixa de existir e não gera mais lançamentos.", r.Description)
-                       + (pending > 0 ? " " + TN(pending, "O lançamento pendente é removido.", "Os {0} lançamentos pendentes são removidos.") : "")
-                       + (paid > 0 ? " " + TN(paid, "O lançamento já pago fica no histórico como lançamento comum.", "Os {0} lançamentos já pagos ficam no histórico como lançamento comum.") : "");
-            Host?.OpenDialog(T("Excluir recorrência?"), text, T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
-                {
-                    if (!ok) return;
-                    DeleteRecurrence(r, paid > 0 && Host?.DialogChecked == true);
-                },
-                checkText: paid > 0 ? T("Apagar também os já pagos (muda o saldo das contas)") : null);
-        }
+        internal void RequestDeleteRecurrence(Recurrence r) => Vm.RequestDeleteRecurrence(r);
 
-        internal void DeleteRecurrence(Recurrence r, bool includePaid)
-        {
-            var before = Snapshot();
-            FinanceService.DeleteRecurrence(D, r, includePaid);
-            Commit();
-            Host?.ShowSnack(T("Recorrência excluída"), T("Desfazer"), () => { Restore(before); Commit(); });
-        }
+        internal void DeleteRecurrence(Recurrence r, bool includePaid) => Vm.DeleteRecurrence(r, includePaid);
 
         // ================= categories =================
 
@@ -1115,7 +988,7 @@ namespace HelmetDesk
         {
             CatExpenseList.Children.Clear();
             CatIncomeList.Children.Clear();
-            foreach (var c in D.Categories.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase))
+            foreach (var c in Vm.CategoriesInOrder())
             {
                 var grid = new Grid();
                 foreach (var w in new[] { GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto })
@@ -1144,25 +1017,21 @@ namespace HelmetDesk
 
         internal void OpenCatForm(Category c)
         {
-            _editingCat = c;
-            CatFormTitle.Text = c == null ? T("Nova categoria") : T("Editar categoria");
-            CatName.Text = c?.Name ?? "";
-            (c?.Kind == CategoryKind.Income ? CatKindIncome : CatKindExpense).IsChecked = true;
+            var f = Vm.Category;
+            f.Open(c);
+            CatFormTitle.Text = f.Title;
+            CatName.Text = f.Name;
+            (f.Kind == CategoryKind.Income ? CatKindIncome : CatKindExpense).IsChecked = true;
             CatError.Visibility = Visibility.Collapsed;
-            _catColor = c?.Color ?? Colors[D.Categories.Count % Colors.Length];
-            _catIcon = string.IsNullOrEmpty(c?.Icon) ? "dots" : c.Icon;
-            BuildSwatches(CatColors, () => _catColor, v => { _catColor = v; BuildIconChoices(); });
+            BuildSwatches(CatColors, () => f.Color, v => { f.Color = v; BuildIconChoices(); });
             BuildIconChoices();
 
-            CatDeleteBox.Visibility = c == null ? Visibility.Collapsed : Visibility.Visible;
-            if (c != null)
+            CatDeleteBox.Visibility = f.IsNew ? Visibility.Collapsed : Visibility.Visible;
+            if (!f.IsNew)
             {
-                int used = FinanceService.UsageCount(D, c);
-                CatUsage.Text = used == 0 ? T("Esta categoria não está em uso.") : TN(used, "Em uso por {0} lançamento ou recorrência.", "Em uso por {0} lançamentos ou recorrências.");
-                CatMoveField.Visibility = used > 0 ? Visibility.Visible : Visibility.Collapsed;
-                var others = D.Categories.Where(x => x != c).OrderBy(x => x.Kind != c.Kind).ThenBy(x => x.Name)
-                    .Select(x => (x.Id, x.Name + (x.Kind != c.Kind ? (x.Kind == CategoryKind.Income ? T(" (receita)") : T(" (despesa)")) : ""))).ToList();
-                Fill(CatMoveTo, others, others.FirstOrDefault(o => o.Item2 == T("Outros")).Id ?? others.FirstOrDefault().Id);
+                CatUsage.Text = f.UsageText;
+                CatMoveField.Visibility = f.ShowMove ? Visibility.Visible : Visibility.Collapsed;
+                Fill(CatMoveTo, f.MoveOptions, f.MoveToId);
             }
             ShowPanel(CatForm);
             Dispatcher.BeginInvoke(new Action(() => CatName.Focus()), DispatcherPriority.Input);
@@ -1171,17 +1040,18 @@ namespace HelmetDesk
         private void BuildIconChoices()
         {
             CatIcons.Children.Clear();
+            var f = Vm.Category;
             foreach (var key in CategoryIcons)
             {
-                bool on = key == _catIcon;
+                bool on = key == f.Icon;
                 var b = new Button
                 {
                     Style = Ui.St("IconButton"), Padding = new Thickness(7), Margin = new Thickness(0, 0, 6, 6), ToolTip = key,
-                    Background = on ? Tint(_catColor, 0x40) : Brushes.Transparent,
-                    BorderBrush = on ? Palette.BrushFrom(_catColor) : Brushes.Transparent,
-                    Content = new Icon { Data = CatGeo(key), Width = 16, Height = 16, Foreground = on ? Palette.BrushFrom(_catColor) : Ui.Res("Text2") }
+                    Background = on ? Tint(f.Color, 0x40) : Brushes.Transparent,
+                    BorderBrush = on ? Palette.BrushFrom(f.Color) : Brushes.Transparent,
+                    Content = new Icon { Data = CatGeo(key), Width = 16, Height = 16, Foreground = on ? Palette.BrushFrom(f.Color) : Ui.Res("Text2") }
                 };
-                b.Click += (s, e) => { _catIcon = key; BuildIconChoices(); };
+                b.Click += (s, e) => { f.Icon = key; BuildIconChoices(); };
                 CatIcons.Children.Add(b);
             }
         }
@@ -1230,37 +1100,19 @@ namespace HelmetDesk
 
         private void CatSave_Click(object sender, RoutedEventArgs e)
         {
-            var name = CatName.Text.Trim();
-            if (name.Length == 0) { CatError.Text = T("Dê um nome à categoria."); CatError.Visibility = Visibility.Visible; CatName.Focus(); return; }
-            var kind = CatKindIncome.IsChecked == true ? CategoryKind.Income : CategoryKind.Expense;
-            if (D.Categories.Any(x => x != _editingCat && x.Kind == kind && string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase)))
-            { CatError.Text = T("Já existe uma categoria com esse nome."); CatError.Visibility = Visibility.Visible; CatName.Focus(); return; }
-            var c = _editingCat ?? new Category();
-            c.Name = name; c.Kind = kind; c.Color = _catColor; c.Icon = _catIcon;
-            if (_editingCat == null) D.Categories.Add(c);
-            ClosePanel();
-            Commit();
+            var f = Vm.Category;
+            f.Name = CatName.Text;
+            f.Kind = CatKindIncome.IsChecked == true ? CategoryKind.Income : CategoryKind.Expense;
+            if (f.Save()) return;
+            CatError.Text = f.Error;
+            CatError.Visibility = Visibility.Visible;
+            CatName.Focus();
         }
 
         internal void CatDelete_Click(object sender, RoutedEventArgs e)
         {
-            var c = _editingCat;
-            if (c == null) return;
-            int used = FinanceService.UsageCount(D, c);
-            var moveTo = used > 0 ? CategoryOf(Sel(CatMoveTo)) : null;
-            if (used > 0 && moveTo == null) return;
-            Host?.OpenDialog(T("Excluir categoria?"),
-                used > 0 ? TF(used == 1 ? "“{0}” será excluída e {1} lançamento passa para “{2}”." : "“{0}” será excluída e {1} lançamentos passam para “{2}”.", c.Name, used, moveTo.Name)
-                         : TF("“{0}” será excluída.", c.Name),
-                T("Excluir"), T("Cancelar"), MainWindow.DialogKind.Danger, false, ok =>
-                {
-                    if (!ok) return;
-                    var before = Snapshot();
-                    FinanceService.DeleteCategory(D, c, moveTo);
-                    ClosePanel();
-                    Commit();
-                    Host?.ShowSnack(T("Categoria excluída"), T("Desfazer"), () => { Restore(before); Commit(); });
-                });
+            Vm.Category.MoveToId = Sel(CatMoveTo);
+            Vm.Category.RequestDelete();
         }
     }
 }
