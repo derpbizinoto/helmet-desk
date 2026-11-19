@@ -95,7 +95,6 @@ dotnet test tests/HelmetDesk.Tests
 | `core/` | Services without WPF: paths (`AppPaths`), backup, problem report, finance rules, translations (`core/Localization`) |
 | `tests/` | xUnit tests for the services |
 | `docs/` | Visual identity, installer test plan and screenshots |
-| `_backup/` | Copies of the old interface, for reference (not compiled) |
 
 ### Translations
 

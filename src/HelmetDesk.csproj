@@ -34,15 +34,6 @@
     <EmbeddedResource Include="Assets\Sounds\*.wav" LogicalName="Sounds.%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <!-- Copy of the old UI kept for reference/restore (..\_backup\ui-legacy). It sits outside this project folder,
-       so it is never globbed in; these lines only make that explicit. -->
-  <ItemGroup>
-    <Compile Remove="..\_backup\**" />
-    <Page Remove="..\_backup\**" />
-    <None Remove="..\_backup\**" />
-    <Resource Remove="..\_backup\**" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="NAudio.WinMM" Version="2.2.1" />

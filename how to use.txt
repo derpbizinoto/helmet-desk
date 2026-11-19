@@ -132,7 +132,7 @@ THEME (Settings > General > Theme)
     After switching, the app restarts on its own; none of your data changes.
   • The aurora's slow movement only runs with Windows "Animation effects" on.
   • Files: src\Themes\FrutigerAero.xaml, src\Themes\Legacy.xaml (classic), src\Themes\Shared.xaml
-    (fonts, icons, animation). Copy of the old UI and how to restore it: _backup\ui-legacy\COMO_RESTAURAR.md
+    (fonts, icons, animation).
 
 FONTS (Google Fonts)
   • App name: Geo. Rest of the interface: Roboto. Both are embedded in the app (they work offline)

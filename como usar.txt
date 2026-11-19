@@ -131,7 +131,7 @@ TEMA (Configurações > Geral > Tema)
     Ao trocar, o app reinicia sozinho; nenhum dado muda.
   • O movimento lento da aurora só acontece com "Efeitos de animação" do Windows ligado.
   • Arquivos: src\Themes\FrutigerAero.xaml, src\Themes\Legacy.xaml (clássico), src\Themes\Shared.xaml
-    (fontes, ícones, animação). Cópia da UI antiga e como restaurar: _backup\ui-legacy\COMO_RESTAURAR.md
+    (fontes, ícones, animação).
 
 FONTES (Google Fonts)
   • Nome do app: Geo. Resto da interface: Roboto. As duas ficam embutidas no app (funcionam offline)
