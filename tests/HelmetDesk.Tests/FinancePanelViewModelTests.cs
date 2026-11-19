@@ -242,7 +242,7 @@ namespace HelmetDesk.Tests
             Assert.True(host.LastDialog.Value.danger);
 
             host.Answer = true; // with the following installments
-            vm.EditingTransaction = t;
+            vm.Transaction.Open(t);
             vm.RequestDeleteTx(t);
             Assert.Empty(host.Data.Transactions);
             Assert.Equal(new[] { "confirm", "confirm", "close", "commit", "snack" }, host.Calls);
@@ -259,7 +259,7 @@ namespace HelmetDesk.Tests
         {
             var (host, vm, a, _, food, _) = Setup();
             var t = Tx(host.Data, TxKind.Expense, 10m, Today, true, a.Id, food.Id);
-            vm.EditingTransaction = Tx(host.Data, TxKind.Expense, 11m, Today, true, a.Id, food.Id);
+            vm.Transaction.Open(Tx(host.Data, TxKind.Expense, 11m, Today, true, a.Id, food.Id));
             vm.DeleteTx(t, following: false);
             Assert.Equal(0, host.Closes);
             Assert.Equal("Lançamento excluído", host.LastSnack.Value.text);

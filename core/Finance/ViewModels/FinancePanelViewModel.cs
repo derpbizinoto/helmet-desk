@@ -32,6 +32,16 @@ namespace HelmetDesk.Core.Finance
             Host = host;
             _today = today ?? (() => DateTime.Today);
             _month = FinanceService.MonthStart(Today);
+            Transaction = new TransactionFormViewModel(this);
+        }
+
+        /// <summary>The new / edit transaction form.</summary>
+        public TransactionFormViewModel Transaction { get; }
+
+        /// <summary>The side form was closed: no form is editing anything any more.</summary>
+        public void FormsClosed()
+        {
+            Transaction.Close();
         }
 
         public FinanceData Data => _data();
@@ -212,9 +222,6 @@ namespace HelmetDesk.Core.Finance
             Host.Commit();
         }
 
-        /// <summary>The transaction the side form is editing (FinanceView sets it), so deleting it closes the form.</summary>
-        public FinanceTransaction? EditingTransaction { get; set; }
-
         /// <summary>Following installments or months of <paramref name="t"/>'s series.</summary>
         public int FollowingCount(FinanceTransaction t) => FinanceService.Series(Data, t, true).Count - 1;
 
@@ -233,7 +240,7 @@ namespace HelmetDesk.Core.Finance
         {
             var before = Snapshot();
             int n = FinanceService.Delete(Data, t, following);
-            if (EditingTransaction == t) Host.ClosePanel();
+            if (Transaction.Editing == t) Host.ClosePanel();
             Host.Commit();
             Host.Snack(TN(n, "Lançamento excluído", "{0} lançamentos excluídos"), T("Desfazer"), () => Undo(before));
         }
