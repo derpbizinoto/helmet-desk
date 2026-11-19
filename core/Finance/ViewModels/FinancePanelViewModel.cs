@@ -33,15 +33,24 @@ namespace HelmetDesk.Core.Finance
             _today = today ?? (() => DateTime.Today);
             _month = FinanceService.MonthStart(Today);
             Transaction = new TransactionFormViewModel(this);
+            Account = new AccountFormViewModel(this);
+            Check = new CheckBalanceViewModel(this);
+            Category = new CategoryFormViewModel(this);
         }
 
-        /// <summary>The new / edit transaction form.</summary>
+        /// <summary>The forms of the side panel (one shows at a time).</summary>
         public TransactionFormViewModel Transaction { get; }
+        public AccountFormViewModel Account { get; }
+        public CheckBalanceViewModel Check { get; }
+        public CategoryFormViewModel Category { get; }
 
         /// <summary>The side form was closed: no form is editing anything any more.</summary>
         public void FormsClosed()
         {
             Transaction.Close();
+            Account.Close();
+            Check.Close();
+            Category.Close();
         }
 
         public FinanceData Data => _data();
