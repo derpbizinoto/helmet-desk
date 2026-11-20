@@ -132,3 +132,7 @@ Sem `-Upload`, só gera os arquivos em `releases/`. Detalhes e testes em [`docs/
 
 Fontes Geo e Roboto (SIL OFL), animações do LottieFiles, sons da Kenney (CC0), SkiaSharp, NAudio, Serilog e Velopack.
 Detalhes e licenças em [`CREDITS.md`](CREDITS.md).
+
+## Licença
+
+O código do Helmet Desk está sob a [licença MIT](LICENSE). Fontes, animações e sons mantêm as próprias licenças, listadas em [`CREDITS.md`](CREDITS.md).

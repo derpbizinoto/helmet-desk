@@ -132,3 +132,7 @@ Without `-Upload`, it only creates the files in `releases/`. Details and tests i
 
 Geo and Roboto fonts (SIL OFL), LottieFiles animations, Kenney sounds (CC0), SkiaSharp, NAudio, Serilog and Velopack.
 Details and licenses in [`CREDITS.md`](CREDITS.md).
+
+## License
+
+Helmet Desk's code is under the [MIT license](LICENSE). Fonts, animations and sounds keep their own licenses, listed in [`CREDITS.md`](CREDITS.md).
