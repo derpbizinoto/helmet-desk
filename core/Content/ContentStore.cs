@@ -84,9 +84,13 @@ namespace HelmetDesk.Core.Content
 
         public static string Serialize(ContentData data) => JsonSerializer.Serialize(data, JsonOptions);
 
-        /// <summary>Writes through a temporary file forced to disk, then replaces the old file.</summary>
-        public static void Save(string path, ContentData data)
+        /// <summary>
+        /// Writes through a temporary file forced to disk, then replaces the old file. Returns false without writing when
+        /// the data came from a newer app (higher schemaVersion): saving it here could drop what this version doesn't know.
+        /// </summary>
+        public static bool Save(string path, ContentData data)
         {
+            if (data.SchemaVersion > CurrentSchema) return false;
             Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
             var tmp = path + ".tmp";
             var bytes = new UTF8Encoding(false).GetBytes(Serialize(data));
@@ -96,6 +100,7 @@ namespace HelmetDesk.Core.Content
                 fs.Flush(flushToDisk: true);
             }
             File.Move(tmp, path, true);
+            return true;
         }
     }
 }

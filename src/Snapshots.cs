@@ -338,6 +338,7 @@ namespace HelmetDesk
             await QuickAddTests(Check);
             await SupportTests(Check);
             await FinanceTests(Check);
+            await ContentTests(Check);
             await AttachTests(Check);
             await MotionTests(Check);
             return log.ToString();
@@ -566,6 +567,80 @@ namespace HelmetDesk
                 if (DialogOpen) CloseDialog(false);
                 FinanceView.ClosePanel();
                 Store.Data.Finance = System.Text.Json.JsonSerializer.Deserialize<HelmetDesk.Core.Finance.FinanceData>(saved);
+                NavToday.IsChecked = true;
+            }
+        }
+
+        /// <summary>
+        /// Painel experimental "Conteúdo". Without the flag: hidden and nothing written. With experimental.json turning it on
+        /// (run the self-test with HELMETDESK_DATA pointing at a test folder): the main flows, then conteudo.json is put back.
+        /// </summary>
+        private async Task ContentTests(Action<string, bool> Check)
+        {
+            var file = AppPaths.ContentFile;
+            if (!Experimental.Content)
+            {
+                Check("conteúdo: sem a flag o item fica escondido", NavContent.Visibility != Visibility.Visible);
+                Check("conteúdo: sem a flag o conteudo.json não é criado", !File.Exists(file));
+                return;
+            }
+            string before = File.Exists(file) ? File.ReadAllText(file) : null;
+            var cv = ContentView;
+            var click = new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent);
+            try
+            {
+                Check("conteúdo: com a flag o item aparece logo abaixo de Finanças", NavContent.Visibility == Visibility.Visible
+                    && NavList.Children.IndexOf(NavContent) == NavList.Children.IndexOf(NavFinance) + 1);
+                NavContent.IsChecked = true;
+                await Snapshots.Idle(Dispatcher);
+                Check("conteúdo: item na barra lateral abre o painel", _view == "content" && cv.Visibility == Visibility.Visible
+                    && PageTitle.Text == "Esteira de conteúdo");
+                var vm = cv.Vm;
+                var ch = vm.Channels.FirstOrDefault();
+                var newBtn = cv.NewButtons.Children.OfType<Button>().FirstOrDefault();
+                Check("conteúdo: um botão Novo por canal", ch != null && cv.NewButtons.Children.OfType<Button>().Count() == vm.Channels.Count);
+                if (ch == null || newBtn == null) return;
+
+                int n0 = vm.Data.Items.Count;
+                newBtn.RaiseEvent(click);
+                await Snapshots.Idle(Dispatcher);
+                Check("conteúdo: Novo abre o formulário com foco no título e filtra o canal",
+                    cv.PanelOpen && cv.ItemForm.Visibility == Visibility.Visible && cv.ItemTitle.IsKeyboardFocused && vm.ChannelFilter == ch.Id);
+                cv.ClosePanel();
+                Check("conteúdo: fechar sem título descarta o novo", vm.Data.Items.Count == n0);
+
+                newBtn = cv.NewButtons.Children.OfType<Button>().First();
+                newBtn.RaiseEvent(click);
+                await Snapshots.Idle(Dispatcher);
+                cv.ItemTitle.Text = "Teste do selftest";
+                cv.ItemSave_Click(null, null);
+                var item = vm.Data.Items.FirstOrDefault(i => i.Title == "Teste do selftest");
+                Check("conteúdo: salvar cria o card e grava conteudo.json", item != null && !cv.PanelOpen
+                    && File.Exists(file) && File.ReadAllText(file).Contains("Teste do selftest")
+                    && cv.CardGrid.Children.Count == vm.Visible.Count);
+                if (item == null) return;
+
+                int ideas = vm.CountInStage(HelmetDesk.Core.Content.Stage.Ideia);
+                vm.Advance(item);
+                Check("conteúdo: avançar move o card para a próxima esfera", item.Stage == HelmetDesk.Core.Content.Stage.Gravando
+                    && vm.CountInStage(HelmetDesk.Core.Content.Stage.Ideia) == ideas - 1 && File.ReadAllText(file).Contains("\"Gravando\""));
+
+                vm.ChannelsVm.RequestDelete(ch);
+                Check("conteúdo: excluir canal com conteúdos é bloqueado com aviso", DialogOpen && DialogTitle.Text == "Este canal ainda tem conteúdos"
+                    && vm.ChannelOf(ch.Id) != null);
+                CloseDialog(false);
+
+                cv.OpenItemForm(item);
+                cv.ItemDelete_Click(null, null);
+                Check("conteúdo: excluir conteúdo pede confirmação", DialogOpen && vm.Data.Items.Contains(item));
+                CloseDialog(true);
+                Check("conteúdo: confirmado, o conteúdo some", !vm.Data.Items.Contains(item) && !cv.PanelOpen);
+            }
+            finally
+            {
+                if (DialogOpen) CloseDialog(false);
+                cv.Unload();
+                try { if (before != null) File.WriteAllText(file, before); else File.Delete(file); } catch { }
                 NavToday.IsChecked = true;
             }
         }

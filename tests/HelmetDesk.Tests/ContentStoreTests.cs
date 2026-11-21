@@ -64,6 +64,19 @@ namespace HelmetDesk.Tests
         }
 
         [Fact]
+        public void A_file_from_a_newer_app_is_never_overwritten()
+        {
+            var newer = """{"schemaVersion":2,"channels":[],"items":[],"somethingNew":[1,2,3]}""";
+            File.WriteAllText(FilePath, newer);
+            string warned = null;
+            var d = ContentStore.Load(FilePath, Now, m => warned = m);
+            Assert.NotNull(warned);
+            d.Channels.Add(new Channel { Name = "Blog" });
+            Assert.False(ContentStore.Save(FilePath, d));
+            Assert.Equal(newer, File.ReadAllText(FilePath));
+        }
+
+        [Fact]
         public void Null_sections_load_safely()
         {
             File.WriteAllText(FilePath, """{"schemaVersion":1,"channels":null,"items":[null,{"title":null,"stage":"Editando"}]}""");

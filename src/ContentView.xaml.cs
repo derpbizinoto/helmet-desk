@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -21,7 +21,8 @@ namespace HelmetDesk
     public partial class ContentView : UserControl, IContentPanelHost
     {
         private ContentData _data;
-        private readonly ContentPanelViewModel Vm;
+        /// <summary>Internal for the self-test.</summary>
+        internal readonly ContentPanelViewModel Vm;
         private bool _panelWanted;
 
         /// <summary>One color per stage (Ideia → Publicado), used by the spheres and the progress bars.</summary>
@@ -48,6 +49,13 @@ namespace HelmetDesk
             }
             FillStageCombo();
             Refresh();
+        }
+
+        /// <summary>Forgets the data in memory: the next <see cref="Activate"/> reads conteudo.json again (self-test cleanup).</summary>
+        internal void Unload()
+        {
+            ClosePanel();
+            _data = null;
         }
 
         /// <summary>A form is open (false as soon as it starts closing).</summary>
@@ -77,7 +85,11 @@ namespace HelmetDesk
 
         void IContentPanelHost.Commit()
         {
-            try { ContentStore.Save(AppPaths.ContentFile, _data); }
+            try
+            {
+                if (!ContentStore.Save(AppPaths.ContentFile, _data))
+                    Log.Warn("conteudo.json é de uma versão mais nova do app: alterações não foram gravadas para não perder dados");
+            }
             catch (Exception ex) { Log.Warn("Falha ao salvar conteudo.json (nova tentativa na próxima alteração)", ex); }
             Refresh();
         }
@@ -120,9 +132,9 @@ namespace HelmetDesk
                 sp.Children.Add(new TextBlock { Text = c.Name });
                 var b = new Button
                 {
-                    Style = Ui.St("SecondaryButton"), Content = sp, Margin = new Thickness(0, 0, 8, 8),
-                    BorderBrush = Palette.BrushFrom(c.ColorHex), ToolTip = TF("Nova ideia em {0}", c.Name)
+                    Style = Ui.St("SecondaryButton"), Content = sp, Margin = new Thickness(0, 0, 8, 8), ToolTip = TF("Nova ideia em {0}", c.Name)
                 };
+                AutomationProperties.SetName(b, TF("Nova ideia em {0}", c.Name));
                 var id = c.Id;
                 b.Click += (s, e) => NewFor(id);
                 NewButtons.Children.Add(b);
@@ -146,7 +158,8 @@ namespace HelmetDesk
             foreach (var c in Vm.Channels) ChannelCards.Children.Add(ChannelCard(c.Id, c.Name, c.ColorHex, c.Followers, Vm.InProduction(c.Id)));
         }
 
-        private Border ChannelCard(Guid? id, string name, string color, long followers, int inProduction)
+        /// <summary>A channel card: a button (click, Tab + Enter/Space) that selects the channel filter.</summary>
+        private Button ChannelCard(Guid? id, string name, string color, long followers, int inProduction)
         {
             bool on = Vm.ChannelFilter == id;
             var head = new StackPanel { Orientation = Orientation.Horizontal };
@@ -158,12 +171,18 @@ namespace HelmetDesk
             body.Children.Add(new TextBlock { Text = TF("{0} em produção", inProduction), Style = Ui.St("Muted"), Margin = new Thickness(0, 2, 0, 0) });
             var card = new Border
             {
-                Style = Ui.St("Card"), Width = 190, Margin = new Thickness(6, 0, 6, 12), Cursor = Cursors.Hand, Child = body,
+                Style = Ui.St("Card"), Width = 190, Child = body,
                 Padding = on ? new Thickness(14, 12, 14, 12) : new Thickness(15, 13, 15, 13)
             };
             if (on) { card.BorderBrush = Ui.Res("Primary"); card.BorderThickness = new Thickness(2); }
-            card.MouseLeftButtonUp += (s, e) => { Vm.SelectChannel(id); Refresh(); };
-            return card;
+            var b = new Button
+            {
+                Template = BareTemplate, Content = card, Background = Brushes.Transparent, Cursor = Cursors.Hand,
+                Margin = new Thickness(6, 0, 6, 12), HorizontalContentAlignment = HorizontalAlignment.Left
+            };
+            AutomationProperties.SetName(b, name);
+            b.Click += (s, e) => { Vm.SelectChannel(id); Refresh(); };
+            return b;
         }
 
         // ================= the esteira =================
@@ -229,16 +248,13 @@ namespace HelmetDesk
                 ToolTip = selected ? T("Clique de novo para ver todas as etapas") : TF("Mostrar só {0}", ContentPanelViewModel.StageLabel(s)),
                 RenderTransformOrigin = new Point(0.5, 0.5), RenderTransform = new ScaleTransform(selected ? 1.06 : 1, selected ? 1.06 : 1)
             };
-            AutomationPropertiesName(b, ContentPanelViewModel.StageLabel(s) + ": " + count);
+            AutomationProperties.SetName(b, ContentPanelViewModel.StageLabel(s) + ": " + count);
             b.Click += (o, e) => { Vm.ToggleStage(s); Refresh(); };
             return b;
         }
 
-        private static void AutomationPropertiesName(DependencyObject d, string name) =>
-            System.Windows.Automation.AutomationProperties.SetName(d, name);
-
         private static ControlTemplate _bare;
-        /// <summary>A button that draws only its content (the sphere), keeping click and keyboard focus.</summary>
+        /// <summary>A button that draws only its content (a sphere or a channel card), keeping click and keyboard focus.</summary>
         private static ControlTemplate BareTemplate
         {
             get
@@ -368,7 +384,7 @@ namespace HelmetDesk
             foreach (var s in ContentPanelViewModel.Stages) ItemStage.Items.Add(new ComboBoxItem { Content = ContentPanelViewModel.StageLabel(s), Tag = s });
         }
 
-        private void OpenItemForm(ContentItem item)
+        internal void OpenItemForm(ContentItem item)
         {
             if (Vm.Form.Editing != item)
             {
@@ -396,7 +412,7 @@ namespace HelmetDesk
             if (e.Key == Key.Enter) { ItemSave_Click(null, null); e.Handled = true; }
         }
 
-        private void ItemSave_Click(object sender, RoutedEventArgs e)
+        internal void ItemSave_Click(object sender, RoutedEventArgs e)
         {
             var f = Vm.Form;
             f.Title = ItemTitle.Text;
@@ -410,7 +426,7 @@ namespace HelmetDesk
             ItemTitle.Focus();
         }
 
-        private void ItemDelete_Click(object sender, RoutedEventArgs e) => Vm.Form.RequestDelete();
+        internal void ItemDelete_Click(object sender, RoutedEventArgs e) => Vm.Form.RequestDelete();
 
         // ----- Gerenciar canais -----
 
