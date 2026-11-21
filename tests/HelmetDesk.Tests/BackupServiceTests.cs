@@ -440,5 +440,32 @@ namespace HelmetDesk.Tests
             Assert.False(Directory.Exists(_s.DataDir + ".old"));
             Assert.False(Directory.Exists(_s.DataDir + ".import-tmp"));
         }
+
+        /// <summary>The app's list (MainWindow.CreateBackupService): data.json plus conteudo.json (painel Conteúdo).</summary>
+        private static readonly string[] AppDataFiles = { "data.json", "conteudo.json" };
+
+        [Fact]
+        public async Task Content_file_goes_into_the_backup_and_comes_back()
+        {
+            var content = Path.Combine(_s.DataDir, "conteudo.json");
+            File.WriteAllText(_s.DataFile, Original);
+            File.WriteAllText(content, "{\"schemaVersion\":1,\"channels\":[{\"name\":\"YouTube\"}]}");
+            var svc = _s.Service(o => o.DataFiles = AppDataFiles);
+            var zip = Path.Combine(_s.OutDir, "com-conteudo.zip");
+            var m = await svc.ExportAsync(zip);
+            Assert.Equal(new[] { "conteudo.json", "data.json" }, m.Files.Select(f => f.Path).OrderBy(p => p));
+
+            File.WriteAllText(content, "{\"schemaVersion\":1,\"channels\":[]}");
+            await svc.ImportAsync(zip);
+            Assert.Contains("YouTube", File.ReadAllText(content));
+        }
+
+        [Fact]
+        public async Task Without_a_content_file_the_backup_has_only_data_json()
+        {
+            File.WriteAllText(_s.DataFile, Original);
+            var m = await _s.Service(o => o.DataFiles = AppDataFiles).ExportAsync(Path.Combine(_s.OutDir, "sem-conteudo.zip"));
+            Assert.Equal("data.json", Assert.Single(m.Files).Path);
+        }
     }
 }

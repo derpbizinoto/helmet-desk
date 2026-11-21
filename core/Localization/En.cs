@@ -317,7 +317,7 @@ namespace HelmetDesk.Core
             ["Tudo fica salvo automaticamente neste computador:"] = "Everything is saved automatically on this computer:",
             ["Abrir pasta de dados"] = "Open data folder",
             ["Abrir pasta de logs"] = "Open logs folder",
-            ["O backup é um arquivo .zip com suas notas, tarefas, etiquetas e configurações. Ao importar, os dados atuais são substituídos (uma cópia de segurança é guardada antes)."] = "The backup is a .zip file with your notes, tasks, labels and settings. When you import one, the current data is replaced (a safety copy is kept first).",
+            ["O backup é um arquivo .zip com suas notas, tarefas, etiquetas, finanças, conteúdos e configurações. Ao importar, os dados atuais são substituídos (uma cópia de segurança é guardada antes)."] = "The backup is a .zip file with your notes, tasks, labels, finances, content and settings. When you import one, the current data is replaced (a safety copy is kept first).",
             ["Exportar backup"] = "Export backup",
             ["Importar backup"] = "Import backup",
             ["Limpar cache"] = "Clear cache",
@@ -732,6 +732,8 @@ namespace HelmetDesk.Core
             ["Excluir canal?"] = "Delete channel?",
             ["O canal \"{0}\" será excluído."] = "The channel \"{0}\" will be deleted.",
             ["Entendi"] = "Got it",
+            ["Mostrar o painel Conteúdo"] = "Show the Content panel",
+            ["Esteira de produção para redes sociais, da ideia à publicação (recurso experimental). Ao desligar, o painel sai da barra lateral e seus conteúdos continuam guardados."] = "Production pipeline for social media, from idea to published (experimental feature). When turned off, the panel leaves the sidebar and your content stays saved.",
         };
     }
 }

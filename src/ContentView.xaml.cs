@@ -15,7 +15,7 @@ namespace HelmetDesk
     /// Painel experimental "Conteúdo" (esteira de produção): "Novo:" buttons, channel cards, the five stage spheres,
     /// the summary line and the content cards, plus a side panel for editing a content item and managing channels.
     /// The state and rules live in <see cref="ContentPanelViewModel"/> (core); this class draws them and answers
-    /// <see cref="IContentPanelHost"/>. Data is read from conteudo.json the first time the panel opens (never with the flag off)
+    /// <see cref="IContentPanelHost"/>. Data is read from conteudo.json the first time the panel opens (never while the panel is turned off in Configurações)
     /// and written on every change.
     /// </summary>
     public partial class ContentView : UserControl, IContentPanelHost
@@ -85,9 +85,13 @@ namespace HelmetDesk
 
         void IContentPanelHost.Commit()
         {
+            // a backup is being imported (or was, until the restart): nothing is written over the restored files
+            if (Store.Frozen) { Refresh(); return; }
             try
             {
-                if (!ContentStore.Save(AppPaths.ContentFile, _data))
+                bool saved;
+                using (Store.Gate.Enter()) saved = ContentStore.Save(AppPaths.ContentFile, _data); // same gate as data.json: a backup never reads a half-written state
+                if (!saved)
                     Log.Warn("conteudo.json é de uma versão mais nova do app: alterações não foram gravadas para não perder dados");
             }
             catch (Exception ex) { Log.Warn("Falha ao salvar conteudo.json (nova tentativa na próxima alteração)", ex); }

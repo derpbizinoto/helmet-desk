@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using HelmetDesk.Core;
 using HelmetDesk.Core.Content;
 using Xunit;
 
@@ -84,20 +83,6 @@ namespace HelmetDesk.Tests
             Assert.Empty(d.Channels);
             var i = Assert.Single(d.Items);
             Assert.Equal(("", Stage.Editando), (i.Title, i.Stage));
-        }
-
-        [Theory]
-        [InlineData(null, false)]
-        [InlineData("{\"conteudo\": true}", true)]
-        [InlineData("{\"conteudo\": false}", false)]
-        [InlineData("{\"conteudo\": \"true\"}", false)]
-        [InlineData("[true]", false)]
-        [InlineData("não é json", false)]
-        public void Experimental_flag_is_off_unless_explicitly_true(string content, bool expected)
-        {
-            var path = Path.Combine(_dir, "experimental.json");
-            if (content != null) File.WriteAllText(path, content);
-            Assert.Equal(expected, Experimental.ReadFlag(path, "conteudo"));
         }
     }
 }

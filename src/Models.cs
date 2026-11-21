@@ -380,6 +380,10 @@ namespace HelmetDesk
         private bool _confirmDelete = true;
         /// <summary>Ask "tem certeza?" before deleting a note/task.</summary>
         public bool ConfirmDelete { get => _confirmDelete; set { if (Set(ref _confirmDelete, value)) Store.MarkDirty(); } }
+        private bool _contentPanel;
+        /// <summary>Painel "Conteúdo" (experimental) in the sidebar. Off by default; turning it off keeps conteudo.json.
+        /// Missing in older data files (= off); an older app ignores it.</summary>
+        public bool ContentPanel { get => _contentPanel; set { if (Set(ref _contentPanel, value)) Store.MarkDirty(); } }
         /// <summary>Visual theme: "classic" (the dark UI, default) or "aero" (Frutiger Aero). Applied at startup.</summary>
         public string Theme { get; set; } = "classic";
         /// <summary>Interface language: "en" or "pt-BR". Applied at startup (changing it restarts the app).

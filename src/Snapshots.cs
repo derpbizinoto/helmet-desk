@@ -572,24 +572,28 @@ namespace HelmetDesk
         }
 
         /// <summary>
-        /// Painel experimental "Conteúdo". Without the flag: hidden and nothing written. With experimental.json turning it on
-        /// (run the self-test with HELMETDESK_DATA pointing at a test folder): the main flows, then conteudo.json is put back.
+        /// Painel experimental "Conteúdo": the switch in Configurações, then the main flows. The switch and conteudo.json
+        /// are put back as they were afterwards.
         /// </summary>
         private async Task ContentTests(Action<string, bool> Check)
         {
             var file = AppPaths.ContentFile;
-            if (!Experimental.Content)
-            {
-                Check("conteúdo: sem a flag o item fica escondido", NavContent.Visibility != Visibility.Visible);
-                Check("conteúdo: sem a flag o conteudo.json não é criado", !File.Exists(file));
-                return;
-            }
+            var settings = Store.Data.Settings;
+            bool wasOn = settings.ContentPanel;
             string before = File.Exists(file) ? File.ReadAllText(file) : null;
+            Check("conteúdo: desligado por padrão", !new Settings().ContentPanel);
+            if (!wasOn)
+                Check("conteúdo: desligado, o item fica escondido e o conteudo.json não é criado",
+                    NavContent.Visibility != Visibility.Visible && (before != null || !File.Exists(file)));
             var cv = ContentView;
             var click = new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent);
             try
             {
-                Check("conteúdo: com a flag o item aparece logo abaixo de Finanças", NavContent.Visibility == Visibility.Visible
+                NavSettings.IsChecked = true;
+                ContentPanelSwitch.IsChecked = true; // what clicking the switch does (two-way binding)
+                await Snapshots.Idle(Dispatcher);
+                Check("conteúdo: o interruptor em Configurações liga o painel", settings.ContentPanel
+                    && NavContent.Visibility == Visibility.Visible
                     && NavList.Children.IndexOf(NavContent) == NavList.Children.IndexOf(NavFinance) + 1);
                 NavContent.IsChecked = true;
                 await Snapshots.Idle(Dispatcher);
@@ -635,12 +639,19 @@ namespace HelmetDesk
                 Check("conteúdo: excluir conteúdo pede confirmação", DialogOpen && vm.Data.Items.Contains(item));
                 CloseDialog(true);
                 Check("conteúdo: confirmado, o conteúdo some", !vm.Data.Items.Contains(item) && !cv.PanelOpen);
+
+                // turned off while open: the item leaves the sidebar, the window goes back to Hoje, the file stays
+                settings.ContentPanel = false;
+                await Snapshots.Idle(Dispatcher);
+                Check("conteúdo: desligar com o painel aberto volta para Hoje e mantém o arquivo",
+                    NavContent.Visibility != Visibility.Visible && _view == "today" && File.Exists(file));
             }
             finally
             {
                 if (DialogOpen) CloseDialog(false);
                 cv.Unload();
                 try { if (before != null) File.WriteAllText(file, before); else File.Delete(file); } catch { }
+                settings.ContentPanel = wasOn;
                 NavToday.IsChecked = true;
             }
         }

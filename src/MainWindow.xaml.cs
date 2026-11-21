@@ -72,8 +72,9 @@ namespace HelmetDesk
             // Finanças: recurring bills of the months up to now (also those the app was closed in)
             if (FinanceService.GenerateUpTo(Store.Data.Finance, DateTime.Today).Count > 0) Store.MarkDirty();
             FinanceView.Changed += UpdateCounts;
-            // painel experimental "Conteúdo": hidden unless experimental.json turns it on
-            if (HelmetDesk.Core.Experimental.Content) NavContent.Visibility = Visibility.Visible;
+            // painel experimental "Conteúdo": in the sidebar only when Configurações › Conteúdo is on
+            ApplyContentPanelSetting();
+            Store.Data.Settings.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(Settings.ContentPanel)) ApplyContentPanelSetting(); };
 
             _ready = true;
             NavToday.IsChecked = true;
@@ -81,6 +82,15 @@ namespace HelmetDesk
             // content fades in when the window appears (first open, or back from the tray)
             IsVisibleChanged += (s, e) => { if (IsVisible) Motion.Enter(Root, duration: Motion.Base); };
             NavList.SizeChanged += (s, e) => MoveNavMarker(CheckedNav, animate: false);
+        }
+
+        /// <summary>Shows or hides the Conteúdo item; turned off while it is open, the window goes back to Hoje. Its data stays in conteudo.json.</summary>
+        private void ApplyContentPanelSetting()
+        {
+            bool on = Store.Data.Settings.ContentPanel;
+            NavContent.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+            if (!on && NavContent.IsChecked == true) NavToday.IsChecked = true;
+            // the highlight follows on its own: NavList.SizeChanged moves it when the list grows or shrinks
         }
 
         private RadioButton CheckedNav =>

@@ -16,7 +16,7 @@ namespace HelmetDesk
         {
             DataDir = AppPaths.DataDir,
             SafetyBackupDir = AppPaths.SafetyBackupDir,
-            DataFiles = new[] { "data.json" },
+            DataFiles = new[] { "data.json", "conteudo.json" }, // conteudo.json: painel Conteúdo (missing until it is first used)
             DataFolders = new[] { "attachments" }, // note attachments (pictures, files): restoring a backup brings them back
             AppVersion = App.AppVersion,
             CurrentSchema = Store.CurrentSchema,
