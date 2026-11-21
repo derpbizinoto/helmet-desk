@@ -7,7 +7,7 @@ using System.Windows.Media.Animation;
 namespace HelmetDesk
 {
     /// <summary>
-    /// Picks the visual theme. Both themes (Themes/Legacy.xaml and Themes/FrutigerAero.xaml) define the same keys
+    /// Picks the visual theme. Both themes (Themes/Legacy.xaml and Themes/VioletAero.xaml) define the same keys
     /// (styles equal in both live in Themes/Common.xaml), so the screens never know which one is loaded.
     /// The theme is applied once at startup, before any window exists; changing it in Configurações saves the choice
     /// and restarts the app (screens use StaticResource).
@@ -20,14 +20,14 @@ namespace HelmetDesk
         /// <summary>The theme loaded in this run.</summary>
         public static string Current { get; private set; } = Classic;
 
-        public static string DisplayName(string theme) => theme == Classic ? T("Clássico") : "Frutiger Aero";
+        public static string DisplayName(string theme) => theme == Classic ? T("Clássico") : "Violet Aero";
 
         /// <summary>Loads the saved theme. HELMETDESK_THEME=aero|classic overrides it (snapshot/self-test tooling).</summary>
         public static void Apply(string saved)
         {
             var forced = Environment.GetEnvironmentVariable("HELMETDESK_THEME");
             Current = Normalize(string.IsNullOrWhiteSpace(forced) ? saved : forced);
-            var file = Current == Classic ? "Legacy" : "FrutigerAero";
+            var file = Current == Classic ? "Legacy" : "VioletAero";
             var dicts = Application.Current.Resources.MergedDictionaries;
             foreach (var old in dicts.Where(d => d.Source != null && d.Source.OriginalString.Contains("/Themes/")).ToList()) dicts.Remove(old);
             dicts.Insert(0, new ResourceDictionary { Source = new Uri($"/HelmetDesk;component/Themes/{file}.xaml", UriKind.Relative) });

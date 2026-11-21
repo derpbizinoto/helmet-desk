@@ -3,7 +3,7 @@
                     xmlns:local="clr-namespace:HelmetDesk">
 
     <!--
-        Styles that are exactly the same in both themes (Themes/Legacy.xaml and Themes/FrutigerAero.xaml). They only
+        Styles that are exactly the same in both themes (Themes/Legacy.xaml and Themes/VioletAero.xaml). They only
         point at theme keys (Text2, Line, Accent, GhostButton...), so ThemeManager.Apply merges this file right after
         the theme. A style that differs between the themes, or that a theme style builds on (BasedOn, FocusVisualStyle,
         a template), stays in the theme files.

@@ -225,7 +225,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- theme backdrop (Frutiger Aero: twilight gradient + aurora + title glass strip; classic: nothing) -->
+            <!-- theme backdrop (Violet Aero: twilight gradient + aurora + title glass strip; classic: nothing) -->
             <ContentControl Grid.ColumnSpan="2" Style="{StaticResource AppBackdrop}"/>
             <!-- theme glass behind the sidebar (classic: nothing) -->
             <ContentControl Style="{StaticResource SidebarGlass}"/>
@@ -397,7 +397,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- theme panel behind the window buttons, header and body (Frutiger Aero: light glass; classic: nothing) -->
+                <!-- theme panel behind the window buttons, header and body (Violet Aero: light glass; classic: nothing) -->
                 <ContentControl Grid.RowSpan="3" Style="{StaticResource ContentPanel}"/>
 
                 <!-- window buttons -->
@@ -626,7 +626,7 @@
                                                 AutomationProperties.Name="{local:Tr 'Tema'}">
                                             <StackPanel Orientation="Horizontal">
                                                 <RadioButton x:Name="ThemeClassic" Style="{StaticResource SegButton}" GroupName="theme" Content="{local:Tr 'Clássico'}" Tag="classic" Click="Theme_Click"/>
-                                                <RadioButton x:Name="ThemeAero" Style="{StaticResource SegButton}" GroupName="theme" Content="Frutiger Aero" Tag="aero" Click="Theme_Click"/>
+                                                <RadioButton x:Name="ThemeAero" Style="{StaticResource SegButton}" GroupName="theme" Content="Violet Aero" Tag="aero" Click="Theme_Click"/>
                                             </StackPanel>
                                         </Border>
                                         <StackPanel Margin="0,0,16,0">

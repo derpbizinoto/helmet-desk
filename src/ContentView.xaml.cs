@@ -182,6 +182,7 @@ namespace HelmetDesk
             var b = new Button
             {
                 Template = BareTemplate, Content = card, Background = Brushes.Transparent, Cursor = Cursors.Hand,
+                Foreground = Ui.Res("Text"), // a Button would pass the system black on to the channel name
                 Margin = new Thickness(6, 0, 6, 12), HorizontalContentAlignment = HorizontalAlignment.Left
             };
             AutomationProperties.SetName(b, name);
@@ -204,7 +205,7 @@ namespace HelmetDesk
         private static Color Mix(Color a, Color b, double t) => Color.FromRgb(
             (byte)(a.R + (b.R - a.R) * t), (byte)(a.G + (b.G - a.G) * t), (byte)(a.B + (b.B - a.B) * t));
 
-        /// <summary>A glossy sphere (Frutiger Aero): radial gradient, a white shine on top, the count in the middle.</summary>
+        /// <summary>A glossy sphere (Violet Aero): radial gradient, a white shine on top, the count in the middle.</summary>
         private UIElement Sphere(Stage s, int count, bool selected, bool dimmed)
         {
             var c = ColorOf(s);

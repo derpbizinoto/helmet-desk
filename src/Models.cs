@@ -384,7 +384,7 @@ namespace HelmetDesk
         /// <summary>Painel "Conteúdo" (experimental) in the sidebar. Off by default; turning it off keeps conteudo.json.
         /// Missing in older data files (= off); an older app ignores it.</summary>
         public bool ContentPanel { get => _contentPanel; set { if (Set(ref _contentPanel, value)) Store.MarkDirty(); } }
-        /// <summary>Visual theme: "classic" (the dark UI, default) or "aero" (Frutiger Aero). Applied at startup.</summary>
+        /// <summary>Visual theme: "classic" (the dark UI, default) or "aero" (Violet Aero). Applied at startup.</summary>
         public string Theme { get; set; } = "classic";
         /// <summary>Interface language: "en" or "pt-BR". Applied at startup (changing it restarts the app).
         /// Missing in data files from 1.0.0, which keep pt-BR; a new install starts in English (Store.Load).</summary>

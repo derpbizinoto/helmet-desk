@@ -3,7 +3,7 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:local="clr-namespace:HelmetDesk">
 
-    <!-- Shared by every theme (merged by Themes/Legacy.xaml and Themes/FrutigerAero.xaml): motion, fonts, type scale, icons. No colors here. -->
+    <!-- Shared by every theme (merged by Themes/Legacy.xaml and Themes/VioletAero.xaml): motion, fonts, type scale, icons. No colors here. -->
 
     <!-- ===== Motion tokens (read by Motion.cs; every transition uses these) ===== -->
     <Duration x:Key="Motion.Fast">0:0:0.15</Duration>

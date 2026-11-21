@@ -24,15 +24,15 @@ Notas, tarefas, calendário e finanças pessoais num só lugar, para Windows. Tu
 |---|---|---|
 | ![Calendário](docs/screenshots/pt-BR/classic/calendario.png) | ![Finanças](docs/screenshots/pt-BR/classic/financas.png) | ![Estatísticas](docs/screenshots/pt-BR/classic/estatisticas.png) |
 
-### Tema inspirado em Frutiger Aero
+### Tema Violet Aero
 
-Além do visual escuro Clássico, há um tema inspirado no estilo Frutiger Aero: vidro roxo sobre um fundo com aurora e botões em gel. Para trocar, vá em *Configurações → Geral → Tema*; o app reinicia sozinho e nenhum dado muda.
+Além do visual escuro Clássico, há o tema Violet Aero: vidro roxo sobre um fundo com aurora e botões em gel. Para trocar, vá em *Configurações → Geral → Tema*; o app reinicia sozinho e nenhum dado muda.
 
 | Hoje | Calendário |
 |---|---|
-| ![Hoje, tema Frutiger Aero](docs/screenshots/pt-BR/aero/hoje.png) | ![Calendário, tema Frutiger Aero](docs/screenshots/pt-BR/aero/calendario.png) |
+| ![Hoje, tema Violet Aero](docs/screenshots/pt-BR/aero/hoje.png) | ![Calendário, tema Violet Aero](docs/screenshots/pt-BR/aero/calendario.png) |
 | **Finanças** | **Estatísticas** |
-| ![Finanças, tema Frutiger Aero](docs/screenshots/pt-BR/aero/financas.png) | ![Estatísticas, tema Frutiger Aero](docs/screenshots/pt-BR/aero/estatisticas.png) |
+| ![Finanças, tema Violet Aero](docs/screenshots/pt-BR/aero/financas.png) | ![Estatísticas, tema Violet Aero](docs/screenshots/pt-BR/aero/estatisticas.png) |
 
 ## Idioma e moeda
 

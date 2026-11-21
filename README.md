@@ -24,15 +24,15 @@ Notes, tasks, calendar and personal finances in one place, for Windows. Everythi
 |---|---|---|
 | ![Calendar](docs/screenshots/en/classic/calendario.png) | ![Finances](docs/screenshots/en/classic/financas.png) | ![Statistics](docs/screenshots/en/classic/estatisticas.png) |
 
-### Frutiger Aero-inspired theme
+### Violet Aero theme
 
-Besides the Classic dark look, there's a theme inspired by the Frutiger Aero style: purple glass over an aurora background, with glossy gel buttons. Switch in *Settings → General → Theme*; the app restarts on its own and none of your data changes.
+Besides the Classic dark look, there's the Violet Aero theme: purple glass over an aurora background, with glossy gel buttons. Switch in *Settings → General → Theme*; the app restarts on its own and none of your data changes.
 
 | Today | Calendar |
 |---|---|
-| ![Today, Frutiger Aero theme](docs/screenshots/en/aero/hoje.png) | ![Calendar, Frutiger Aero theme](docs/screenshots/en/aero/calendario.png) |
+| ![Today, Violet Aero theme](docs/screenshots/en/aero/hoje.png) | ![Calendar, Violet Aero theme](docs/screenshots/en/aero/calendario.png) |
 | **Finances** | **Statistics** |
-| ![Finances, Frutiger Aero theme](docs/screenshots/en/aero/financas.png) | ![Statistics, Frutiger Aero theme](docs/screenshots/en/aero/estatisticas.png) |
+| ![Finances, Violet Aero theme](docs/screenshots/en/aero/financas.png) | ![Statistics, Violet Aero theme](docs/screenshots/en/aero/estatisticas.png) |
 
 ## Language and currency
 

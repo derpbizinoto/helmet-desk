@@ -132,10 +132,10 @@ SHORTCUTS
 
 THEME (Settings > General > Theme)
   • Classic (default): the original dark look.
-    Frutiger Aero: glass over a purple aurora background, with gel buttons.
+    Violet Aero: glass over a purple aurora background, with gel buttons.
     After switching, the app restarts on its own; none of your data changes.
   • The aurora's slow movement only runs with Windows "Animation effects" on.
-  • Files: src\Themes\FrutigerAero.xaml, src\Themes\Legacy.xaml (classic), src\Themes\Shared.xaml
+  • Files: src\Themes\VioletAero.xaml, src\Themes\Legacy.xaml (classic), src\Themes\Shared.xaml
     (fonts, icons, animation), src\Themes\Common.xaml (styles that are the same in both themes).
 
 FONTS (Google Fonts)

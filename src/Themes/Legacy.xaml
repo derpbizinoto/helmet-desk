@@ -7,7 +7,7 @@
         <ResourceDictionary Source="/HelmetDesk;component/Themes/Shared.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- Classic theme ("Violet Terminal"): the dark UI used up to Nov 2026, unchanged. Same keys as FrutigerAero.xaml; styles equal in both live in Common.xaml. -->
+    <!-- Classic theme ("Violet Terminal"): the dark UI used up to Nov 2026, unchanged. Same keys as VioletAero.xaml; styles equal in both live in Common.xaml. -->
 
     <!-- ===== Tokens "Violet Terminal" ===== -->
     <Color x:Key="C.Bg">#100B18</Color>
@@ -102,7 +102,7 @@
     <Color x:Key="Tray.Line">#34204D</Color>
     <Color x:Key="Tray.Text">#F5F1FA</Color>
 
-    <!-- ===== Window layers (the Frutiger Aero theme draws its backdrop and glass panels here) ===== -->
+    <!-- ===== Window layers (the Violet Aero theme draws its backdrop and glass panels here) ===== -->
     <!-- empty layer (nothing drawn) -->
     <Style x:Key="EmptyLayer" TargetType="ContentControl">
         <Setter Property="Focusable" Value="False"/>

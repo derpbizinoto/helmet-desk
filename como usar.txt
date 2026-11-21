@@ -131,10 +131,10 @@ ATALHOS
 
 TEMA (Configurações > Geral > Tema)
   • Clássico (padrão): o visual escuro original.
-    Frutiger Aero: vidro sobre um fundo roxo com aurora, botões em gel.
+    Violet Aero: vidro sobre um fundo roxo com aurora, botões em gel.
     Ao trocar, o app reinicia sozinho; nenhum dado muda.
   • O movimento lento da aurora só acontece com "Efeitos de animação" do Windows ligado.
-  • Arquivos: src\Themes\FrutigerAero.xaml, src\Themes\Legacy.xaml (clássico), src\Themes\Shared.xaml
+  • Arquivos: src\Themes\VioletAero.xaml, src\Themes\Legacy.xaml (clássico), src\Themes\Shared.xaml
     (fontes, ícones, animação), src\Themes\Common.xaml (estilos iguais nos dois temas).
 
 FONTES (Google Fonts)

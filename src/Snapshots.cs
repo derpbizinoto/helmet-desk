@@ -599,6 +599,9 @@ namespace HelmetDesk
                 await Snapshots.Idle(Dispatcher);
                 Check("conteúdo: item na barra lateral abre o painel", _view == "content" && cv.Visibility == Visibility.Visible
                     && PageTitle.Text == "Esteira de conteúdo");
+                // the channel cards are buttons: their texts must take the theme color, not the system black
+                var cardName = ((cv.ChannelCards.Children.OfType<Button>().FirstOrDefault()?.Content as Border)?.Child as StackPanel)?.Children.OfType<StackPanel>().FirstOrDefault()?.Children.OfType<TextBlock>().FirstOrDefault();
+                Check("conteúdo: nome nos cards de canal usa a cor do tema", cardName != null && ReferenceEquals(cardName.Foreground, Ui.Res("Text")));
                 var vm = cv.Vm;
                 var ch = vm.Channels.FirstOrDefault();
                 var newBtn = cv.NewButtons.Children.OfType<Button>().FirstOrDefault();

@@ -5,7 +5,7 @@
     <!--
         Layout styles used by the screens (MainWindow, FinanceView). They are the same in every theme and only point
         at theme keys (IconButton, Pill, Line, Text2...), so ThemeManager.Apply merges this file right after the theme.
-        Colors never go here: they belong to Themes/FrutigerAero.xaml and Themes/Legacy.xaml.
+        Colors never go here: they belong to Themes/VioletAero.xaml and Themes/Legacy.xaml.
     -->
 
     <!-- ===== Main window ===== -->

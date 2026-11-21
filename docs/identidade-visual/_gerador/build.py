@@ -290,16 +290,16 @@ body   { background: var(--grad-glow), var(--grad-window); color: var(--text-pri
 
 
 # =====================================================================================
-# 2) VIOLET AERO (Helmet Desk, tema Frutiger Aero noturno)
+# 2) VIOLET AERO (Helmet Desk, tema Violet Aero)
 # =====================================================================================
 def aero():
     BASE = '#140A2A'   # approximate backdrop behind the glass, for swatches of translucent tokens
     SKY = [('#06020E', 0), ('#0F0624', 0.4), ('#1E0C40', 0.75), ('#2E1360', 1)]
-    d = Doc('GUIA DE IDENTIDADE VISUAL  /  DESIGN SYSTEM', 'VIOLET AERO  •  tema Frutiger Aero noturno')
-    cover(d, 'VIOLET AERO', 'Identidade visual Frutiger Aero noturna, em roxo',
+    d = Doc('GUIA DE IDENTIDADE VISUAL  /  DESIGN SYSTEM', 'VIOLET AERO  •  tema do Helmet Desk')
+    cover(d, 'VIOLET AERO', 'Identidade visual Aero noturna, em roxo',
           'Vidro fumê  •  Gel brilhante  •  Aurora e bokeh  •  Roboto + Geo',
-          'Releitura da estética Frutiger Aero (vidro, gel, luz e natureza digital dos anos 2006–2013) em versão escura e roxa, '
-          'aplicada no tema Frutiger Aero do Helmet Desk. O roxo #8950D9 continua sendo a cor principal; o Aero está no material: '
+          'Releitura da estética Aero (vidro, gel, luz e natureza digital dos anos 2006–2013) em versão escura e roxa, '
+          'aplicada no tema Violet Aero do Helmet Desk. O roxo #8950D9 continua sendo a cor principal; o Aero está no material: '
           'vidro fumê, cápsulas de gel, bordas que pegam luz, aurora e orbes de bokeh ao fundo. Serve de referência para levar a mesma '
           'identidade a outros aplicativos e extensões.',
           [('DARK GLASS', 'Vidro fumê sobre céu noturno'), ('GEL + LUZ', 'Brilho no topo, glow no ativo'), ('ROBOTO + GEO', 'Interface + marca')])
@@ -317,7 +317,7 @@ def aero():
               '**Desempenho:** desfoque e sombra só em camadas grandes e estáticas (fundo e painéis), guardadas em cache. '
               'Linhas de lista e cards nunca recebem efeitos.']:
         d.bullet(t)
-    d.image(os.path.join(SHOTS, 'dark5', '1-hoje.png'), 6.3, 4.095, 'Referência: Helmet Desk, tela Hoje, tema Frutiger Aero (Violet Aero).')
+    d.image(os.path.join(SHOTS, 'dark5', '1-hoje.png'), 6.3, 4.095, 'Referência: Helmet Desk, tela Hoje, tema Violet Aero.')
 
     d.h1('2. Paleta de cores')
     d.h2('Escala roxa (base #8950D9)')
@@ -567,7 +567,7 @@ body { background: var(--sky); color: var(--text-primary); font-family: var(--fo
          background: linear-gradient(180deg, #fff, #fff 45%, #C9AEF2);
          -webkit-background-clip: text; color: transparent; filter: drop-shadow(0 0 5px #A982E6E6); }''')
     d.p('Fontes no Google Fonts: Roboto (300, 400, 500, 700, itálico 400) e Geo (400).', after=0)
-    path = os.path.join(OUT, 'Violet Aero - identidade visual (tema Frutiger Aero).docx')
+    path = os.path.join(OUT, 'Violet Aero - identidade visual (tema Violet Aero).docx')
     d.save(path)
     return path
 
