@@ -72,6 +72,8 @@ namespace HelmetDesk
             // Finanças: recurring bills of the months up to now (also those the app was closed in)
             if (FinanceService.GenerateUpTo(Store.Data.Finance, DateTime.Today).Count > 0) Store.MarkDirty();
             FinanceView.Changed += UpdateCounts;
+            // painel experimental "Conteúdo": hidden unless experimental.json turns it on
+            if (HelmetDesk.Core.Experimental.Content) NavContent.Visibility = Visibility.Visible;
 
             _ready = true;
             NavToday.IsChecked = true;
@@ -82,7 +84,7 @@ namespace HelmetDesk
         }
 
         private RadioButton CheckedNav =>
-            new[] { NavToday, NavNotes, NavTasks, NavCalendar, NavFinance, NavSettings }.FirstOrDefault(r => r.IsChecked == true);
+            new[] { NavToday, NavNotes, NavTasks, NavCalendar, NavFinance, NavContent, NavSettings }.FirstOrDefault(r => r.IsChecked == true);
 
         /// <summary>The highlight behind the active sidebar item glides to the newly selected one.</summary>
         private void MoveNavMarker(RadioButton target, bool animate = true)
@@ -171,6 +173,11 @@ namespace HelmetDesk
                 else if (e.Key == Key.Escape && FinanceView.PanelOpen && !e.Handled) { FinanceView.ClosePanel(); e.Handled = true; }
                 return;
             }
+            if (_view == "content")
+            {
+                if (e.Key == Key.Escape && ContentView.PanelOpen && !e.Handled) { ContentView.ClosePanel(); e.Handled = true; }
+                return;
+            }
             if (e.Key == Key.Escape && _editing != null) { if (_editMode) ViewMode_Click(null, null); else CloseByUser(); e.Handled = true; }
             else if (e.Key == Key.N && Keyboard.Modifiers == ModifierKeys.Control) { CreateItem(_view == "notes" ? ItemKind.Note : ItemKind.Task); e.Handled = true; }
             else if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && Toolbar.Visibility == Visibility.Visible) { SearchBox.Focus(); e.Handled = true; }
@@ -178,7 +185,7 @@ namespace HelmetDesk
 
         // ================= navigation =================
 
-        private static readonly string[] ViewOrder = { "today", "notes", "tasks", "calendar", "finance", "settings" };
+        private static readonly string[] ViewOrder = { "today", "notes", "tasks", "calendar", "finance", "content", "settings" };
 
         private void Nav_Checked(object sender, RoutedEventArgs e)
         {
@@ -203,6 +210,7 @@ namespace HelmetDesk
             "notes" or "tasks" => ListArea,
             "calendar" => CalendarView,
             "finance" => FinanceView,
+            "content" => ContentView,
             _ => SettingsView
         };
 
@@ -215,6 +223,8 @@ namespace HelmetDesk
             FinanceView.Visibility = _view == "finance" ? Visibility.Visible : Visibility.Collapsed;
             BtnNewTx.Visibility = _view == "finance" ? Visibility.Visible : Visibility.Collapsed;
             if (_view != "finance") FinanceView.ClosePanel();
+            ContentView.Visibility = _view == "content" ? Visibility.Visible : Visibility.Collapsed;
+            if (_view != "content") ContentView.ClosePanel();
             Toolbar.Visibility = _view is "notes" or "tasks" ? Visibility.Visible : Visibility.Collapsed;
             StatusBox.Visibility = _view == "tasks" ? Visibility.Visible : Visibility.Collapsed;
             NoteGroups.Visibility = _view == "notes" ? Visibility.Visible : Visibility.Collapsed;
@@ -246,6 +256,11 @@ namespace HelmetDesk
                     PageTitle.Text = T("Finanças");
                     PageSub.Text = T("Receitas, despesas e contas, lançadas à mão.");
                     FinanceView.Activate();
+                    break;
+                case "content":
+                    PageTitle.Text = T("Esteira de conteúdo");
+                    PageSub.Text = T("Da ideia à publicação, canal por canal. Recurso experimental.");
+                    ContentView.Activate();
                     break;
                 case "settings":
                     PageTitle.Text = T("Configurações");

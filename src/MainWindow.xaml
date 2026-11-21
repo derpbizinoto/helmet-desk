@@ -348,6 +348,13 @@
                                 </StackPanel>
                             </DockPanel>
                         </RadioButton>
+                        <!-- experimental: shown only when experimental.json has "conteudo": true (MainWindow constructor) -->
+                        <RadioButton x:Name="NavContent" Style="{StaticResource NavButton}" GroupName="nav" Tag="content" Checked="Nav_Checked" HorizontalContentAlignment="Stretch" local:Ui.CompactTip="Conteúdo" Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal">
+                                <local:Icon Data="{StaticResource I.Video}" Margin="0,0,10,0"/>
+                                <TextBlock Text="{local:Tr 'Conteúdo'}" local:Ui.WideOnly="True"/>
+                            </StackPanel>
+                        </RadioButton>
                         <Border Height="1" Background="{StaticResource Line}" Margin="4,10,4,10"/>
                         <RadioButton x:Name="NavSettings" Style="{StaticResource NavButton}" GroupName="nav" Tag="settings" Checked="Nav_Checked" HorizontalContentAlignment="Stretch" local:Ui.CompactTip="Configurações">
                             <StackPanel Orientation="Horizontal">
@@ -604,6 +611,9 @@
 
                     <!-- Finanças (its own forms panel: spans the side-panel column) -->
                     <local:FinanceView x:Name="FinanceView" Grid.ColumnSpan="2" Visibility="Collapsed"/>
+
+                    <!-- Conteúdo (experimental; its own side panel, like Finanças) -->
+                    <local:ContentView x:Name="ContentView" Grid.ColumnSpan="2" Visibility="Collapsed"/>
 
                     <!-- Settings -->
                     <ScrollViewer x:Name="SettingsView" VerticalScrollBarVisibility="Auto" Visibility="Collapsed">
