@@ -41,6 +41,10 @@ namespace HelmetDesk.Core
         public static string DataFile => Path.Combine(DataDir, "data.json");
         public static string AttachmentsDir => Path.Combine(DataDir, "attachments");
         public static string LinksCacheDir => Path.Combine(DataDir, "links");
+        /// <summary>Painel experimental "Conteúdo": its own file, never part of data.json (see Content/ContentStore).</summary>
+        public static string ContentFile => Path.Combine(DataDir, "conteudo.json");
+        /// <summary>Switches for experimental panels (see <see cref="Experimental"/>). Absent = everything off.</summary>
+        public static string ExperimentalFile => Path.Combine(DataDir, "experimental.json");
 
         // ----- machine-local -----
         public static string LogDir => Path.Combine(LocalDir, "logs");
