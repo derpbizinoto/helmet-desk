@@ -24,7 +24,7 @@ namespace HelmetDesk.Core.Content
         private readonly Func<ContentData> _data;
         private readonly Func<DateTime> _now;
 
-        public ContentPanelViewModel(Func<ContentData> data, IContentHost host, Func<DateTime>? now = null)
+        public ContentPanelViewModel(Func<ContentData> data, IContentPanelHost host, Func<DateTime>? now = null)
         {
             _data = data;
             Host = host;
@@ -34,7 +34,7 @@ namespace HelmetDesk.Core.Content
         }
 
         public ContentData Data => _data();
-        public IContentHost Host { get; }
+        public IContentPanelHost Host { get; }
         public DateTime Now => _now();
 
         /// <summary>The edit form of a content item.</summary>

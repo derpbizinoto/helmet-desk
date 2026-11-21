@@ -16,7 +16,7 @@ namespace HelmetDesk.Core.Content
         public ChannelsViewModel(ContentPanelViewModel panel) => _panel = panel;
 
         private ContentData Data => _panel.Data;
-        private IContentHost Host => _panel.Host;
+        private IContentPanelHost Host => _panel.Host;
 
         // ================= the channel form =================
 

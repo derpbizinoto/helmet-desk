@@ -6,7 +6,7 @@ namespace HelmetDesk.Core.Content
     /// What the Conteúdo view models need from the screen that shows them (ContentView): saving, the side panel and
     /// dialogs. Kept small so the view models can be tested without WPF (same idea as IFinanceHost).
     /// </summary>
-    public interface IContentHost
+    public interface IContentPanelHost
     {
         /// <summary>Saves conteudo.json and redraws the panel.</summary>
         void Commit();
