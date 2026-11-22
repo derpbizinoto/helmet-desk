@@ -674,10 +674,10 @@ namespace HelmetDesk.Core
             ["Saldo: {0}"] = "Balance: {0}",
             ["Total"] = "Total",
 
-            // ---------- Conteúdo (experimental panel) ----------
+            // ---------- Conteúdo panel ----------
             ["Conteúdo"] = "Content",
             ["Esteira de conteúdo"] = "Content pipeline",
-            ["Da ideia à publicação, canal por canal. Recurso experimental."] = "From idea to published, channel by channel. Experimental feature.",
+            ["Da ideia à publicação, canal por canal."] = "From idea to published, channel by channel.",
             ["Ideia"] = "Idea",
             ["Gravando/escrevendo"] = "Recording/writing",
             ["Editando"] = "Editing",
@@ -733,7 +733,7 @@ namespace HelmetDesk.Core
             ["O canal \"{0}\" será excluído."] = "The channel \"{0}\" will be deleted.",
             ["Entendi"] = "Got it",
             ["Mostrar o painel Conteúdo"] = "Show the Content panel",
-            ["Esteira de produção para redes sociais, da ideia à publicação (recurso experimental). Ao desligar, o painel sai da barra lateral e seus conteúdos continuam guardados."] = "Production pipeline for social media, from idea to published (experimental feature). When turned off, the panel leaves the sidebar and your content stays saved.",
+            ["Esteira de produção para redes sociais, da ideia à publicação. Ao desligar, o painel sai da barra lateral e seus conteúdos continuam guardados."] = "Production pipeline for social media, from idea to published. When turned off, the panel leaves the sidebar and your content stays saved.",
         };
     }
 }

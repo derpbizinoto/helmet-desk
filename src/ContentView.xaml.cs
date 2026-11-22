@@ -12,7 +12,7 @@ using HelmetDesk.Core.Content;
 namespace HelmetDesk
 {
     /// <summary>
-    /// Painel experimental "Conteúdo" (esteira de produção): "Novo:" buttons, channel cards, the five stage spheres,
+    /// Painel "Conteúdo" (esteira de produção): "Novo:" buttons, channel cards, the five stage spheres,
     /// the summary line and the content cards, plus a side panel for editing a content item and managing channels.
     /// The state and rules live in <see cref="ContentPanelViewModel"/> (core); this class draws them and answers
     /// <see cref="IContentPanelHost"/>. Data is read from conteudo.json the first time the panel opens (never while the panel is turned off in Configurações)
@@ -45,7 +45,7 @@ namespace HelmetDesk
             if (_data == null)
             {
                 _data = ContentStore.Load(AppPaths.ContentFile, DateTime.Now, m => Log.Warn(m));
-                Log.Info($"Conteúdo (experimental): {_data.Channels.Count} canal(is), {_data.Items.Count} conteúdo(s)");
+                Log.Info($"Conteúdo: {_data.Channels.Count} canal(is), {_data.Items.Count} conteúdo(s)");
             }
             FillStageCombo();
             Refresh();

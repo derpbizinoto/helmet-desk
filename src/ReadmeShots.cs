@@ -11,7 +11,7 @@ namespace HelmetDesk
         /// <summary>
         /// Developer aid: the README screenshots (run with --readme-shots &lt;folder&gt; on an empty HELMETDESK_DATA folder,
         /// with HELMETDESK_LANG and HELMETDESK_THEME set). Fills tidy sample data in the current language and saves
-        /// hoje/calendario/financas/estatisticas.png (plus two Settings captures for checking). Never run it on real data: the sample data is saved.
+        /// hoje/calendario/financas/estatisticas/conteudo.png (plus two Settings captures for checking). Never run it on real data: the sample data is saved.
         /// </summary>
         public async Task ReadmeShots(string dir)
         {
@@ -105,6 +105,32 @@ namespace HelmetDesk
             Store.MarkDirty();
             Refresh(animate: false);
 
+            // ---------- conteúdo (the panel is off by default: turned on for the screenshot) ----------
+            Store.Data.Settings.ContentPanel = true;
+            NavContent.IsChecked = true; // loads conteudo.json, with the three sample channels
+            var cvm = ContentView.Vm;
+            var chs = cvm.Channels;
+            int[] followers = { 1840, 12500, 8300 };
+            for (int k = 0; k < chs.Count && k < followers.Length; k++) chs[k].Followers = followers[k];
+            void Content(string pt, string en, int channel, HelmetDesk.Core.Content.Stage stage, int? day)
+            {
+                var now = DateTime.Now;
+                cvm.Data.Items.Add(new HelmetDesk.Core.Content.ContentItem
+                {
+                    Title = S(pt, en), ChannelId = chs[Math.Min(channel, chs.Count - 1)].Id, Stage = stage,
+                    PublishDate = day.HasValue ? today.AddDays(day.Value) : null, CreatedAt = now, UpdatedAt = now
+                });
+            }
+            Content("Como eu organizo a semana", "How I plan my week", 1, HelmetDesk.Core.Content.Stage.Ideia, null);
+            Content("Trend do áudio novo", "New audio trend", 2, HelmetDesk.Core.Content.Stage.Ideia, null);
+            Content("Bastidores da edição", "Behind the edit", 2, HelmetDesk.Core.Content.Stage.Gravando, null);
+            Content("Review do fone novo", "New headphones review", 1, HelmetDesk.Core.Content.Stage.Editando, 3);
+            Content("Thread: 5 atalhos do Windows", "Thread: 5 Windows shortcuts", 0, HelmetDesk.Core.Content.Stage.Programado, 1);
+            Content("Unboxing do microfone", "Mic unboxing", 2, HelmetDesk.Core.Content.Stage.Programado, 5);
+            Content("Meu setup 2026", "My 2026 setup", 1, HelmetDesk.Core.Content.Stage.Publicado, -4);
+            Content("Dica rápida de atalho", "Quick shortcut tip", 0, HelmetDesk.Core.Content.Stage.Publicado, -2);
+            ((HelmetDesk.Core.Content.IContentPanelHost)ContentView).Commit(); // saves and redraws
+
             NavToday.IsChecked = true; await Shot("hoje");
             NavCalendar.IsChecked = true; await Shot("calendario");
             NavFinance.IsChecked = true;
@@ -113,6 +139,7 @@ namespace HelmetDesk
             FinanceView.ShowTab("stats");
             FinanceView.SetPeriod(6);
             await Shot("estatisticas");
+            NavContent.IsChecked = true; await Shot("conteudo");
             NavSettings.IsChecked = true; await Shot("configuracoes");
             await Snapshots.Idle(Dispatcher); SettingsView.ScrollToVerticalOffset(SettingsView.ScrollableHeight - 380); await Shot("configuracoes-2");
         }

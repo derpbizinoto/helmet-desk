@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace HelmetDesk.Core.Content
 {
     /// <summary>
-    /// Reading and writing conteudo.json (painel experimental "Conteúdo"), with no WPF. The file is separate from data.json,
+    /// Reading and writing conteudo.json (painel "Conteúdo"), with no WPF. The file is separate from data.json,
     /// so this panel never touches the app's other data. Written like data.json: temporary file forced to disk, then swapped.
     /// </summary>
     public static class ContentStore

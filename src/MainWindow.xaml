@@ -348,7 +348,7 @@
                                 </StackPanel>
                             </DockPanel>
                         </RadioButton>
-                        <!-- experimental: shown only when Configurações › Conteúdo is on (MainWindow.ApplyContentPanelSetting) -->
+                        <!-- shown only when Configurações › Conteúdo is on (MainWindow.ApplyContentPanelSetting) -->
                         <RadioButton x:Name="NavContent" Style="{StaticResource NavButton}" GroupName="nav" Tag="content" Checked="Nav_Checked" HorizontalContentAlignment="Stretch" local:Ui.CompactTip="Conteúdo" Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal">
                                 <local:Icon Data="{StaticResource I.Video}" Margin="0,0,10,0"/>
@@ -612,7 +612,7 @@
                     <!-- Finanças (its own forms panel: spans the side-panel column) -->
                     <local:FinanceView x:Name="FinanceView" Grid.ColumnSpan="2" Visibility="Collapsed"/>
 
-                    <!-- Conteúdo (experimental; its own side panel, like Finanças) -->
+                    <!-- Conteúdo (its own side panel, like Finanças) -->
                     <local:ContentView x:Name="ContentView" Grid.ColumnSpan="2" Visibility="Collapsed"/>
 
                     <!-- Settings -->
@@ -804,7 +804,7 @@
                                                   AutomationProperties.Name="{local:Tr 'Mostrar o painel Conteúdo'}"/>
                                         <StackPanel Margin="0,0,16,0">
                                             <TextBlock Text="{local:Tr 'Mostrar o painel Conteúdo'}" Style="{StaticResource SettingTitle}"/>
-                                            <TextBlock Text="{local:Tr 'Esteira de produção para redes sociais, da ideia à publicação (recurso experimental). Ao desligar, o painel sai da barra lateral e seus conteúdos continuam guardados.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{local:Tr 'Esteira de produção para redes sociais, da ideia à publicação. Ao desligar, o painel sai da barra lateral e seus conteúdos continuam guardados.'}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </DockPanel>
                                 </StackPanel>

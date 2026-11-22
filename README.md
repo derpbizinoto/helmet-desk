@@ -2,7 +2,7 @@
 
 **English** · [Português](README.pt-BR.md)
 
-Notes, tasks, calendar and personal finances in one place, for Windows. Everything is stored on your own computer.
+Notes, tasks, calendar, personal finances and social media content in one place, for Windows. Everything is stored on your own computer.
 
 ![Helmet Desk Today screen](docs/screenshots/en/classic/hoje.png)
 
@@ -14,15 +14,16 @@ Notes, tasks, calendar and personal finances in one place, for Windows. Everythi
 - **Notes and tasks**: checklists, date, time, priority, time estimate, colored labels, attachments (images and files) and links shown with the site's title and icon.
 - **Calendar**: the whole month with each day's items. Double-click a day to create a task.
 - **Finances**: manually entered transactions, accounts and credit cards, installments, recurring entries, categories and statistics with charts. Nothing connects to your bank. Amounts are shown in the currency you choose: dollar ($), euro (€) or Brazilian real (R$).
+- **Content**: a pipeline for social media creators. Each piece moves through five stages (Idea, Recording/writing, Editing, Scheduled, Published), with colored channels, followers per channel, a publish date and notes. It is optional: turn it on in *Settings → Content*.
 - **On the desktop**: sticky notes and a task-list widget.
 - **Reminders**: a notification at the task's set time, a tray icon and an option to start with Windows.
-- **Backup**: export and import a `.zip` with all your data and attachments, verified before restoring.
+- **Backup**: export and import a `.zip` with all your data (content included) and attachments, verified before restoring.
 - **Two languages**: English and Brazilian Portuguese.
 - **Automatic updates**: tells you when a new version is ready and installs it in one click.
 
-| Calendar | Finances | Statistics |
-|---|---|---|
-| ![Calendar](docs/screenshots/en/classic/calendario.png) | ![Finances](docs/screenshots/en/classic/financas.png) | ![Statistics](docs/screenshots/en/classic/estatisticas.png) |
+| Calendar | Finances | Statistics | Content |
+|---|---|---|---|
+| ![Calendar](docs/screenshots/en/classic/calendario.png) | ![Finances](docs/screenshots/en/classic/financas.png) | ![Statistics](docs/screenshots/en/classic/estatisticas.png) | ![Content](docs/screenshots/en/classic/conteudo.png) |
 
 ### Violet Aero theme
 
@@ -33,6 +34,8 @@ Besides the Classic dark look, there's the Violet Aero theme: purple glass over 
 | ![Today, Violet Aero theme](docs/screenshots/en/aero/hoje.png) | ![Calendar, Violet Aero theme](docs/screenshots/en/aero/calendario.png) |
 | **Finances** | **Statistics** |
 | ![Finances, Violet Aero theme](docs/screenshots/en/aero/financas.png) | ![Statistics, Violet Aero theme](docs/screenshots/en/aero/estatisticas.png) |
+| **Content** | |
+| ![Content, Violet Aero theme](docs/screenshots/en/aero/conteudo.png) | |
 
 ## Language and currency
 
@@ -64,7 +67,7 @@ The current version and the **Check for updates** button are in *Settings → Up
 
 | What | Where |
 |---|---|
-| Notes, tasks, finances, attachments | `%AppData%\HelmetDesk\` |
+| Notes, tasks, finances, content, attachments | `%AppData%\HelmetDesk\` |
 | Logs, automatic safety backups, problem reports | `%LocalAppData%\HelmetDesk.Local\` |
 
 - Nothing is sent to any server. The app only goes online to **check for updates** (on this GitHub page) and to **fetch the title and icon** of links you add to notes.

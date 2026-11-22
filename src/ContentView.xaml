@@ -4,7 +4,7 @@
              xmlns:local="clr-namespace:HelmetDesk"
              Foreground="{StaticResource Text}" Typography.NumeralAlignment="Tabular">
     <!--
-        Painel experimental "Conteúdo" (esteira de produção). Shown only when Configurações › Conteúdo is on (Settings.ContentPanel, off by default).
+        Painel "Conteúdo" (esteira de produção). Shown only when Configurações › Conteúdo is on (Settings.ContentPanel, off by default).
         Same pattern as FinanceView: the state and rules are in HelmetDesk.Core.Content (ContentPanelViewModel and its forms);
         the channel buttons, cards, spheres and rows are built in ContentView.xaml.cs. Data lives in conteudo.json.
     -->

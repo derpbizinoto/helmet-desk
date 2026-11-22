@@ -1,5 +1,5 @@
-HELMET DESK — notes, tasks and calendar for Windows
-===================================================
+HELMET DESK — notes, tasks, calendar, finances and content for Windows
+======================================================================
 
 HOW TO INSTALL
   Download HelmetDesk-win-Setup.exe from https://github.com/derpbizinoto/helmet-desk/releases/latest
@@ -15,6 +15,8 @@ UPDATES
 
 WHERE YOUR DATA IS
   %APPDATA%\HelmetDesk\data.json   (saved automatically)
+  %APPDATA%\HelmetDesk\conteudo.json
+                                   Content panel (saved automatically; also goes into the backup)
   %APPDATA%\HelmetDesk\data.bak.YYYYMMDD-HHMM.json
                                    copy made when the app opens, at most one a day and only if something
                                    changed; the 5 newest are kept. To undo a mistake: close the app and copy
@@ -105,6 +107,21 @@ FINANCES (sidebar, below Calendar)
                      or the year.
   • On Today, a card shows the bills due today/overdue and the current balance.
   • The data lives in the same data.json ("Finance" section) and goes into the .zip backup.
+
+CONTENT (sidebar, below Finances)
+  A pipeline for social media creators. It starts turned off: turn it on in
+  Settings > Content > "Show the Content panel" (turning it off only hides the panel; nothing is deleted).
+  • Stages ......... each piece moves through Idea > Recording/writing > Editing > Scheduled > Published.
+                     "Move to…" goes one stage forward and "Back" goes one stage back.
+  • New: .......... one button per channel creates an item in the Idea stage and opens the form on the
+                     side (title, channel, stage, publish date and notes). Clicking the same button again
+                     closes the form. Esc closes it too.
+  • Channels ....... the cards at the top show followers and how many items are in production; click a
+                     card to see only that channel. In "Manage channels" you create, edit (name, color,
+                     followers), reorder and delete channels. A channel that still has content can't be
+                     deleted. The first time, the app creates three sample channels: X, YouTube and IG/TikTok.
+  • Spheres ........ show how many items are in each stage; click one to filter by it.
+  • The data is stored in %APPDATA%\HelmetDesk\conteudo.json (separate from data.json) and goes into the .zip backup.
 
 LANGUAGE AND CURRENCY
   • Settings > General > Language: English or Português (Brasil). After switching, the app restarts

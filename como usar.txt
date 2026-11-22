@@ -1,5 +1,5 @@
-HELMET DESK — notas, tarefas e calendário para Windows
-=======================================================
+HELMET DESK — notas, tarefas, calendário, finanças e conteúdo para Windows
+==========================================================================
 
 COMO INSTALAR
   Baixe HelmetDesk-win-Setup.exe em https://github.com/derpbizinoto/helmet-desk/releases/latest
@@ -15,6 +15,8 @@ ATUALIZAÇÕES
 
 ONDE FICAM OS DADOS
   %APPDATA%\HelmetDesk\data.json   (salvo automaticamente)
+  %APPDATA%\HelmetDesk\conteudo.json
+                                   painel Conteúdo (salvo automaticamente; também entra no backup)
   %APPDATA%\HelmetDesk\data.bak.AAAAMMDD-HHMM.json
                                    cópia ao abrir o app, no máximo uma por dia e só se algo mudou; ficam as
                                    5 mais recentes. Para desfazer um engano: feche o app e copie uma delas
@@ -101,6 +103,21 @@ FINANÇAS (barra lateral, abaixo de Calendário)
                      ou o ano.
   • No Hoje, um card mostra as contas a pagar de hoje/vencidas e o saldo atual.
   • Os dados ficam no mesmo data.json (seção "Finance") e entram no backup .zip.
+
+CONTEÚDO (barra lateral, abaixo de Finanças)
+  Uma esteira para quem cria conteúdo para redes sociais. Vem desligado: ligue em
+  Configurações > Conteúdo > "Mostrar o painel Conteúdo" (desligar só esconde o painel; nada é apagado).
+  • Etapas ......... cada conteúdo passa por Ideia > Gravando/escrevendo > Editando > Programado > Publicado.
+                     "Ir para…" avança uma etapa e "Voltar" retorna uma.
+  • Novo: ......... um botão por canal cria um conteúdo na etapa Ideia e abre o formulário ao lado
+                     (título, canal, etapa, data de publicação e notas). Clicar de novo no mesmo botão
+                     fecha o formulário. Esc também fecha.
+  • Canais ......... os cards no topo mostram seguidores e quantos conteúdos estão em produção; clique
+                     num card para ver só aquele canal. Em "Gerenciar canais" você cria, edita (nome,
+                     cor, seguidores), reordena e exclui canais. Um canal com conteúdos não pode ser
+                     excluído. Na primeira vez o app cria três canais de exemplo: X, YouTube e IG/TikTok.
+  • Esferas ........ mostram quantos conteúdos há em cada etapa; clique numa para filtrar por ela.
+  • Os dados ficam em %APPDATA%\HelmetDesk\conteudo.json (separado do data.json) e entram no backup .zip.
 
 IDIOMA E MOEDA
   • Configurações > Geral > Idioma: English ou Português (Brasil). Ao trocar, o app reinicia sozinho.

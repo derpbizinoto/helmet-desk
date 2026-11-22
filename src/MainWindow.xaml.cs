@@ -72,7 +72,7 @@ namespace HelmetDesk
             // Finanças: recurring bills of the months up to now (also those the app was closed in)
             if (FinanceService.GenerateUpTo(Store.Data.Finance, DateTime.Today).Count > 0) Store.MarkDirty();
             FinanceView.Changed += UpdateCounts;
-            // painel experimental "Conteúdo": in the sidebar only when Configurações › Conteúdo is on
+            // painel "Conteúdo": in the sidebar only when Configurações › Conteúdo is on
             ApplyContentPanelSetting();
             Store.Data.Settings.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(Settings.ContentPanel)) ApplyContentPanelSetting(); };
 
@@ -269,7 +269,7 @@ namespace HelmetDesk
                     break;
                 case "content":
                     PageTitle.Text = T("Esteira de conteúdo");
-                    PageSub.Text = T("Da ideia à publicação, canal por canal. Recurso experimental.");
+                    PageSub.Text = T("Da ideia à publicação, canal por canal.");
                     ContentView.Activate();
                     break;
                 case "settings":

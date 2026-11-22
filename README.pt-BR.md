@@ -2,7 +2,7 @@
 
 [English](README.md) · **Português**
 
-Notas, tarefas, calendário e finanças pessoais num só lugar, para Windows. Tudo fica salvo no seu computador.
+Notas, tarefas, calendário, finanças pessoais e conteúdo para redes sociais num só lugar, para Windows. Tudo fica salvo no seu computador.
 
 ![Tela Hoje do Helmet Desk](docs/screenshots/pt-BR/classic/hoje.png)
 
@@ -14,15 +14,16 @@ Notas, tarefas, calendário e finanças pessoais num só lugar, para Windows. Tu
 - **Notas e tarefas**: checklist, data, horário, prioridade, tempo estimado, etiquetas coloridas, anexos (imagens e arquivos) e links com título e ícone do site.
 - **Calendário**: o mês inteiro, com os itens de cada dia. Clique duas vezes num dia para criar uma tarefa.
 - **Finanças**: lançamentos manuais, contas e cartões, parcelas, recorrentes, categorias e estatísticas com gráficos. Nada é conectado ao banco. Os valores aparecem na moeda que você escolher: real (R$), dólar (US$) ou euro (€).
+- **Conteúdo**: uma esteira para quem cria para redes sociais. Cada conteúdo passa por cinco etapas (Ideia, Gravando/escrevendo, Editando, Programado, Publicado), com canais coloridos, seguidores por canal, data de publicação e notas. É opcional: ligue em *Configurações → Conteúdo*.
 - **Na área de trabalho**: notas adesivas e um widget com a lista de tarefas.
 - **Lembretes**: notificação na hora marcada da tarefa, ícone na bandeja e opção de iniciar com o Windows.
-- **Backup**: exporta e importa um `.zip` com todos os dados e anexos, conferido antes de restaurar.
+- **Backup**: exporta e importa um `.zip` com todos os dados (inclusive os conteúdos) e anexos, conferido antes de restaurar.
 - **Dois idiomas**: português do Brasil e inglês.
 - **Atualização automática**: avisa quando há uma versão nova e instala com um clique.
 
-| Calendário | Finanças | Estatísticas |
-|---|---|---|
-| ![Calendário](docs/screenshots/pt-BR/classic/calendario.png) | ![Finanças](docs/screenshots/pt-BR/classic/financas.png) | ![Estatísticas](docs/screenshots/pt-BR/classic/estatisticas.png) |
+| Calendário | Finanças | Estatísticas | Conteúdo |
+|---|---|---|---|
+| ![Calendário](docs/screenshots/pt-BR/classic/calendario.png) | ![Finanças](docs/screenshots/pt-BR/classic/financas.png) | ![Estatísticas](docs/screenshots/pt-BR/classic/estatisticas.png) | ![Conteúdo](docs/screenshots/pt-BR/classic/conteudo.png) |
 
 ### Tema Violet Aero
 
@@ -33,6 +34,8 @@ Além do visual escuro Clássico, há o tema Violet Aero: vidro roxo sobre um fu
 | ![Hoje, tema Violet Aero](docs/screenshots/pt-BR/aero/hoje.png) | ![Calendário, tema Violet Aero](docs/screenshots/pt-BR/aero/calendario.png) |
 | **Finanças** | **Estatísticas** |
 | ![Finanças, tema Violet Aero](docs/screenshots/pt-BR/aero/financas.png) | ![Estatísticas, tema Violet Aero](docs/screenshots/pt-BR/aero/estatisticas.png) |
+| **Conteúdo** | |
+| ![Conteúdo, tema Violet Aero](docs/screenshots/pt-BR/aero/conteudo.png) | |
 
 ## Idioma e moeda
 
@@ -64,7 +67,7 @@ A versão atual e o botão **Verificar atualizações** ficam em *Configuraçõe
 
 | O quê | Onde |
 |---|---|
-| Notas, tarefas, finanças, anexos | `%AppData%\HelmetDesk\` |
+| Notas, tarefas, finanças, conteúdos, anexos | `%AppData%\HelmetDesk\` |
 | Logs, cópias de segurança automáticas, relatórios de problema | `%LocalAppData%\HelmetDesk.Local\` |
 
 - Nada é enviado para servidores. O app só usa a internet para **procurar atualizações** (nesta página do GitHub) e para **buscar o título e o ícone** dos links que você coloca nas notas.

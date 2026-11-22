@@ -572,7 +572,7 @@ namespace HelmetDesk
         }
 
         /// <summary>
-        /// Painel experimental "Conteúdo": the switch in Configurações, then the main flows. The switch and conteudo.json
+        /// Painel "Conteúdo": the switch in Configurações, then the main flows. The switch and conteudo.json
         /// are put back as they were afterwards.
         /// </summary>
         private async Task ContentTests(Action<string, bool> Check)
