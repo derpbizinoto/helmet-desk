@@ -147,8 +147,17 @@ namespace HelmetDesk
                 NewButtons.Children.Add(new TextBlock { Text = T("crie um canal em “Gerenciar canais”"), Style = Ui.St("MutedItalic"), FontSize = 13, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 8) });
         }
 
-        private void NewFor(Guid channelId)
+        /// <summary>
+        /// "Novo: &lt;canal&gt;". Clicked again while that channel's new item is still open, it closes the panel instead (like Nova nota /
+        /// Nova tarefa); the untitled item is dropped as on Cancelar.
+        /// </summary>
+        internal void NewFor(Guid channelId)
         {
+            if (PanelOpen && ItemForm.Visibility == Visibility.Visible && Vm.Form.IsNew && Vm.Form.Editing?.ChannelId == channelId)
+            {
+                ClosePanel();
+                return;
+            }
             var item = Vm.NewFor(channelId);
             if (item != null) OpenItemForm(item);
         }

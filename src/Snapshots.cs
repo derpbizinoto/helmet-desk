@@ -613,8 +613,9 @@ namespace HelmetDesk
                 await Snapshots.Idle(Dispatcher);
                 Check("conteúdo: Novo abre o formulário com foco no título e filtra o canal",
                     cv.PanelOpen && cv.ItemForm.Visibility == Visibility.Visible && cv.ItemTitle.IsKeyboardFocused && vm.ChannelFilter == ch.Id);
-                cv.ClosePanel();
-                Check("conteúdo: fechar sem título descarta o novo", vm.Data.Items.Count == n0);
+                cv.NewButtons.Children.OfType<Button>().First().RaiseEvent(click); // the same "Novo" again
+                await Snapshots.Idle(Dispatcher);
+                Check("conteúdo: clicar de novo no mesmo Novo fecha o painel e descarta o novo", !cv.PanelOpen && vm.Data.Items.Count == n0);
 
                 newBtn = cv.NewButtons.Children.OfType<Button>().First();
                 newBtn.RaiseEvent(click);
